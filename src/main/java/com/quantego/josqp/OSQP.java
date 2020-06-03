@@ -2,6 +2,49 @@ package com.quantego.josqp;
 
 public class OSQP {
 	
+	static final double RHO = 0.1;
+	static final double SIGMA = 1E-06;
+	static final int MAX_ITER = 4000;
+	static final double EPS_ABS = 1E-3;
+	static final double EPS_REL = 1E-3;
+	static final double EPS_PRIM_INF = 1E-4;
+	static final double EPS_DUAL_INF = 1E-4;
+	static final double ALPHA = 1.6;
+	static final LinSys.TYPE LINSYS_SOLVER = LinSys.TYPE.QLDL;
+
+	static final double RHO_MIN = 1e-06;
+	static final double RHO_MAX = 1e06;
+	static final double HO_EQ_OVER_RHO_INEQ = 1e03;
+	static final double RHO_TOL = 1e-04; ///< tolerance for detecting if an inequality is set to equality
+
+
+	static final double DELTA = 1.0e-6;
+	static final boolean POLISH = false;
+	static final int POLISH_REFINE_ITER = 3;
+	static final boolean VERBOSE = true;
+
+	static final int SCALED_TERMINATION = 0;
+	static final int CHECK_TERMINATION = 25;
+	static final int WARM_START = 1;
+	static final int SCALING = 10;
+
+	static final double MIN_SCALING = 1.0e-04; ///< minimum scaling value
+	static final double MAX_SCALING = 1.0e+04; ///< maximum scaling value
+
+
+	static final double OSQP_NULL = 0.0;
+	static final double OSQP_NAN = Double.NaN;
+	static final double OSQP_INFTY = Double.POSITIVE_INFINITY;
+
+	static final boolean ADAPTIVE_RHO = true;
+	static final int ADAPTIVE_RHO_INTERVAL = 0;
+	static final double ADAPTIVE_RHO_FRACTION= 0.4;         ///< fraction of setup time after which we update rho
+	static final int ADAPTIVE_RHO_MULTIPLE_TERMINATION = 4; ///< multiple of check_termination after which we update rho (if PROFILING disabled)
+	static final int ADAPTIVE_RHO_FIXED = 100;             ///< number of iterations after which we update rho if termination_check  and PROFILING are disabled
+	static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
+
+	static final int TIME_LIMIT = 0;  
+	
 	public static class Scaling {
 		double  c;    ///< cost function scaling
 		double[] D;    ///< primal variable scaling
@@ -9,6 +52,30 @@ public class OSQP {
 		double  cinv; ///< cost function rescaling
 		double[] Dinv; ///< primal variable rescaling
 		double[] Einv; ///< dual variable rescaling
+	}
+	
+	public enum Error {
+		OSQP_DATA_VALIDATION_ERROR,  /* Start errors from 1 */
+	    OSQP_SETTINGS_VALIDATION_ERROR,
+	    OSQP_LINSYS_SOLVER_LOAD_ERROR,
+	    OSQP_LINSYS_SOLVER_INIT_ERROR,
+	    OSQP_NONCVX_ERROR,
+	    OSQP_MEM_ALLOC_ERROR,
+	    OSQP_WORKSPACE_NOT_INIT_ERROR
+	}
+	
+	public enum Status {
+		DUAL_INFEASIBLE_INACCURATE,
+		PRIMAL_INFEASIBLE_INACCURATE, 
+		SOLVED_INACCURATE,
+		SOLVED,
+		MAX_ITER_REACHED,
+		PRIMAL_INFEASIBLE,   /* primal infeasible  */
+		DUAL_INFEASIBLE,  /* dual infeasible */
+		SIGINT,             /* interrupted by user */
+		TIME_LIMIT_REACHED,
+		NON_CVX,            /* problem non convex */
+		UNSOLVED  
 	}
 	
 	public static class Info {

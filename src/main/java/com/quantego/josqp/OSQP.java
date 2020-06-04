@@ -1,5 +1,7 @@
 package com.quantego.josqp;
 
+import java.util.Arrays;
+
 public class OSQP {
 	
 	static final double RHO = 0.1;
@@ -14,7 +16,7 @@ public class OSQP {
 
 	static final double RHO_MIN = 1e-06;
 	static final double RHO_MAX = 1e06;
-	static final double HO_EQ_OVER_RHO_INEQ = 1e03;
+	static final double RHO_EQ_OVER_RHO_INEQ = 1e03;
 	static final double RHO_TOL = 1e-04; ///< tolerance for detecting if an inequality is set to equality
 
 
@@ -163,6 +165,7 @@ public class OSQP {
 		double[] y; ///< Lagrange multiplier associated to \f$l <= Ax <= u\f$
 	}
 	
+	
 	public static class Workspace {
 		/// Problem data to work on (possibly scaled)
 		Data data;
@@ -260,7 +263,82 @@ public class OSQP {
 	Workspace work;
 	
 	public OSQP(Data data, Settings settings) {
-		//TODO
+		this.work = new Workspace();
+		work.data = data;
+		//TODO: C code creates a deep copy of the data, needed?
+		work.rho_vec = new double[data.m];
+		work.rho_inv_vec = new double[data.m];
+		work.constr_type = new int[data.m]; //maybe use byte->char here or an enum
+		work.x = new double[data.n];
+		work.z = new double[data.m];
+		work.xz_tilde = new double[data.n+data.m];
+		work.x_prev = new double[data.n];
+		work.z_prev = new double[data.m];
+		work.y = new double[data.m];
+		//cold_start(work); not needed, since vars are zero by default
+		// Primal and dual residuals variables
+		work.Ax = new double[data.m];
+		work.Px = new double[data.n];
+		work.Aty = new double[data.n];
+		 // Primal infeasibility variables
+		work.delta_y = new double[data.m];
+		work.Atdelta_y = new double[data.n];
+		// Dual infeasibility variables
+		work.delta_x = new double[data.n];
+		work.Pdelta_x = new double[data.n];
+		work.Adelta_x = new double[data.m];
+		// Settings
+		work.settings = settings;
+		// Perform scaling
+		if(settings.scaling!=0) {
+			// Allocate scaling structure
+		    work.scaling = new OSQP.Scaling();
+		    work.scaling.D    = new double[data.n];
+		    work.scaling.Dinv = new double[data.n];
+		    work.scaling.E    = new double[data.m];
+		    work.scaling.Einv = new double[data.m];
+
+		    // Allocate workspace variables used in scaling
+		    work.D_temp   = new double[data.n];
+		    work.D_temp_A = new double[data.n];
+		    work.E_temp   = new double[data.m];
+
+		    // Scale data
+		    Scaling.scale_data(work);
+		  }
+		// Set type of constraints
+		set_rho_vec(work);
+		// Load linear system solver
+		work.linsys_solver = work.settings.linsys_solver.get(
+				work.data.P, work.data.A,
+                work.settings.sigma, work.rho_vec,
+                work.settings.linsys_solver, 0
+                );
+		
+		// Initialize active constraints structure
+		work.pol = new OSQP.Polish();
+		work.pol.A_to_Alow = new int[data.m];
+		work.pol.Aupp_to_A = new int[data.m];
+		work.pol.A_to_Alow = new int[data.m];
+		work.pol.A_to_Aupp = new int[data.m];
+		work.pol.x = new double[data.n];
+		work.pol.z = new double[data.m];
+		work.pol.y = new double[data.m];
+		
+		// Allocate solution
+		work.solution = new OSQP.Solution();
+		work.solution.x = new double[data.n];
+		work.solution.y = new double[data.m];
+		
+		work.info = new OSQP.Info();
+		work.info.status = Status.UNSOLVED;
+		
+		//for profiling
+		work.first_run = true;
+		work.info.setup_time = System.currentTimeMillis();
+		
+		work.info.rho_estimate = work.settings.rho;
+		
 	}
 	
 	public void setWorkspace(Workspace work) {
@@ -285,7 +363,8 @@ public class OSQP {
 
 
 		// Initialize variables (cold start or warm start depending on settings)
-		if (!work.settings.warm_start) Auxil.cold_start(work);  // If not warm start ->
+		if (!work.settings.warm_start) 
+			cold_start(work);  // If not warm start ->
 		                                                      // set x, z, y to zero
 
 		// Main ADMM algorithm
@@ -297,16 +376,12 @@ public class OSQP {
 		    /* ADMM STEPS */
 		    /* Compute \tilde{x}^{k+1}, \tilde{z}^{k+1} */
 		    Auxil.update_xz_tilde(work);
-
 		    /* Compute x^{k+1} */
 		    Auxil.update_x(work);
-
 		    /* Compute z^{k+1} */
 		    Auxil.update_z(work);
-
 		    /* Compute y^{k+1} */
 		    Auxil.update_y(work);
-		    
 		    can_check_termination = work.settings.check_termination>0 &&
                     (iter % work.settings.check_termination == 0);
 		    
@@ -329,13 +404,10 @@ public class OSQP {
 			        // Information has not been computed before for termination check
 			        update_info(work, iter, compute_cost_function, 0);
 			      }
-	
 			      // Actually update rho
 			      if (adapt_rho(work)) 
-			        throw new IllegalStateException("Failed rho update");
+			    	  throw new IllegalStateException("Failed rho update");
 		    }
-
-
 		  }        // End of ADMM for loop
 
 
@@ -343,24 +415,16 @@ public class OSQP {
 		  // during last iteration (max_iter reached or check_termination disabled)
 		  if (!can_check_termination) {
 		    /* Update information */
-
-
 		    // If no printing is enabled, update info directly
 		    update_info(work, iter - 1, compute_cost_function, 0);
-
-
-
 		    /* Check whether a termination criterion is triggered */
 		    check_termination(work, 0);
 		  }
-
 		  // Compute objective value in case it was not
 		  // computed during the iterations
 		  if (!compute_cost_function && has_solution(work.info)){
 		    work.info.obj_val = compute_obj_val(work, work.x);
 		  }
-
-
 
 		  /* if max iterations reached, change status accordingly */
 		  if (work.info.status_val == Status.UNSOLVED) {
@@ -369,27 +433,15 @@ public class OSQP {
 		    }
 		  }
 
-
-
 		  /* Update rho estimate */
 		  work.info.rho_estimate = compute_rho_estimate(work);
-
-
-
 
 		  // Polish the obtained solution
 		  if (work.settings.polish && (work.info.status_val == OSQP_SOLVED))
 		    polish(work);
 
-
-
-
-
 		  // Store solution
 		  store_solution(work);
-
-
-
 
 		  return exitflag;
 	}
@@ -496,6 +548,107 @@ public class OSQP {
 		    }
 		    work.info.obj_val = -OSQP_INFTY;
 		    exitflag            = 1;
+		  }
+
+		  return exitflag;
+		}
+	
+	void cold_start(OSQP.Workspace work) {
+		  Arrays.fill(work.x, 0);
+		  Arrays.fill(work.z, 0);
+		  Arrays.fill(work.y, 0);
+		}
+	
+	double compute_rho_estimate(Workspace work) {
+		  int   n, m;                       // Dimensions
+		  double pri_res, dua_res;           // Primal and dual residuals
+		  double pri_res_norm, dua_res_norm; // Normalization for the residuals
+		  double temp_res_norm;              // Temporary residual norm
+		  double rho_estimate;               // Rho estimate value
+
+		  // Get problem dimensions
+		  n = work.data.n;
+		  m = work.data.m;
+
+		  // Get primal and dual residuals
+		  pri_res = LinAlg.vec_norm_inf(work.z_prev, m);
+		  dua_res = LinAlg.vec_norm_inf(work.x_prev, n);
+
+		  // Normalize primal residual
+		  pri_res_norm  = LinAlg.vec_norm_inf(work.z, m);           // ||z||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Ax, m);          // ||Ax||
+		  pri_res_norm  = Math.max(pri_res_norm, temp_res_norm); // max (||z||,||Ax||)
+		  pri_res      /= (pri_res_norm + 1e-10);             // Normalize primal
+		                                                      // residual (prevent 0
+		                                                      // division)
+
+		  // Normalize dual residual
+		  dua_res_norm  = LinAlg.vec_norm_inf(work.data.q, n);     // ||q||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Aty, n);         // ||A' y||
+		  dua_res_norm  = Math.max(dua_res_norm, temp_res_norm);
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Px, n);          //  ||P x||
+		  dua_res_norm  = Math.max(dua_res_norm, temp_res_norm); // max(||q||,||A' y||,||P
+		                                                      // x||)
+		  dua_res      /= (dua_res_norm + 1e-10);             // Normalize dual residual
+		                                                      // (prevent 0 division)
+
+
+		  // Return rho estimate
+		  rho_estimate = work.settings.rho * Math.sqrt(pri_res / (dua_res + 1e-10)); // (prevent
+		                                                                            // 0
+		                                                                            // division)
+		  rho_estimate = Math.min(Math.max(rho_estimate, RHO_MIN), RHO_MAX);              // Constrain
+		                                                                            // rho
+		                                                                            // values
+		  return rho_estimate;
+		}
+	
+	int osqp_update_rho(Workspace work, double rho_new) {
+		  int exitflag, i;
+
+		  // Check value of rho
+		  if (rho_new <= 0) {
+		    throw new IllegalStateException("rho must be positive");
+		  }
+
+
+		  // Update rho in settings
+		  work.settings.rho = Math.min(Math.max(rho_new, RHO_MIN), RHO_MAX);
+
+		  // Update rho_vec and rho_inv_vec
+		  for (i = 0; i < work.data.m; i++) {
+		    if (work.constr_type[i] == 0) {
+		      // Inequalities
+		      work.rho_vec[i]     = work.settings.rho;
+		      work.rho_inv_vec[i] = 1. / work.settings.rho;
+		    }
+		    else if (work.constr_type[i] == 1) {
+		      // Equalities
+		      work.rho_vec[i]     = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+		      work.rho_inv_vec[i] = 1. / work.rho_vec[i];
+		    }
+		  }
+
+		  // Update rho_vec in KKT matrix
+		  exitflag = work.linsys_solver.update_rho_vec(work.linsys_solver,
+		                                                 work.rho_vec);
+
+
+		  return exitflag;
+		}
+	
+	int adapt_rho(Workspace work) {
+		  int   exitflag; // Exitflag
+		  double rho_new = compute_rho_estimate(work);
+
+		  // Set rho estimate in info
+		  work.info.rho_estimate = rho_new;
+
+		  // Check if the new rho is large or small enough and update it in case
+		  if ((rho_new > work.settings.rho * work.settings.adaptive_rho_tolerance) ||
+		      (rho_new < work.settings.rho /  work.settings.adaptive_rho_tolerance)) {
+		    exitflag = osqp_update_rho(work, rho_new);
+		    work.info.rho_updates ++;
 		  }
 
 		  return exitflag;

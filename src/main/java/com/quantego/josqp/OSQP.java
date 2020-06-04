@@ -79,18 +79,15 @@ public class OSQP {
 	}
 	
 	public static class Info {
-		public enum STATUS {
-			SOLVED, UNBOUNDED, INFEASIBLE, NOT_CONVERGED, ERROR
-		}
 		
 		public int iter;          ///< number of iterations taken
-		public STATUS status;     ///< status string, e.g. 'solved'
+		public Status status;     ///< status string, e.g. 'solved'
 		public int status_val;    ///< status as c_int, defined in constants.h
 
 		public int status_polish; ///< polish status: successful (1), unperformed (0), (-1) unsuccessful
 
-		public float obj_val;     ///< primal objective
-		public float pri_res;     ///< norm of primal residual
+		public double obj_val;     ///< primal objective
+		public double pri_res;     ///< norm of primal residual
 		public double dua_res;    ///< norm of dual residual
 
 		public double setup_time;  ///< time taken for setup phase (seconds)
@@ -144,9 +141,9 @@ public class OSQP {
 
 		boolean verbose;                         ///< boolean, write out progress
 
-		int scaled_termination;              ///< boolean, use scaled termination criteria
+		boolean scaled_termination;              ///< boolean, use scaled termination criteria
 		int check_termination;               ///< integer, check termination interval; if 0, then termination checking is disabled
-		int warm_start;                      ///< boolean, warm start
+		boolean warm_start;                      ///< boolean, warm start
 
 		double time_limit;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
 	}
@@ -257,5 +254,251 @@ public class OSQP {
 		int rho_update_from_solve;
 
 	}
+	
+	Data data;
+	Settings settings;
+	Workspace work;
+	
+	public OSQP(Data data, Settings settings) {
+		//TODO
+	}
+	
+	public void setWorkspace(Workspace work) {
+		this.work = work;
+	}
+	
+	public Workspace getWorkspace() {
+		return work;
+	}
+	
+	public int solve() {
+		int exitflag = 0;
+		int iter = 0;
+		boolean compute_cost_function = work.settings.verbose; // Boolean: compute the cost function in the loop or not
+		boolean can_check_termination; // Boolean: check termination or not
+		double temp_run_time;       // Temporary variable to store current run time
+		if (work.clear_update_time == 1)
+		    work.info.update_time = 0.0;
+		work.rho_update_from_solve = 1;
+
+		//TODO: timer
+
+
+		// Initialize variables (cold start or warm start depending on settings)
+		if (!work.settings.warm_start) Auxil.cold_start(work);  // If not warm start ->
+		                                                      // set x, z, y to zero
+
+		// Main ADMM algorithm
+		for (iter = 1; iter <= work.settings.max_iter; iter++) {
+		    // Update x_prev, z_prev (preallocated, no malloc)
+		    //swap_vectors(&(work.x), &(work.x_prev));
+		    //swap_vectors(&(work.z), &(work.z_prev));
+
+		    /* ADMM STEPS */
+		    /* Compute \tilde{x}^{k+1}, \tilde{z}^{k+1} */
+		    Auxil.update_xz_tilde(work);
+
+		    /* Compute x^{k+1} */
+		    Auxil.update_x(work);
+
+		    /* Compute z^{k+1} */
+		    Auxil.update_z(work);
+
+		    /* Compute y^{k+1} */
+		    Auxil.update_y(work);
+		    
+		    can_check_termination = work.settings.check_termination>0 &&
+                    (iter % work.settings.check_termination == 0);
+		    
+		    if (can_check_termination) {
+		        // Update information and compute also objective value
+		        update_info(work, iter, compute_cost_function, 0);
+
+		        // Check algorithm termination
+		        if (check_termination(work, 0)) {
+		          // Terminate algorithm
+		          break;
+		        }
+		      }
+		    // Adapt rho
+		    if (work.settings.adaptive_rho &&
+		        work.settings.adaptive_rho_interval>0 &&
+		        (iter % work.settings.adaptive_rho_interval == 0))  {
+		      // Update info with the residuals if it hasn't been done before
+			    if (!can_check_termination) {
+			        // Information has not been computed before for termination check
+			        update_info(work, iter, compute_cost_function, 0);
+			      }
+	
+			      // Actually update rho
+			      if (adapt_rho(work)) 
+			        throw new IllegalStateException("Failed rho update");
+		    }
+
+
+		  }        // End of ADMM for loop
+
+
+		  // Update information and check termination condition if it hasn't been done
+		  // during last iteration (max_iter reached or check_termination disabled)
+		  if (!can_check_termination) {
+		    /* Update information */
+
+
+		    // If no printing is enabled, update info directly
+		    update_info(work, iter - 1, compute_cost_function, 0);
+
+
+
+		    /* Check whether a termination criterion is triggered */
+		    check_termination(work, 0);
+		  }
+
+		  // Compute objective value in case it was not
+		  // computed during the iterations
+		  if (!compute_cost_function && has_solution(work.info)){
+		    work.info.obj_val = compute_obj_val(work, work.x);
+		  }
+
+
+
+		  /* if max iterations reached, change status accordingly */
+		  if (work.info.status_val == Status.UNSOLVED) {
+		    if (!check_termination(work, 1)) { // Try to check for approximate
+		      work.info = Status.MAX_ITER_REACHED;
+		    }
+		  }
+
+
+
+		  /* Update rho estimate */
+		  work.info.rho_estimate = compute_rho_estimate(work);
+
+
+
+
+		  // Polish the obtained solution
+		  if (work.settings.polish && (work.info.status_val == OSQP_SOLVED))
+		    polish(work);
+
+
+
+
+
+		  // Store solution
+		  store_solution(work);
+
+
+
+
+		  return exitflag;
+	}
+	
+	int check_termination(boolean approximate) {
+		  double eps_prim, eps_dual, eps_prim_inf, eps_dual_inf;
+		  int   exitflag;
+		  boolean   prim_res_check, dual_res_check, prim_inf_check, dual_inf_check;
+		  double eps_abs, eps_rel;
+
+		  // Initialize variables to 0
+		  exitflag       = 0;
+		  prim_res_check = false; dual_res_check = false;
+		  prim_inf_check = false; dual_inf_check = false;
+
+		  // Initialize tolerances
+		  eps_abs      = work.settings.eps_abs;
+		  eps_rel      = work.settings.eps_rel;
+		  eps_prim_inf = work.settings.eps_prim_inf;
+		  eps_dual_inf = work.settings.eps_dual_inf;
+
+		  // If residuals are too large, the problem is probably non convex
+		  if ((work.info.pri_res > OSQP_INFTY) ||
+		      (work.info.dua_res > OSQP_INFTY)){
+		    // Looks like residuals are diverging. Probably the problem is non convex!
+		    // Terminate and report it
+		    work.info.status = Status.NON_CVX;
+		    work.info.obj_val = OSQP_NAN;
+		    return 1;
+		  }
+
+		  // If approximate solution required, increase tolerances by 10
+		  if (approximate) {
+		    eps_abs      *= 10;
+		    eps_rel      *= 10;
+		    eps_prim_inf *= 10;
+		    eps_dual_inf *= 10;
+		  }
+
+		  // Check residuals
+		  if (work.data.m == 0) {
+		    prim_res_check = true; // No constraints -> Primal feasibility always satisfied
+		  }
+		  else {
+		    // Compute primal tolerance
+		    eps_prim = compute_pri_tol(work, eps_abs, eps_rel);
+
+		    // Primal feasibility check
+		    if (work.info.pri_res < eps_prim) {
+		      prim_res_check = true;
+		    } else {
+		      // Primal infeasibility check
+		      prim_inf_check = is_primal_infeasible(work, eps_prim_inf);
+		    }
+		  } // End check if m == 0
+
+		  // Compute dual tolerance
+		  eps_dual = compute_dua_tol(work, eps_abs, eps_rel);
+
+		  // Dual feasibility check
+		  if (work.info.dua_res < eps_dual) {
+		    dual_res_check = true;
+		  } else {
+		    // Check dual infeasibility
+		    dual_inf_check = is_dual_infeasible(work, eps_dual_inf);
+		  }
+
+		  // Compare checks to determine solver status
+		  if (prim_res_check && dual_res_check) {
+		    // Update final information
+		    if (approximate) {
+		      work.info = Status.SOLVED_INACCURATE;
+		    } else {
+		      work.info = Status.SOLVED;
+		    }
+		    exitflag = 1;
+		  }
+		  else if (prim_inf_check) {
+		    // Update final information
+		    if (approximate) {
+		      work.info = Status.PRIMAL_INFEASIBLE_INACCURATE;
+		    } else {
+		      work.info = Status.PRIMAL_INFEASIBLE;
+		    }
+
+		    if (work.settings.scaling!=0 && !work.settings.scaled_termination) {
+		      // Update infeasibility certificate
+		      vec_ew_prod(work.scaling.E, work.delta_y, work.delta_y, work.data.m);
+		    }
+		    work.info.obj_val = OSQP_INFTY;
+		    exitflag            = 1;
+		  }
+		  else if (dual_inf_check) {
+		    // Update final information
+		    if (approximate) {
+		    	work.info = Status.DUAL_INFEASIBLE_INACCURATE;
+		    } else {
+		    	work.info = Status.DUAL_INFEASIBLE;
+		    }
+
+		    if (work.settings.scaling!=0 && !work.settings.scaled_termination) {
+		      // Update infeasibility certificate
+		      vec_ew_prod(work.scaling.D, work.delta_x, work.delta_x, work.data.n);
+		    }
+		    work.info.obj_val = -OSQP_INFTY;
+		    exitflag            = 1;
+		  }
+
+		  return exitflag;
+		}
 
 }

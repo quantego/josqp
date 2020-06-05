@@ -47,7 +47,7 @@ public class OSQP {
 
 	static final int TIME_LIMIT = 0;  
 	
-	public static class Scaling {
+	public static class ScaledProblemData {
 		double  c;    ///< cost function scaling
 		double[] D;    ///< primal variable scaling
 		double[] E;    ///< dual variable scaling
@@ -84,7 +84,7 @@ public class OSQP {
 		
 		public int iter;          ///< number of iterations taken
 		public Status status;     ///< status string, e.g. 'solved'
-		public int status_val;    ///< status as c_int, defined in constants.h
+		public Status status_val;    ///< status as c_int, defined in constants.h
 
 		public int status_polish; ///< polish status: successful (1), unperformed (0), (-1) unsuccessful
 
@@ -102,8 +102,8 @@ public class OSQP {
 		public double rho_estimate; ///< best rho estimate so far from residuals
 	}
 	
-	public static class Polish {
-		CSC Ared;          ///< active rows of A
+	public static class PolishedData {
+		CSCMatrix Ared;          ///< active rows of A
 		///<    Ared = vstack[Alow, Aupp]
 		int n_low;     ///< number of lower-active rows
 		int n_upp;     ///< number of upper-active rows
@@ -153,8 +153,8 @@ public class OSQP {
 	public static class Data {
 		int n; ///< number of variables n
 		int m; ///< number of constraints m
-		CSC     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
-		CSC     A; ///< linear constraints matrix A in csc format (size m x n)
+		CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
+		CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
 		double[] q; ///< dense array for linear part of cost function (size n)
 		double[] l; ///< dense array for lower bound (size m)
 		double[] u; ///< dense array for upper bound (size m)
@@ -174,7 +174,7 @@ public class OSQP {
 		LinSys linsys_solver;
 
 		  /// Polish structure
-		Polish pol;
+		PolishedData pol;
 
 		  /**
 		   * @name Vector used to store a vectorized rho parameter
@@ -242,7 +242,7 @@ public class OSQP {
 		/** @} */
 
 		Settings settings; ///< problem settings
-		Scaling  scaling;  ///< scaling vectors
+		ScaledProblemData  scaling;  ///< scaling vectors
 		Solution solution; ///< problem solution
 		Info     info;     ///< solver information
 
@@ -292,7 +292,7 @@ public class OSQP {
 		// Perform scaling
 		if(settings.scaling!=0) {
 			// Allocate scaling structure
-		    work.scaling = new OSQP.Scaling();
+		    work.scaling = new OSQP.ScaledProblemData();
 		    work.scaling.D    = new double[data.n];
 		    work.scaling.Dinv = new double[data.n];
 		    work.scaling.E    = new double[data.m];
@@ -316,7 +316,7 @@ public class OSQP {
                 );
 		
 		// Initialize active constraints structure
-		work.pol = new OSQP.Polish();
+		work.pol = new OSQP.PolishedData();
 		work.pol.A_to_Alow = new int[data.m];
 		work.pol.Aupp_to_A = new int[data.m];
 		work.pol.A_to_Alow = new int[data.m];
@@ -353,8 +353,7 @@ public class OSQP {
 		int exitflag = 0;
 		int iter = 0;
 		boolean compute_cost_function = work.settings.verbose; // Boolean: compute the cost function in the loop or not
-		boolean can_check_termination; // Boolean: check termination or not
-		double temp_run_time;       // Temporary variable to store current run time
+		boolean can_check_termination = false; // Boolean: check termination or not
 		if (work.clear_update_time == 1)
 		    work.info.update_time = 0.0;
 		work.rho_update_from_solve = 1;
@@ -375,22 +374,22 @@ public class OSQP {
 
 		    /* ADMM STEPS */
 		    /* Compute \tilde{x}^{k+1}, \tilde{z}^{k+1} */
-		    Auxil.update_xz_tilde(work);
+		    update_xz_tilde(work);
 		    /* Compute x^{k+1} */
-		    Auxil.update_x(work);
+		    update_x(work);
 		    /* Compute z^{k+1} */
-		    Auxil.update_z(work);
+		    update_z(work);
 		    /* Compute y^{k+1} */
-		    Auxil.update_y(work);
+		    update_y(work);
 		    can_check_termination = work.settings.check_termination>0 &&
                     (iter % work.settings.check_termination == 0);
 		    
 		    if (can_check_termination) {
 		        // Update information and compute also objective value
-		        update_info(work, iter, compute_cost_function, 0);
+		        update_info(work, iter, compute_cost_function, false);
 
 		        // Check algorithm termination
-		        if (check_termination(work, 0)) {
+		        if (check_termination(work, false)) {
 		          // Terminate algorithm
 		          break;
 		        }
@@ -402,10 +401,10 @@ public class OSQP {
 		      // Update info with the residuals if it hasn't been done before
 			    if (!can_check_termination) {
 			        // Information has not been computed before for termination check
-			        update_info(work, iter, compute_cost_function, 0);
+			        update_info(work, iter, compute_cost_function, false);
 			      }
 			      // Actually update rho
-			      if (adapt_rho(work)) 
+			      if (adapt_rho(work)!=0) 
 			    	  throw new IllegalStateException("Failed rho update");
 		    }
 		  }        // End of ADMM for loop
@@ -416,9 +415,9 @@ public class OSQP {
 		  if (!can_check_termination) {
 		    /* Update information */
 		    // If no printing is enabled, update info directly
-		    update_info(work, iter - 1, compute_cost_function, 0);
+		    update_info(work, iter - 1, compute_cost_function, false);
 		    /* Check whether a termination criterion is triggered */
-		    check_termination(work, 0);
+		    check_termination(work, false);
 		  }
 		  // Compute objective value in case it was not
 		  // computed during the iterations
@@ -428,8 +427,8 @@ public class OSQP {
 
 		  /* if max iterations reached, change status accordingly */
 		  if (work.info.status_val == Status.UNSOLVED) {
-		    if (!check_termination(work, 1)) { // Try to check for approximate
-		      work.info = Status.MAX_ITER_REACHED;
+		    if (!check_termination(work, true)) { // Try to check for approximate
+		      work.info.status = Status.MAX_ITER_REACHED;
 		    }
 		  }
 
@@ -437,8 +436,8 @@ public class OSQP {
 		  work.info.rho_estimate = compute_rho_estimate(work);
 
 		  // Polish the obtained solution
-		  if (work.settings.polish && (work.info.status_val == OSQP_SOLVED))
-		    polish(work);
+		  if (work.settings.polish && (work.info.status_val == Status.SOLVED))
+		    Polish.polish(work);
 
 		  // Store solution
 		  store_solution(work);
@@ -446,147 +445,143 @@ public class OSQP {
 		  return exitflag;
 	}
 	
-	int check_termination(boolean approximate) {
-		  double eps_prim, eps_dual, eps_prim_inf, eps_dual_inf;
-		  int   exitflag;
-		  boolean   prim_res_check, dual_res_check, prim_inf_check, dual_inf_check;
-		  double eps_abs, eps_rel;
-
-		  // Initialize variables to 0
-		  exitflag       = 0;
-		  prim_res_check = false; dual_res_check = false;
-		  prim_inf_check = false; dual_inf_check = false;
-
-		  // Initialize tolerances
-		  eps_abs      = work.settings.eps_abs;
-		  eps_rel      = work.settings.eps_rel;
-		  eps_prim_inf = work.settings.eps_prim_inf;
-		  eps_dual_inf = work.settings.eps_dual_inf;
-
-		  // If residuals are too large, the problem is probably non convex
-		  if ((work.info.pri_res > OSQP_INFTY) ||
-		      (work.info.dua_res > OSQP_INFTY)){
-		    // Looks like residuals are diverging. Probably the problem is non convex!
-		    // Terminate and report it
-		    work.info.status = Status.NON_CVX;
-		    work.info.obj_val = OSQP_NAN;
-		    return 1;
-		  }
-
-		  // If approximate solution required, increase tolerances by 10
-		  if (approximate) {
-		    eps_abs      *= 10;
-		    eps_rel      *= 10;
-		    eps_prim_inf *= 10;
-		    eps_dual_inf *= 10;
-		  }
-
-		  // Check residuals
-		  if (work.data.m == 0) {
-		    prim_res_check = true; // No constraints -> Primal feasibility always satisfied
-		  }
-		  else {
-		    // Compute primal tolerance
-		    eps_prim = compute_pri_tol(work, eps_abs, eps_rel);
-
-		    // Primal feasibility check
-		    if (work.info.pri_res < eps_prim) {
-		      prim_res_check = true;
-		    } else {
-		      // Primal infeasibility check
-		      prim_inf_check = is_primal_infeasible(work, eps_prim_inf);
-		    }
-		  } // End check if m == 0
-
-		  // Compute dual tolerance
-		  eps_dual = compute_dua_tol(work, eps_abs, eps_rel);
-
-		  // Dual feasibility check
-		  if (work.info.dua_res < eps_dual) {
-		    dual_res_check = true;
-		  } else {
-		    // Check dual infeasibility
-		    dual_inf_check = is_dual_infeasible(work, eps_dual_inf);
-		  }
-
-		  // Compare checks to determine solver status
-		  if (prim_res_check && dual_res_check) {
-		    // Update final information
-		    if (approximate) {
-		      work.info = Status.SOLVED_INACCURATE;
-		    } else {
-		      work.info = Status.SOLVED;
-		    }
-		    exitflag = 1;
-		  }
-		  else if (prim_inf_check) {
-		    // Update final information
-		    if (approximate) {
-		      work.info = Status.PRIMAL_INFEASIBLE_INACCURATE;
-		    } else {
-		      work.info = Status.PRIMAL_INFEASIBLE;
-		    }
-
-		    if (work.settings.scaling!=0 && !work.settings.scaled_termination) {
-		      // Update infeasibility certificate
-		      vec_ew_prod(work.scaling.E, work.delta_y, work.delta_y, work.data.m);
-		    }
-		    work.info.obj_val = OSQP_INFTY;
-		    exitflag            = 1;
-		  }
-		  else if (dual_inf_check) {
-		    // Update final information
-		    if (approximate) {
-		    	work.info = Status.DUAL_INFEASIBLE_INACCURATE;
-		    } else {
-		    	work.info = Status.DUAL_INFEASIBLE;
-		    }
-
-		    if (work.settings.scaling!=0 && !work.settings.scaled_termination) {
-		      // Update infeasibility certificate
-		      vec_ew_prod(work.scaling.D, work.delta_x, work.delta_x, work.data.n);
-		    }
-		    work.info.obj_val = -OSQP_INFTY;
-		    exitflag            = 1;
-		  }
-
-		  return exitflag;
-		}
+//	static int check_termination(OSQP.Workspace work, boolean approximate) {
+//		  double eps_prim, eps_dual, eps_prim_inf, eps_dual_inf;
+//		  int   exitflag;
+//		  boolean   prim_res_check, dual_res_check, prim_inf_check, dual_inf_check;
+//		  double eps_abs, eps_rel;
+//
+//		  // Initialize variables to 0
+//		  exitflag       = 0;
+//		  prim_res_check = false; dual_res_check = false;
+//		  prim_inf_check = false; dual_inf_check = false;
+//
+//		  // Initialize tolerances
+//		  eps_abs      = work.settings.eps_abs;
+//		  eps_rel      = work.settings.eps_rel;
+//		  eps_prim_inf = work.settings.eps_prim_inf;
+//		  eps_dual_inf = work.settings.eps_dual_inf;
+//
+//		  // If residuals are too large, the problem is probably non convex
+//		  if ((work.info.pri_res > OSQP_INFTY) ||
+//		      (work.info.dua_res > OSQP_INFTY)){
+//		    // Looks like residuals are diverging. Probably the problem is non convex!
+//		    // Terminate and report it
+//		    work.info.status = Status.NON_CVX;
+//		    work.info.obj_val = OSQP_NAN;
+//		    return 1;
+//		  }
+//
+//		  // If approximate solution required, increase tolerances by 10
+//		  if (approximate) {
+//		    eps_abs      *= 10;
+//		    eps_rel      *= 10;
+//		    eps_prim_inf *= 10;
+//		    eps_dual_inf *= 10;
+//		  }
+//
+//		  // Check residuals
+//		  if (work.data.m == 0) {
+//		    prim_res_check = true; // No constraints -> Primal feasibility always satisfied
+//		  }
+//		  else {
+//		    // Compute primal tolerance
+//		    eps_prim = compute_pri_tol(work, eps_abs, eps_rel);
+//
+//		    // Primal feasibility check
+//		    if (work.info.pri_res < eps_prim) {
+//		      prim_res_check = true;
+//		    } else {
+//		      // Primal infeasibility check
+//		      prim_inf_check = is_primal_infeasible(work, eps_prim_inf);
+//		    }
+//		  } // End check if m == 0
+//
+//		  // Compute dual tolerance
+//		  eps_dual = compute_dua_tol(work, eps_abs, eps_rel);
+//
+//		  // Dual feasibility check
+//		  if (work.info.dua_res < eps_dual) {
+//		    dual_res_check = true;
+//		  } else {
+//		    // Check dual infeasibility
+//		    dual_inf_check = is_dual_infeasible(work, eps_dual_inf);
+//		  }
+//
+//		  // Compare checks to determine solver status
+//		  if (prim_res_check && dual_res_check) {
+//		    // Update final information
+//		    if (approximate) {
+//		      work.info.status = Status.SOLVED_INACCURATE;
+//		    } else {
+//		      work.info.status = Status.SOLVED;
+//		    }
+//		    exitflag = 1;
+//		  }
+//		  else if (prim_inf_check) {
+//		    // Update final information
+//		    if (approximate) {
+//		      work.info.status = Status.PRIMAL_INFEASIBLE_INACCURATE;
+//		    } else {
+//		      work.info.status = Status.PRIMAL_INFEASIBLE;
+//		    }
+//
+//		    if (work.settings.scaling!=0 && !work.settings.scaled_termination) {
+//		      // Update infeasibility certificate
+//		    	LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.delta_y);
+//		    }
+//		    work.info.obj_val = OSQP_INFTY;
+//		    exitflag            = 1;
+//		  }
+//		  else if (dual_inf_check) {
+//		    // Update final information
+//		    if (approximate) {
+//		    	work.info.status = Status.DUAL_INFEASIBLE_INACCURATE;
+//		    } else {
+//		    	work.info.status = Status.DUAL_INFEASIBLE;
+//		    }
+//
+//		    if (work.settings.scaling!=0 && !work.settings.scaled_termination) {
+//		      // Update infeasibility certificate
+//		      LinAlg.vec_ew_prod(work.scaling.D, work.delta_x, work.delta_x);
+//		    }
+//		    work.info.obj_val = -OSQP_INFTY;
+//		    exitflag            = 1;
+//		  }
+//
+//		  return exitflag;
+//		}
 	
-	void cold_start(OSQP.Workspace work) {
+	static void cold_start(OSQP.Workspace work) {
 		  Arrays.fill(work.x, 0);
 		  Arrays.fill(work.z, 0);
 		  Arrays.fill(work.y, 0);
 		}
 	
-	double compute_rho_estimate(Workspace work) {
-		  int   n, m;                       // Dimensions
+	static double compute_rho_estimate(Workspace work) {
 		  double pri_res, dua_res;           // Primal and dual residuals
 		  double pri_res_norm, dua_res_norm; // Normalization for the residuals
 		  double temp_res_norm;              // Temporary residual norm
 		  double rho_estimate;               // Rho estimate value
 
-		  // Get problem dimensions
-		  n = work.data.n;
-		  m = work.data.m;
 
 		  // Get primal and dual residuals
-		  pri_res = LinAlg.vec_norm_inf(work.z_prev, m);
-		  dua_res = LinAlg.vec_norm_inf(work.x_prev, n);
+		  pri_res = LinAlg.vec_norm_inf(work.z_prev);
+		  dua_res = LinAlg.vec_norm_inf(work.x_prev);
 
 		  // Normalize primal residual
-		  pri_res_norm  = LinAlg.vec_norm_inf(work.z, m);           // ||z||
-		  temp_res_norm = LinAlg.vec_norm_inf(work.Ax, m);          // ||Ax||
+		  pri_res_norm  = LinAlg.vec_norm_inf(work.z);           // ||z||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Ax);          // ||Ax||
 		  pri_res_norm  = Math.max(pri_res_norm, temp_res_norm); // max (||z||,||Ax||)
 		  pri_res      /= (pri_res_norm + 1e-10);             // Normalize primal
 		                                                      // residual (prevent 0
 		                                                      // division)
 
 		  // Normalize dual residual
-		  dua_res_norm  = LinAlg.vec_norm_inf(work.data.q, n);     // ||q||
-		  temp_res_norm = LinAlg.vec_norm_inf(work.Aty, n);         // ||A' y||
+		  dua_res_norm  = LinAlg.vec_norm_inf(work.data.q);     // ||q||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Aty);         // ||A' y||
 		  dua_res_norm  = Math.max(dua_res_norm, temp_res_norm);
-		  temp_res_norm = LinAlg.vec_norm_inf(work.Px, n);          //  ||P x||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Px);          //  ||P x||
 		  dua_res_norm  = Math.max(dua_res_norm, temp_res_norm); // max(||q||,||A' y||,||P
 		                                                      // x||)
 		  dua_res      /= (dua_res_norm + 1e-10);             // Normalize dual residual
@@ -603,7 +598,7 @@ public class OSQP {
 		  return rho_estimate;
 		}
 	
-	int osqp_update_rho(Workspace work, double rho_new) {
+	static int osqp_update_rho(Workspace work, double rho_new) {
 		  int exitflag, i;
 
 		  // Check value of rho
@@ -635,10 +630,10 @@ public class OSQP {
 
 
 		  return exitflag;
-		}
+	}
 	
-	int adapt_rho(Workspace work) {
-		  int   exitflag; // Exitflag
+	static int adapt_rho(Workspace work) {
+		  int   exitflag = 0; // Exitflag
 		  double rho_new = compute_rho_estimate(work);
 
 		  // Set rho estimate in info
@@ -653,5 +648,624 @@ public class OSQP {
 
 		  return exitflag;
 		}
+	
+	static void set_rho_vec(Workspace work) {
+		  int i;
+
+		  work.settings.rho = Math.min(Math.max(work.settings.rho, RHO_MIN), RHO_MAX);
+
+		  for (i = 0; i < work.data.m; i++) {
+		    if ((work.data.l[i] < -OSQP_INFTY * MIN_SCALING) &&
+		        (work.data.u[i] > OSQP_INFTY * MIN_SCALING)) {
+		      // Loose bounds
+		      work.constr_type[i] = -1;
+		      work.rho_vec[i]     = RHO_MIN;
+		    } else if (work.data.u[i] - work.data.l[i] < RHO_TOL) {
+		      // Equality constraints
+		      work.constr_type[i] = 1;
+		      work.rho_vec[i]     = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+		    } else {
+		      // Inequality constraints
+		      work.constr_type[i] = 0;
+		      work.rho_vec[i]     = work.settings.rho;
+		    }
+		    work.rho_inv_vec[i] = 1. / work.rho_vec[i];
+		  }
+	}
+	
+	static int update_rho_vec(Workspace work) {
+		  int i, exitflag, constr_type_changed;
+
+		  exitflag            = 0;
+		  constr_type_changed = 0;
+
+		  for (i = 0; i < work.data.m; i++) {
+		    if ((work.data.l[i] < -OSQP_INFTY * MIN_SCALING) &&
+		        (work.data.u[i] > OSQP_INFTY * MIN_SCALING)) {
+		      // Loose bounds
+		      if (work.constr_type[i] != -1) {
+		        work.constr_type[i] = -1;
+		        work.rho_vec[i]     = RHO_MIN;
+		        work.rho_inv_vec[i] = 1. / RHO_MIN;
+		        constr_type_changed  = 1;
+		      }
+		    } else if (work.data.u[i] - work.data.l[i] < RHO_TOL) {
+		      // Equality constraints
+		      if (work.constr_type[i] != 1) {
+		        work.constr_type[i] = 1;
+		        work.rho_vec[i]     = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+		        work.rho_inv_vec[i] = 1. / work.rho_vec[i];
+		        constr_type_changed  = 1;
+		      }
+		    } else {
+		      // Inequality constraints
+		      if (work.constr_type[i] != 0) {
+		        work.constr_type[i] = 0;
+		        work.rho_vec[i]     = work.settings.rho;
+		        work.rho_inv_vec[i] = 1. / work.settings.rho;
+		        constr_type_changed  = 1;
+		      }
+		    }
+		  }
+		// Update rho_vec in KKT matrix if constraints type has changed
+		  if (constr_type_changed == 1) {
+		    exitflag = work.linsys_solver.update_rho_vec(work.linsys_solver,
+		                                                   work.rho_vec);
+		  }
+
+		  return exitflag;
+	}
+	
+	//TODO: need to see if this is what we want
+	static void swap_vectors(double[][] a, double[][] b) {
+		  double[] temp;
+
+		  temp = b[0];
+		  b[0]   = a[0];
+		  a[0]   = temp;
+		}
+	
+	static void compute_rhs(Workspace work) {
+		  int i; // Index
+
+		  for (i = 0; i < work.data.n; i++) {
+		    // Cycle over part related to x variables
+		    work.xz_tilde[i] = work.settings.sigma * work.x_prev[i] -
+		                        work.data.q[i];
+		  }
+
+		  for (i = 0; i < work.data.m; i++) {
+		    // Cycle over dual variable in the first step (nu)
+		    work.xz_tilde[i + work.data.n] = work.z_prev[i] - work.rho_inv_vec[i] *
+		                                        work.y[i];
+		  }
+		}
+	
+	static void update_xz_tilde(Workspace work) {
+		  // Compute right-hand side
+		  compute_rhs(work);
+
+		  // Solve linear system
+		  work.linsys_solver.solve(work.xz_tilde);
+		}
+
+	static void update_x(Workspace work) {
+		  int i;
+
+		  // update x
+		  for (i = 0; i < work.data.n; i++) {
+		    work.x[i] = work.settings.alpha * work.xz_tilde[i] +
+		                 (1.0 - work.settings.alpha) * work.x_prev[i];
+		  }
+
+		  // update delta_x
+		  for (i = 0; i < work.data.n; i++) {
+		    work.delta_x[i] = work.x[i] - work.x_prev[i];
+		  }
+		}
+
+		static void update_z(Workspace work) {
+		  int i;
+
+		  // update z
+		  for (i = 0; i < work.data.m; i++) {
+		    work.z[i] = work.settings.alpha * work.xz_tilde[i + work.data.n] +
+		                 (1.0 - work.settings.alpha) * work.z_prev[i] +
+		                 work.rho_inv_vec[i] * work.y[i];
+		  }
+
+		  // project z
+		  Projection.project(work, work.z);
+		}
+
+		static void update_y(Workspace work) {
+		  int i; // Index
+
+		  for (i = 0; i < work.data.m; i++) {
+		    work.delta_y[i] = work.rho_vec[i] *
+		                       (work.settings.alpha *
+		                        work.xz_tilde[i + work.data.n] +
+		                        (1.0 - work.settings.alpha) * work.z_prev[i] -
+		                        work.z[i]);
+		    work.y[i] += work.delta_y[i];
+		  }
+		}
+	
+		static double compute_obj_val(Workspace work, double[] x) {
+			  double obj_val;
+
+			  obj_val = LinAlg.quad_form(work.data.P, x) +
+					  LinAlg.vec_prod(work.data.q, x);
+
+			  if (work.settings.scaling>0) {
+			    obj_val *= work.scaling.cinv;
+			  }
+
+			  return obj_val;
+		}
+
+		static double compute_pri_res(Workspace work, double[] x, double[] z) {
+		  // NB: Use z_prev as working vector
+		  // pr = Ax - z
+
+			LinAlg.mat_vec(work.data.A, x, work.Ax, 0, 0 ); // Ax
+			LinAlg.vec_add_scaled(work.z_prev, work.Ax, z, -1.0);
+
+		  // If scaling active . rescale residual
+		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		    return LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z_prev);
+		  }
+
+		  // Return norm of the residual
+		  return LinAlg.vec_norm_inf(work.z_prev);
+		}
+
+		static double compute_pri_tol(Workspace work, double eps_abs, double eps_rel) {
+		  double max_rel_eps, temp_rel_eps;
+
+		  // max_rel_eps = max(||z||, ||A x||)
+		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		    // ||Einv * z||
+		    max_rel_eps =
+		    		LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z);
+
+		    // ||Einv * A * x||
+		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Einv,
+		                                       work.Ax);
+
+		    // Choose maximum
+		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
+		  } else { // No unscaling required
+		    // ||z||
+		    max_rel_eps = LinAlg.vec_norm_inf(work.z);
+
+		    // ||A * x||
+		    temp_rel_eps = LinAlg.vec_norm_inf(work.Ax);
+
+		    // Choose maximum
+		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
+		  }
+
+		  // eps_prim
+		  return eps_abs + eps_rel * max_rel_eps;
+		}
+
+		static double compute_dua_res(Workspace work, double[] x, double[] y) {
+		  // NB: Use x_prev as temporary vector
+		  // NB: Only upper triangular part of P is stored.
+		  // dr = q + A'*y + P*x
+
+		  // dr = q
+			LinAlg.prea_vec_copy(work.data.q, work.x_prev);
+
+		  // P * x (upper triangular part)
+			LinAlg.mat_vec(work.data.P, x, work.Px, 0, 0);
+
+		  // P' * x (lower triangular part with no diagonal)
+			LinAlg.mat_tpose_vec(work.data.P, x, work.Px,0, 1, true);
+
+		  // dr += P * x (full P matrix)
+			LinAlg.vec_add_scaled(work.x_prev, work.x_prev, work.Px, 1);
+
+		  // dr += A' * y
+		  if (work.data.m > 0) {
+			  LinAlg.mat_tpose_vec(work.data.A, y, work.Aty, 0, 0, false);
+			  LinAlg.vec_add_scaled(work.x_prev, work.x_prev, work.Aty, 1);
+		  }
+
+		  // If scaling active . rescale residual
+		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		    return work.scaling.cinv * LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
+		                                                     work.x_prev);
+		  }
+
+		  return LinAlg.vec_norm_inf(work.x_prev);
+		}
+
+		static double compute_dua_tol(Workspace work, double eps_abs, double eps_rel) {
+			double max_rel_eps, temp_rel_eps;
+
+		  // max_rel_eps = max(||q||, ||A' y|, ||P x||)
+		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		    // || Dinv q||
+		    max_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
+		                                      work.data.q);
+
+		    // || Dinv A' y ||
+		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
+		                                       work.Aty);
+		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
+
+		    // || Dinv P x||
+		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
+		                                       work.Px);
+		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
+
+		    // Multiply by cinv
+		    max_rel_eps *= work.scaling.cinv;
+		  } else { // No scaling required
+		    // ||q||
+		    max_rel_eps = LinAlg.vec_norm_inf(work.data.q);
+
+		    // ||A'*y||
+		    temp_rel_eps = LinAlg.vec_norm_inf(work.Aty);
+		    max_rel_eps  = Math.max(max_rel_eps, temp_rel_eps);
+
+		    // ||P*x||
+		    temp_rel_eps = LinAlg.vec_norm_inf(work.Px);
+		    max_rel_eps  = Math.max(max_rel_eps, temp_rel_eps);
+		  }
+
+		  // eps_dual
+		  return eps_abs + eps_rel * max_rel_eps;
+		}
+
+		static boolean is_primal_infeasible(Workspace work, double eps_prim_inf) {
+		  // This function checks for the primal infeasibility termination criteria.
+		  //
+		  // 1) A' * delta_y < eps * ||delta_y||
+		  //
+		  // 2) u'*max(delta_y, 0) + l'*min(delta_y, 0) < -eps * ||delta_y||
+		  //
+
+		  int i; // Index for loops
+		  double norm_delta_y;
+		  double ineq_lhs = 0.0;
+
+		  // Project delta_y onto the polar of the recession cone of [l,u]
+		  for (i = 0; i < work.data.m; i++) {
+		    if (work.data.u[i] > OSQP_INFTY * MIN_SCALING) {          // Infinite upper bound
+		      if (work.data.l[i] < -OSQP_INFTY * MIN_SCALING) {       // Infinite lower bound
+		        // Both bounds infinite
+		        work.delta_y[i] = 0.0;
+		      } else {
+		        // Only upper bound infinite
+		        work.delta_y[i] = Math.min(work.delta_y[i], 0.0);
+		      }
+		    } else if (work.data.l[i] < -OSQP_INFTY * MIN_SCALING) {  // Infinite lower bound
+		      // Only lower bound infinite
+		      work.delta_y[i] = Math.max(work.delta_y[i], 0.0);
+		    }
+		  }
+
+		  // Compute infinity norm of delta_y (unscale if necessary)
+		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		    // Use work.Adelta_x as temporary vector
+		    LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.Adelta_x);
+		    norm_delta_y = LinAlg.vec_norm_inf(work.Adelta_x);
+		  } else {
+		    norm_delta_y = LinAlg.vec_norm_inf(work.delta_y);
+		  }
+
+		  if (norm_delta_y > eps_prim_inf) { // ||delta_y|| > 0
+
+		    for (i = 0; i < work.data.m; i++) {
+		      ineq_lhs += work.data.u[i] * Math.max(work.delta_y[i], 0) + 
+		                  work.data.l[i] * Math.max(work.delta_y[i], 0);
+		    }
+
+		    // Check if the condition is satisfied: ineq_lhs < -eps
+		    if (ineq_lhs < -eps_prim_inf * norm_delta_y) {
+		      // Compute and return ||A'delta_y|| < eps_prim_inf
+		    	LinAlg.mat_tpose_vec(work.data.A, work.delta_y, work.Atdelta_y, 0,0, false);
+
+		      // Unscale if necessary
+		      if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		        LinAlg.vec_ew_prod(work.scaling.Dinv,
+		                    work.Atdelta_y,
+		                    work.Atdelta_y);
+		      }
+
+		      return LinAlg.vec_norm_inf(work.Atdelta_y) < eps_prim_inf * norm_delta_y;
+		    }
+		  }
+
+		  // Conditions not satisfied . not primal infeasible
+		  return false;
+		}
+
+		static boolean is_dual_infeasible(Workspace work, double eps_dual_inf) {
+		  // This function checks for the scaled dual infeasibility termination
+		  // criteria.
+		  //
+		  // 1) q * delta_x < - eps * || delta_x ||
+		  //
+		  // 2) ||P * delta_x || < eps * || delta_x ||
+		  //
+		  // 3) . (A * delta_x)_i > -eps * || delta_x ||,    l_i != -inf
+		  //    . (A * delta_x)_i <  eps * || delta_x ||,    u_i != inf
+		  //
+
+
+		  int   i; // Index for loops
+		  double norm_delta_x;
+		  double cost_scaling;
+
+		  // Compute norm of delta_x
+		  if (work.settings.scaling>0 && !work.settings.scaled_termination) { // Unscale
+		                                                                        // if
+		                                                                        // necessary
+		    norm_delta_x = LinAlg.vec_scaled_norm_inf(work.scaling.D,
+		                                       work.delta_x);
+		    cost_scaling = work.scaling.c;
+		  } else {
+		    norm_delta_x = LinAlg.vec_norm_inf(work.delta_x);
+		    cost_scaling = 1.0;
+		  }
+
+		  // Prevent 0 division || delta_x || > 0
+		  if (norm_delta_x > eps_dual_inf) {
+		    // Normalize delta_x by its norm
+
+		    /* vec_mult_scalar(work.delta_x, 1./norm_delta_x, work.data.n); */
+
+		    // Check first if q'*delta_x < 0
+		    if (LinAlg.vec_prod(work.data.q, work.delta_x) <
+		        -cost_scaling * eps_dual_inf * norm_delta_x) {
+		      // Compute product P * delta_x (NB: P is store in upper triangular form)
+		    LinAlg.mat_vec(work.data.P, work.delta_x, work.Pdelta_x, 0,0);
+		    LinAlg.mat_tpose_vec(work.data.P, work.delta_x, work.Pdelta_x, 0, 1, true);
+
+		      // Scale if necessary
+		      if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		        LinAlg.vec_ew_prod(work.scaling.Dinv,
+		                    work.Pdelta_x,
+		                    work.Pdelta_x);
+		      }
+
+		      // Check if || P * delta_x || = 0
+		      if (LinAlg.vec_norm_inf(work.Pdelta_x) <
+		          cost_scaling * eps_dual_inf * norm_delta_x) {
+		        // Compute A * delta_x
+		    	  LinAlg.mat_vec(work.data.A, work.delta_x, work.Adelta_x, 0, 0);
+
+		        // Scale if necessary
+		        if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		        	LinAlg.vec_ew_prod(work.scaling.Einv,
+		                      work.Adelta_x,
+		                      work.Adelta_x);
+		        }
+
+		        // De Morgan Law Applied to dual infeasibility conditions for A * x
+		        // NB: Note that MIN_SCALING is used to adjust the infinity value
+		        //     in case the problem is scaled.
+		        for (i = 0; i < work.data.m; i++) {
+		          if (((work.data.u[i] < OSQP_INFTY * MIN_SCALING) &&
+		               (work.Adelta_x[i] >  eps_dual_inf * norm_delta_x)) ||
+		              ((work.data.l[i] > -OSQP_INFTY * MIN_SCALING) &&
+		               (work.Adelta_x[i] < -eps_dual_inf * norm_delta_x))) {
+		            // At least one condition not satisfied . not dual infeasible
+		            return false;
+		          }
+		        }
+
+		        // All conditions passed . dual infeasible
+		        return true;
+		      }
+		    }
+		  }
+
+		  // Conditions not satisfied . not dual infeasible
+		  return false;
+		}
+
+		static boolean has_solution(Info info){
+
+		  return ((info.status_val != Status.PRIMAL_INFEASIBLE) &&
+		      (info.status_val != Status.PRIMAL_INFEASIBLE_INACCURATE) &&
+		      (info.status_val != Status.DUAL_INFEASIBLE) &&
+		      (info.status_val != Status.DUAL_INFEASIBLE_INACCURATE) &&
+		      (info.status_val != Status.NON_CVX));
+
+		}
+
+		static void store_solution(Workspace work) {
+
+		  if (has_solution(work.info)) {
+			  LinAlg.prea_vec_copy(work.x, work.solution.x); // primal
+			  LinAlg.prea_vec_copy(work.y, work.solution.y); // dual
+
+		    // Unscale solution if scaling has been performed
+		    if (work.settings.scaling>0)
+		    	Scaling.unscale_solution(work);
+		  } else {
+		    // No solution present. Solution is NaN
+			  LinAlg.vec_set_scalar(work.solution.x, OSQP_NAN);
+			  LinAlg.vec_set_scalar(work.solution.y, OSQP_NAN);
+
+
+		    // Normalize infeasibility certificates if embedded is off
+		    // NB: It requires a division
+		    if ((work.info.status_val == Status.PRIMAL_INFEASIBLE) ||
+		        ((work.info.status_val == Status.PRIMAL_INFEASIBLE_INACCURATE))) {
+		      double norm_vec = LinAlg.vec_norm_inf(work.delta_y);
+		      LinAlg.vec_mult_scalar(work.delta_y, 1. / norm_vec);
+		    }
+
+		    if ((work.info.status_val == Status.DUAL_INFEASIBLE) ||
+		        ((work.info.status_val == Status.DUAL_INFEASIBLE_INACCURATE))) {
+		      double norm_vec = LinAlg.vec_norm_inf(work.delta_x);
+		      LinAlg.vec_mult_scalar(work.delta_x, 1. / norm_vec);
+		    }
+
+
+		    // Cold start iterates to 0 for next runs (they cannot start from NaN)
+		    cold_start(work);
+		  }
+		}
+
+		protected static void update_info(Workspace work,
+		                 int          iter,
+		                 boolean          compute_objective,
+		                 boolean          polish) {
+		  double[] x, z, y;                   // Allocate pointers to variables
+
+
+		  if (polish) {
+		    x       = work.pol.x;
+		    y       = work.pol.y;
+		    z       = work.pol.z;
+
+		  } else {
+			  x                = work.x;
+			  y                = work.y;
+			  z                = work.z;
+			  work.info.iter = iter; // Update iteration number
+		}
+
+
+
+		  // Compute the objective if needed
+		  if (compute_objective) {
+		    work.info.obj_val = compute_obj_val(work, x);
+		  }
+
+		  // Compute primal residual
+		  if (work.data.m == 0) {
+		    // No constraints . Always primal feasible
+			  work.info.pri_res = 0.;
+		  } else {
+			  work.info.pri_res = compute_pri_res(work, x, z);
+		  }
+
+		  // Compute dual residual
+		  work.info.dua_res = compute_dua_res(work, x, y);
+
+		}
+
+
+		void reset_info(Info info) {
+
+		  info.status = Status.UNSOLVED; // Problem is unsolved
+
+		  info.rho_updates = 0;              // Rho updates are now 0
+		}
+
+
+		static boolean check_termination(Workspace work, boolean approximate) {
+		  double eps_prim, eps_dual, eps_prim_inf, eps_dual_inf;
+		  boolean   exitflag = false;
+		  boolean   prim_res_check=false, dual_res_check=false, prim_inf_check=false, dual_inf_check=false;
+		  double eps_abs, eps_rel;
+
+		  // Initialize variables to 0
+
+
+		  // Initialize tolerances
+		  eps_abs      = work.settings.eps_abs;
+		  eps_rel      = work.settings.eps_rel;
+		  eps_prim_inf = work.settings.eps_prim_inf;
+		  eps_dual_inf = work.settings.eps_dual_inf;
+
+		  // If residuals are too large, the problem is probably non convex
+		  if ((work.info.pri_res > OSQP_INFTY) ||
+		      (work.info.dua_res > OSQP_INFTY)){
+		    // Looks like residuals are diverging. Probably the problem is non convex!
+		    // Terminate and report it
+		    work.info.status = Status.NON_CVX;
+		    work.info.obj_val = OSQP_NAN;
+		    return true;
+		  }
+
+		  // If approximate solution required, increase tolerances by 10
+		  if (approximate) {
+		    eps_abs      *= 10;
+		    eps_rel      *= 10;
+		    eps_prim_inf *= 10;
+		    eps_dual_inf *= 10;
+		  }
+
+		  // Check residuals
+		  if (work.data.m == 0) {
+		    prim_res_check = true; // No constraints . Primal feasibility always satisfied
+		  }
+		  else {
+		    // Compute primal tolerance
+		    eps_prim = compute_pri_tol(work, eps_abs, eps_rel);
+
+		    // Primal feasibility check
+		    if (work.info.pri_res < eps_prim) {
+		      prim_res_check = true;
+		    } else {
+		      // Primal infeasibility check
+		      prim_inf_check = is_primal_infeasible(work, eps_prim_inf);
+		    }
+		  } // End check if m == 0
+
+		  // Compute dual tolerance
+		  eps_dual = compute_dua_tol(work, eps_abs, eps_rel);
+
+		  // Dual feasibility check
+		  if (work.info.dua_res < eps_dual) {
+		    dual_res_check = true;
+		  } else {
+		    // Check dual infeasibility
+		    dual_inf_check = is_dual_infeasible(work, eps_dual_inf);
+		  }
+
+		  // Compare checks to determine solver status
+		  if (prim_res_check && dual_res_check) {
+		    // Update final information
+		    if (approximate) {
+		      work.info.status = Status.SOLVED_INACCURATE;
+		    } else {
+		      work.info.status = Status.SOLVED;
+		    }
+		    exitflag = true;
+		  }
+		  else if (prim_inf_check) {
+		    // Update final information
+		    if (approximate) {
+		      work.info.status = Status.PRIMAL_INFEASIBLE_INACCURATE;
+		    } else {
+		      work.info.status = Status.PRIMAL_INFEASIBLE;
+		    }
+
+		    if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		      // Update infeasibility certificate
+		      LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.delta_y);
+		    }
+		    work.info.obj_val = OSQP_INFTY;
+		    exitflag            = true;
+		  }
+		  else if (dual_inf_check) {
+		    // Update final information
+		    if (approximate) {
+		      work.info.status = Status.DUAL_INFEASIBLE_INACCURATE;
+		    } else {
+		      work.info.status = Status.DUAL_INFEASIBLE;
+		    }
+
+		    if (work.settings.scaling>0 && !work.settings.scaled_termination) {
+		      // Update infeasibility certificate
+		      LinAlg.vec_ew_prod(work.scaling.D, work.delta_x, work.delta_x);
+		    }
+		    work.info.obj_val = -OSQP_INFTY;
+		    exitflag            = true;
+		  }
+
+		  return exitflag;
+		}
+
 
 }

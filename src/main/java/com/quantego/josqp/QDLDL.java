@@ -2,7 +2,7 @@ package com.quantego.josqp;
 
 import java.util.Arrays;
 
-public class QDLDL {
+public class QDLDL implements LinSys {
     final static int QDLDL_UNKNOWN = -1;
     final static boolean QDLDL_USED = true;
     final static boolean QDLDL_UNUSED = false;
@@ -10,10 +10,9 @@ public class QDLDL {
     
     LDL _ldl;
     
-    public QDLDL(int[] Ap, int[] Ai, double[] Ax) {
-    	final int An = Ap.length-1;
+    public QDLDL(int An, int Am, int[] Ap, int[] Ai, double[] Ax) {
     	Etree e = computeEtree(An,Ap,Ai);
-    	SparseMatrix A = new SparseMatrix(An,Ap,Ai,Ax);
+    	CSCMatrix A = new CSCMatrix(An,Am,Ap,Ai,Ax);
     	_ldl = QDLDL.decompose(A, e);
     }
     
@@ -78,10 +77,11 @@ public class QDLDL {
 
     }
     
-    public static LDL decompose (SparseMatrix A, Etree e){
+    public static LDL decompose (CSCMatrix A, Etree e){
     	final int[] Lnz = e.Lnz;
     	final int[] etree = e.etree;
     	final int n = A.n;
+    	final int m = A.m;
     	final int[] Ap = A.Ap;
     	final int[] Ai = A.Ai;
     	final double[] Ax = A.Ax;
@@ -236,7 +236,7 @@ public class QDLDL {
 	    	Dinv[k]= 1/D[k];
 
     	} //end for k
-    	return new LDL(new SparseMatrix(n,Lp,Li,Lx), D, Dinv, positiveValuesInD);
+    	return new LDL(new CSCMatrix(n,m,Lp,Li,Lx), D, Dinv, positiveValuesInD);
     }
     
     static void Lsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {
@@ -281,31 +281,12 @@ public class QDLDL {
 		}
     }
     
-    public static class SparseMatrix {
-    	public final int n;
-    	public final int[] Ap;
-        public final int[] Ai;
-        public final double[] Ax;
-    	public SparseMatrix(int n, int[] ap, int[] ai, double[] ax) {
-			this.n = n;
-			this.Ap = ap;
-			this.Ai = ai;
-			this.Ax = ax;
-		}
-    	public SparseMatrix(int n) {
-			this.n = n;
-			this.Ap = new int[n];
-			this.Ai = new int[n];
-			this.Ax = new double[n];
-		}
-    }
-    
     public static class LDL {
-    	public final SparseMatrix L;
+    	public final CSCMatrix L;
     	public final double[] D;
     	public final double[] Dinv;
     	public final int positiveValuesInD;
-		public LDL(SparseMatrix L, double[] D, double[] Dinv, int positiveValuesInD) {
+		public LDL(CSCMatrix L, double[] D, double[] Dinv, int positiveValuesInD) {
 			this.L = L;
 			this.D = D;
 			this.Dinv = Dinv;
@@ -321,11 +302,11 @@ public class QDLDL {
     	                       -0.0290058, -1.0, 0.350321, -0.441092, -0.0845395,
     	                       -0.316228, 0.178663, -0.299077, 0.182452, -1.56506, -0.1};
     	double[] b = {1,2,3,4,5,6,7,8,9,10};
-    	QDLDL q = new QDLDL(Ap,Ai,Ax);
+    	QDLDL q = new QDLDL(An, An,Ap,Ai,Ax);
     	double[] x = q.solve(b);
     	
     	Etree e = computeEtree(An,Ap,Ai);
-    	SparseMatrix A = new SparseMatrix(An,Ap,Ai,Ax);
+    	CSCMatrix A = new CSCMatrix(An,An,Ap,Ai,Ax);
     	LDL ldl = QDLDL.decompose(A, e);
     	System.out.println();
     	System.out.println(Arrays.toString(Ap));

@@ -2,7 +2,7 @@ package com.quantego.josqp;
 
 import java.util.Arrays;
 
-public class QDLDL implements LinSys {
+public class QDLDL  {
     final static int QDLDL_UNKNOWN = -1;
     final static boolean QDLDL_USED = true;
     final static boolean QDLDL_UNUSED = false;

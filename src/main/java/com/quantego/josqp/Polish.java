@@ -48,7 +48,7 @@ public class Polish {
 	  // Check if there are no active constraints
 	  if (work.pol.n_low + work.pol.n_upp == 0) {
 	    // Form empty Ared
-	    work.pol.Ared = new CSCMatrix(0,work.data.n0,1,0);
+	    work.pol.Ared = new CSCMatrix(0,work.data.n,0,true,false);
 	    LinAlg.int_vec_set_scalar(work.pol.Ared.Ap, 0);
 	    return 0; // mred = 0
 	  }
@@ -62,7 +62,7 @@ public class Polish {
 	  // Form Ared
 	  // Ared = vstack[Alow, Aupp]
 	  work.pol.Ared = new CSCMatrix(work.pol.n_low + work.pol.n_upp,
-	                                work.data.n, Ared_nnz, 1, 0);
+	                                work.data.n, Ared_nnz, true, false);
 	  Ared_nnz = 0; // counter
 
 	  for (j = 0; j < work.data.n; j++) { // Cycle over columns of A

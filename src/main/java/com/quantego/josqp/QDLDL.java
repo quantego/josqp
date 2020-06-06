@@ -12,7 +12,7 @@ public class QDLDL implements LinSys {
     
     public QDLDL(int An, int Am, int[] Ap, int[] Ai, double[] Ax) {
     	Etree e = computeEtree(An,Ap,Ai);
-    	CSCMatrix A = new CSCMatrix(An,Am,Ap,Ai,Ax);
+    	CSCMatrix A = new CSCMatrix(An,Am,Ax.length,Ap,Ai,Ax);
     	_ldl = QDLDL.decompose(A, e);
     }
     
@@ -236,7 +236,7 @@ public class QDLDL implements LinSys {
 	    	Dinv[k]= 1/D[k];
 
     	} //end for k
-    	return new LDL(new CSCMatrix(n,m,Lp,Li,Lx), D, Dinv, positiveValuesInD);
+    	return new LDL(new CSCMatrix(n,m,Lx.length,Lp,Li,Lx), D, Dinv, positiveValuesInD);
     }
     
     static void Lsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {
@@ -306,7 +306,7 @@ public class QDLDL implements LinSys {
     	double[] x = q.solve(b);
     	
     	Etree e = computeEtree(An,Ap,Ai);
-    	CSCMatrix A = new CSCMatrix(An,An,Ap,Ai,Ax);
+    	CSCMatrix A = new CSCMatrix(An,An,Ax.length,Ap,Ai,Ax);
     	LDL ldl = QDLDL.decompose(A, e);
     	System.out.println();
     	System.out.println(Arrays.toString(Ap));

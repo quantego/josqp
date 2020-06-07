@@ -216,7 +216,7 @@ public class Polish {
 	  }
 
 	  // Form and factorize reduced KKT
-	  exitflag = init_linsys_solver(&plsh, work.data.P, work.pol.Ared,
+	  plsh = new ODLDL()init_linsys_solver(&plsh, work.data.P, work.pol.Ared,
 	                                work.settings.delta, OSQP.OSQP_NULL,
 	                                work.settings.linsys_solver, 1);
 

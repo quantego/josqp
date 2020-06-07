@@ -1,5 +1,7 @@
 package com.quantego.josqp;
 
+import java.util.Arrays;
+
 /**
  * A Java style implementation of a sparse matrix. Each row is represented by two arrays, an integer array of column indices and a double array of elements. 
  * Queries of elements are supported by a bisection search of column indices in each row.
@@ -48,9 +50,9 @@ public class SparseMatrix {
 		}
 	}
 	
-	public SparseMatrix(int rows) {
-		_rows = new Row[rows];
-		_n = _rows.length;
+	public SparseMatrix(int n) {
+		_rows = new Row[n];
+		_n = n;
 	}
 	
 	public void addRow(int i, int[] index, double[] values) {
@@ -78,34 +80,67 @@ public class SparseMatrix {
 		return clone;
 	}
 	
-	/*public void cholesky(double[] b) { 
-		 SparseMatrix R = new SparseMatrix(_n); 
-		 boolean isspd = (b.length == _n);
+	public class CholeskyDecomposition {
+		final SparseMatrix L;
+		final double[] d;
+		final double[] dinv;
+		public CholeskyDecomposition(SparseMatrix l, double[] d, double[] dinv) {
+			L = l;
+			this.d = d;
+			this.dinv = dinv;
+		}
+	}
+	
+	public CholeskyDecomposition cholesky() { 
+		 SparseMatrix L = new SparseMatrix(_n);
+		 double[] D = new double[_n];
+		 double[] Dinv = new double[_n];
 		 for (int j = 0; j < _n; j++) { 
 			 double d = 0.0;
-			 Row row = _rows[j];
-			 int[] index = row._index;
-			 double[] values = row._values;
-			 int[] index2;
-			 double[] values2;
-			 for (int l = 0; l < row._size; l++) {
-				 int k = index[l];
-				 double s = getValue(k,j); 
-				 for (int i = 0; i < k; i++) { 
-					 s -= R.getValue(i, k)*R.getValue(i, j);
+			 Row ArowJ = _rows[j];
+			 int[] ArowJindex = ArowJ._index;
+			 double[] ArowJvalues = ArowJ._values;
+			 int[] LrowJindex = ArowJ._index;
+			 double[] LrowJvalues = new double[ArowJ._size];
+			 double Ajj = 0.0;
+			 for (int k = 0; k < ArowJindex.length; k++) {
+				 if (ArowJindex[k]<j) {
+					 double s = ArowJvalues[k]; 
+					 Row LrowK = L._rows[k];
+					 double[] LrowKvalues = LrowK._values;				 
+					 for (int i = 0; i < LrowJvalues.length; i++) {
+						 if (LrowJindex[i]<LrowJindex[k])
+							 s -= LrowKvalues[k]*LrowJvalues[i];
+						 else
+							 break;
+					 }
+					 LrowJvalues[k] = s = s*Dinv[k];
+					 d += s*s; 
 				 }
-				 R[k][j] = s = s/R[k][k];
-				 index2[l] = j
-				 d += s*s; 
-//				 isspd = isspd & (A[k][j] == A[j][k]); 
-			 } 
-			d = A[j][j] - d; 
-			isspd = isspd & (d > 0.0); 
-			R[j][j] = Math.sqrt(Math.max(d,0.0)); 
-			for (int k = j+1; k < n; k++) { 
-				  R[k][j] = 0.0; 
-			} 
+				 else {
+					 if (ArowJindex[k]==j) Ajj = ArowJvalues[k];
+					 break;
+				 } 
+			 }
+			 L.addRow(j, LrowJindex, LrowJvalues);
+			 D[j] = Math.sqrt(Ajj - d);
+			 Dinv[j] = 1./D[j];
 		} 
-	}*/
+		return new CholeskyDecomposition(L,D,Dinv);
+	}
+	
+	public static void main(String[] args){
+		SparseMatrix A = new SparseMatrix(3);
+		A.addRow(0, new int[] {0, 1, 2},new double[]{25, 15, -5});
+		A.addRow(1, new int[] {0, 1}, new double[] {15,18});
+		A.addRow(2, new int[] {0, 2}, new double[] {-5,11});
+		CholeskyDecomposition C = A.cholesky();
+		System.out.println(Arrays.toString(C.L._rows[0]._index));
+		System.out.println(Arrays.toString(C.L._rows[0]._values));
+		System.out.println(Arrays.toString(C.L._rows[1]._index));
+		System.out.println(Arrays.toString(C.L._rows[1]._values));
+		System.out.println(Arrays.toString(C.L._rows[2]._index));
+		System.out.println(Arrays.toString(C.L._rows[2]._values));
+	}
 	
 }

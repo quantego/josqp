@@ -38,8 +38,8 @@ public class KKT {
 
 	  // Allocate vector of indices on the diagonal. Worst case it has m elements
 	  if (Pdiag_idx != null) {
-	    (*Pdiag_idx) = c_malloc(P.m * sizeof(int));
-	    *Pdiag_n     = 0; // Set 0 diagonal elements to start
+	    Pdiag_idx[0] = new int[P.m];
+	    Pdiag_n  [0]   = 0; // Set 0 diagonal elements to start
 	  }
 
 	  // Allocate Triplet matrices
@@ -70,9 +70,9 @@ public class KKT {
 	        KKT_trip.Ax[zKKT] += param1;
 
 	        // If index vector pointer supplied . Store the index
-	        if (Pdiag_idx != OSQP_NULL) {
-	          (*Pdiag_idx)[*Pdiag_n] = ptr;
-	          (*Pdiag_n)++;
+	        if (Pdiag_idx != null) {
+	          Pdiag_idx[0][Pdiag_n[0]] = ptr;
+	          Pdiag_n[0]++;
 	        }
 	      }
 	      zKKT++;
@@ -91,7 +91,7 @@ public class KKT {
 
 	  if (Pdiag_idx != null) {
 	    // Realloc Pdiag_idx so that it contains exactly *Pdiag_n diagonal elements
-	    (*Pdiag_idx) = c_realloc((*Pdiag_idx), (*Pdiag_n) * sizeof(int));
+		  Pdiag_idx[0] = new int[Pdiag_n[0]];
 	  }
 
 
@@ -125,21 +125,15 @@ public class KKT {
 	  KKT_trip.nz = zKKT;
 
 	  // Convert triplet matrix to csc format
-	  if (!PtoKKT && !AtoKKT && !param2toKKT) {
+	  if (PtoKKT==null && AtoKKT==null && param2toKKT==null) {
 	    // If no index vectors passed, do not store KKT mapping from Trip to CSC/CSR
-	    if (format == 0) KKT = triplet_to_csc(KKT_trip, OSQP_NULL);
-	    else KKT = triplet_to_csr(KKT_trip, OSQP_NULL);
+	    if (format == 0) KKT = CSCMatrix.triplet_to_csc(KKT_trip, null);
+	    else KKT = CSCMatrix.triplet_to_csr(KKT_trip, null);
 	  }
 	  else {
 	    // Allocate vector of indices from triplet to csc
-	    KKT_TtoC = c_malloc((zKKT) * sizeof(int));
+	    KKT_TtoC = new int[zKKT];
 
-	    if (!KKT_TtoC) {
-	      // Error in allocating KKT_TtoC vector
-	      csc_spfree(KKT_trip);
-	      c_free(*Pdiag_idx);
-	      return OSQP_NULL;
-	    }
 
 	    // Store KKT mapping from Trip to CSC/CSR
 	    if (format == 0)

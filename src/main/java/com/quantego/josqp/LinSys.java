@@ -1,6 +1,6 @@
 package com.quantego.josqp;
 
-public class LinSys extends QDLDL {
+public class LinSys  {
 	
 	public enum TYPE {
 		QLDL
@@ -21,73 +21,59 @@ public class LinSys extends QDLDL {
 	}
 
 
-	public static int permute_KKT(CSCMatrix[] KKT, QDLDL p, int Pnz, int Anz, int m, int[] PtoKKT, int[] AtoKKT, int[] rhotoKKT){
+	public static CSCMatrix permute_KKT(CSCMatrix KKT, QDLDL p, int Pnz, int Anz, int m, int[] PtoKKT, int[] AtoKKT, int[] rhotoKKT){
 	    double[] info;
-	    int amd_status;
+	    AMD.Status amd_status;
 	    int[] Pinv;
 	    CSCMatrix KKT_temp;
 	    int[] KtoPKPt;
 	    int i; // Indexing
 
-	    info = new double[AMD_INFO];
 
 	    // Compute permutation matrix P using AMD
-	#ifdef DLONG
-	    amd_status = amd_l_order((*KKT).n, (*KKT).p, (*KKT).i, p.P, (double *)OSQP_NULL, info);
-	#else
-	    amd_status = amd_order((*KKT).n, (*KKT).p, (*KKT).i, p.P, (double *)OSQP_NULL, info);
-	#endif
-	    if (amd_status < 0) {
+
+	    amd_status = amd_order(KKT.n, KKT.Ap, KKT.Ai, p.P);
+	    if (amd_status == AMD.Status.AMD_INVALID) {
 	        // Free Amd info and return an error
-	        c_free(info);
-	        return amd_status;
+	        throw new IllegalStateException("AMD Error");
 	    }
 
 
 	    // Inverse of the permutation vector
-	    Pinv = csc_pinv(p.P, (*KKT).n);
+	    Pinv = csc_pinv(p.P, KKT.n);
 
 	    // Permute KKT matrix
-	    if (!PtoKKT && !AtoKKT && !rhotoKKT){  // No vectors to be stored
+	    if (PtoKKT==null && AtoKKT==null && rhotoKKT==null){  // No vectors to be stored
 	        // Assign values of mapping
-	        KKT_temp = csc_symperm((*KKT), Pinv, OSQP_NULL, 1);
+	        KKT_temp = CSCMatrix.csc_symperm(KKT, Pinv, null, true);
 	    }
 	    else {
 	        // Allocate vector of mappings from unpermuted to permuted
-	        KtoPKPt = c_malloc((*KKT).p[(*KKT).n] * sizeof(int));
-	        KKT_temp = csc_symperm((*KKT), Pinv, KtoPKPt, 1);
+	        KtoPKPt = new int[KKT.Ap[KKT.n]];
+	        KKT_temp = CSCMatrix.csc_symperm(KKT, Pinv, KtoPKPt, true);
 
 	        // Update vectors PtoKKT, AtoKKT and rhotoKKT
-	        if (PtoKKT){
+	        if (PtoKKT!=null){
 	            for (i = 0; i < Pnz; i++){
 	                PtoKKT[i] = KtoPKPt[PtoKKT[i]];
 	            }
 	        }
-	        if (AtoKKT){
+	        if (AtoKKT!=null){
 	            for (i = 0; i < Anz; i++){
 	                AtoKKT[i] = KtoPKPt[AtoKKT[i]];
 	            }
 	        }
-	        if (rhotoKKT){
+	        if (rhotoKKT!=null){
 	            for (i = 0; i < m; i++){
 	                rhotoKKT[i] = KtoPKPt[rhotoKKT[i]];
 	            }
 	        }
 
-	        // Cleanup vector of mapping
-	        c_free(KtoPKPt);
 	    }
 
 	    // Cleanup
 	    // Free previous KKT matrix and assign pointer to new one
-	    csc_spfree((*KKT));
-	    (*KKT) = KKT_temp;
-	    // Free Pinv
-	    c_free(Pinv);
-	    // Free Amd info
-	    c_free(info);
-
-	    return 0;
+	   return KKT_temp;
 	}
 
 
@@ -180,7 +166,7 @@ public class LinSys extends QDLDL {
 
 	        // Permute matrix
 	        if (KKT_temp)
-	            permute_KKT(&KKT_temp, s, OSQP_NULL, OSQP_NULL, OSQP_NULL, OSQP_NULL, OSQP_NULL, OSQP_NULL);
+	            KKT_temp = permute_KKT(KKT_temp, s, OSQP_NULL, OSQP_NULL, OSQP_NULL, OSQP_NULL, OSQP_NULL, OSQP_NULL);
 	    }
 	    else { // Called from ADMM algorithm
 

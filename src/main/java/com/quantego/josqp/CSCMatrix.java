@@ -121,7 +121,7 @@ public class CSCMatrix {
 		    for (p = Ap[j]; p < Ap[j + 1]; p++) {
 		      i = Ai[p];
 
-		      if (i > j) break;     /* skip lower triangular part of A */
+		      if (i > j) continue;     /* skip lower triangular part of A */
 		      i2 =  pinv!=null ? pinv[i] : i; /* row i of A is row i2 of C */
 		      w[Math.max(i2, j2)]++;      /* column count of C */
 		    }
@@ -134,12 +134,11 @@ public class CSCMatrix {
 		    for (p = Ap[j]; p < Ap[j + 1]; p++) {
 		      i = Ai[p];
 
-		      if (i > j) break;                             /* skip lower triangular
+		      if (i > j) continue;                             /* skip lower triangular
 		                                                          part of A*/
 		      i2                         = pinv!=null ? pinv[i] : i; /* row i of A is row i2
 		                                                          of C */
-		      q = w[Math.max(i2, j2)]++;
-		      Ci[q] = Math.min(i2, j2);
+		      Ci[q = w[Math.max(i2, j2)]++] = Math.min(i2, j2);
 
 		      if (Cx!=null) Cx[q] = Ax[p];
 

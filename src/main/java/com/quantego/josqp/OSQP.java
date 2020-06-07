@@ -396,7 +396,6 @@ public class OSQP {
 		    update_y(work);
 		    can_check_termination = work.settings.check_termination>0 &&
                     (iter % work.settings.check_termination == 0);
-		    
 		    if (can_check_termination) {
 		        // Update information and compute also objective value
 		        update_info(work, iter, compute_cost_function, false);

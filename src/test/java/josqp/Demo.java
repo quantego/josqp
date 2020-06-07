@@ -26,6 +26,7 @@ public class Demo {
 			OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
 			OSQP opt = new OSQP(data,settings);
 			opt.solve();
+			opt.toString();
 	}
 	
 

@@ -1943,7 +1943,7 @@ public class AMD {
 		    if (j == EMPTY)
 		    {
 			/* Skip a dense variable.  It has no parent. */
-			break ;
+			continue ;
 		    }
 
 		    /* while (j is a variable) */
@@ -2241,7 +2241,7 @@ public class AMD {
 
 
 
-
+	
 
 
 }

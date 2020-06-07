@@ -2,14 +2,6 @@ package com.quantego.josqp;
 
 public class LinSys  {
 	
-	public enum TYPE {
-		QLDL
-	}
-	
-
-
-
-	
 
 
 	public static CSCMatrix permute_KKT(CSCMatrix KKT, LinSys p, int Pnz, int Anz, int m, int[] PtoKKT, int[] AtoKKT, int[] rhotoKKT){
@@ -79,8 +71,8 @@ public class LinSys  {
 	double[] bp;
 	int[] PtoKKT;
 	int[] AtoKKT;
-	int[][] Pdiag_idx = new int[0][];
-	int[] Pdiag_n = new int[0];
+	int[][] Pdiag_idx = new int[1][];
+	int[] Pdiag_n = new int[1];
 	int[] rhotoKKT;
 
 	// Initialize LDL Factorization structure

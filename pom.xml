@@ -4,10 +4,6 @@
   <artifactId>josqp</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <dependencies>
-  	<dependency>
-  		<groupId>com.googlecode.matrix-toolkits-java</groupId>
-  		<artifactId>mtj</artifactId>
-  		<version>1.0.2</version>
-  	</dependency>
+  	
   </dependencies>
 </project>

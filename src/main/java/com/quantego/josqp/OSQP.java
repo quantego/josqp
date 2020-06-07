@@ -12,7 +12,6 @@ public class OSQP {
 	static final double EPS_PRIM_INF = 1E-4;
 	static final double EPS_DUAL_INF = 1E-4;
 	static final double ALPHA = 1.6;
-	static final LinSys.TYPE LINSYS_SOLVER = LinSys.TYPE.QLDL;
 
 	static final double RHO_MIN = 1e-06;
 	static final double RHO_MAX = 1e06;
@@ -25,9 +24,9 @@ public class OSQP {
 	static final int POLISH_REFINE_ITER = 3;
 	static final boolean VERBOSE = true;
 
-	static final int SCALED_TERMINATION = 0;
+	static final boolean SCALED_TERMINATION = false;
 	static final int CHECK_TERMINATION = 25;
-	static final int WARM_START = 1;
+	static final boolean WARM_START = true;
 	static final int SCALING = 10;
 
 	static final double MIN_SCALING = 1.0e-04; ///< minimum scaling value
@@ -120,44 +119,53 @@ public class OSQP {
 	}
 	
 	public static class Settings {
-		double rho;                    ///< ADMM step rho
-		double sigma;                  ///< ADMM step sigma
-		int scaling;                ///< heuristic data scaling iterations; if 0, then disabled.
+		double rho = RHO;                    ///< ADMM step rho
+		double sigma = SIGMA;                  ///< ADMM step sigma
+		int scaling = SCALING;                ///< heuristic data scaling iterations; if 0, then disabled.
 
-		boolean adaptive_rho;           ///< boolean, is rho step size adaptive?
-		int   adaptive_rho_interval;  ///< number of iterations between rho adaptations; if 0, then it is automatic
-		double adaptive_rho_tolerance; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
-		double adaptive_rho_fraction;  ///< interval for adapting rho (fraction of the setup time)
+		boolean adaptive_rho = ADAPTIVE_RHO;           ///< boolean, is rho step size adaptive?
+		int   adaptive_rho_interval = ADAPTIVE_RHO_INTERVAL;  ///< number of iterations between rho adaptations; if 0, then it is automatic
+		double adaptive_rho_tolerance = ADAPTIVE_RHO_TOLERANCE; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
+		double adaptive_rho_fraction = ADAPTIVE_RHO_FRACTION;  ///< interval for adapting rho (fraction of the setup time)
 
-		int max_iter;      ///< maximum number of iterations
-		double eps_abs;       ///< absolute convergence tolerance
-		double eps_rel;       ///< relative convergence tolerance
-		double eps_prim_inf;  ///< primal infeasibility tolerance
-		double eps_dual_inf;  ///< dual infeasibility tolerance
-		double  alpha;         ///< relaxation parameter
-		LinSys linsys_solver; ///< linear system solver to use
+		int max_iter = MAX_ITER;      ///< maximum number of iterations
+		double eps_abs = EPS_ABS;       ///< absolute convergence tolerance
+		double eps_rel = EPS_REL;       ///< relative convergence tolerance
+		double eps_prim_inf = EPS_PRIM_INF;  ///< primal infeasibility tolerance
+		double eps_dual_inf = EPS_DUAL_INF;  ///< dual infeasibility tolerance
+		double  alpha = ALPHA;         ///< relaxation parameter
+//		LinSys linsys_solver; ///< linear system solver to use
 
-		double delta;                         ///< regularization parameter for polishing
-		boolean polish;                        ///< boolean, polish ADMM solution
-		int polish_refine_iter;            ///< number of iterative refinement steps in polishing
+		double delta = DELTA;                         ///< regularization parameter for polishing
+		boolean polish = POLISH;                        ///< boolean, polish ADMM solution
+		int polish_refine_iter = POLISH_REFINE_ITER;            ///< number of iterative refinement steps in polishing
 
-		boolean verbose;                         ///< boolean, write out progress
+		boolean verbose = VERBOSE;                         ///< boolean, write out progress
 
-		boolean scaled_termination;              ///< boolean, use scaled termination criteria
-		int check_termination;               ///< integer, check termination interval; if 0, then termination checking is disabled
-		boolean warm_start;                      ///< boolean, warm start
+		boolean scaled_termination = SCALED_TERMINATION;              ///< boolean, use scaled termination criteria
+		int check_termination = CHECK_TERMINATION;               ///< integer, check termination interval; if 0, then termination checking is disabled
+		boolean warm_start = WARM_START;                      ///< boolean, warm start
 
-		double time_limit;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
+		double time_limit = TIME_LIMIT;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
 	}
 	
 	public static class Data {
-		int n; ///< number of variables n
-		int m; ///< number of constraints m
-		CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
-		CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
-		double[] q; ///< dense array for linear part of cost function (size n)
-		double[] l; ///< dense array for lower bound (size m)
-		double[] u; ///< dense array for upper bound (size m)
+		final int n; ///< number of variables n
+		final int m; ///< number of constraints m
+		final CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
+		final CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
+		final double[] q; ///< dense array for linear part of cost function (size n)
+		final double[] l; ///< dense array for lower bound (size m)
+		final double[] u; ///< dense array for upper bound (size m)
+		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u) {
+			this.n = n;
+			this.m = m;
+			this.P = P;
+			this.A = A;
+			this.q = q;
+			this.l = l;
+			this.u = u;
+		}
 	}
 	
 	public static class Solution {
@@ -357,7 +365,6 @@ public class OSQP {
 		    work.info.update_time = 0.0;
 		work.rho_update_from_solve = 1;
 
-		//TODO: timer
 
 
 		// Initialize variables (cold start or warm start depending on settings)
@@ -368,8 +375,15 @@ public class OSQP {
 		// Main ADMM algorithm
 		for (iter = 1; iter <= work.settings.max_iter; iter++) {
 		    // Update x_prev, z_prev (preallocated, no malloc)
-		    //swap_vectors(&(work.x), &(work.x_prev));
-		    //swap_vectors(&(work.z), &(work.z_prev));
+			
+			double[] temp;
+			temp = work.x_prev;
+			work.x_prev = work.x;
+			work.x = temp;
+			
+			temp = work.z_prev;
+			work.z_prev = work.z;
+			work.z = temp;
 
 		    /* ADMM STEPS */
 		    /* Compute \tilde{x}^{k+1}, \tilde{z}^{k+1} */
@@ -706,15 +720,6 @@ public class OSQP {
 		  }
 
 	}
-	
-	//TODO: need to see if this is what we want
-	static void swap_vectors(double[][] a, double[][] b) {
-		  double[] temp;
-
-		  temp = b[0];
-		  b[0]   = a[0];
-		  a[0]   = temp;
-		}
 	
 	static void compute_rhs(Workspace work) {
 		  int i; // Index

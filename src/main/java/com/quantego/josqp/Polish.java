@@ -200,7 +200,7 @@ public class Polish {
 	}
 
 	public static int polish(OSQP.Workspace work) {
-	  int mred, exitflag;
+	  int mred;
 	  boolean polish_successful;
 	  LinSys plsh;
 	  double[] pol_sol; // Polished solution
@@ -216,13 +216,9 @@ public class Polish {
 	  }
 
 	  // Form and factorize reduced KKT
-	  plsh = new ODLDL()init_linsys_solver(&plsh, work.data.P, work.pol.Ared,
-	                                work.settings.delta, OSQP.OSQP_NULL,
-	                                work.settings.linsys_solver, 1);
+	  plsh = new LinSys(work.data.P, work.pol.Ared, work.settings.delta, null, true);
 
-	  if (exitflag!=0) {
-	    throw new IllegalStateException("Polishing failed");
-	  }
+
 
 	  // Form reduced right-hand side rhs_red
 	  double[] rhs_red = new double[work.data.n];
@@ -236,7 +232,7 @@ public class Polish {
 	  plsh.solve(pol_sol);
 
 	  // Perform iterative refinement to compensate for the regularization error
-	  exitflag = iterative_refinement(work, plsh, pol_sol, rhs_red);
+	  iterative_refinement(work, plsh, pol_sol, rhs_red);
 
 
 

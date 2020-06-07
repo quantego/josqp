@@ -10,9 +10,18 @@ public class QDLDL  {
     
     LDL _ldl;
     
-    public QDLDL(int An, int Am, int[] Ap, int[] Ai, double[] Ax) {
+    /*public QDLDL(int An, int Am, int[] Ap, int[] Ai, double[] Ax) {
     	Etree e = computeEtree(An,Ap,Ai);
     	CSCMatrix A = new CSCMatrix(An,Am,Ax.length,Ap,Ai,Ax);
+    	_ldl = QDLDL.decompose(A, e);
+    }*/
+    
+    public QDLDL() {
+    	
+    }
+    
+    public void factor(CSCMatrix A) {
+    	Etree e = computeEtree(A.n,A.Ap,A.Ai);
     	_ldl = QDLDL.decompose(A, e);
     }
     
@@ -302,12 +311,14 @@ public class QDLDL  {
     	                       -0.0290058, -1.0, 0.350321, -0.441092, -0.0845395,
     	                       -0.316228, 0.178663, -0.299077, 0.182452, -1.56506, -0.1};
     	double[] b = {1,2,3,4,5,6,7,8,9,10};
-    	QDLDL q = new QDLDL(An, An,Ap,Ai,Ax);
+    	QDLDL q = new QDLDL();
+    	CSCMatrix A = new CSCMatrix(An, An,Ax.length,Ap,Ai,Ax);
+    	q.factor(A);
     	double[] x = q.solve(b);
     	
     	Etree e = computeEtree(An,Ap,Ai);
-    	CSCMatrix A = new CSCMatrix(An,An,Ax.length,Ap,Ai,Ax);
-    	LDL ldl = QDLDL.decompose(A, e);
+//    	CSCMatrix A = new CSCMatrix(An,An,Ax.length,Ap,Ai,Ax);
+    	LDL ldl = q._ldl;
     	System.out.println();
     	System.out.println(Arrays.toString(Ap));
     	System.out.println(Arrays.toString(Ai));

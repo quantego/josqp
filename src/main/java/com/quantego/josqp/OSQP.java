@@ -309,10 +309,9 @@ public class OSQP {
 		// Set type of constraints
 		set_rho_vec(work);
 		// Load linear system solver
-		work.linsys_solver = work.settings.linsys_solver.get(
+		work.linsys_solver = new LinSys(
 				work.data.P, work.data.A,
-                work.settings.sigma, work.rho_vec,
-                work.settings.linsys_solver, 0
+                work.settings.sigma, work.rho_vec, false
                 );
 		
 		// Initialize active constraints structure
@@ -404,8 +403,7 @@ public class OSQP {
 			        update_info(work, iter, compute_cost_function, false);
 			      }
 			      // Actually update rho
-			      if (adapt_rho(work)!=0) 
-			    	  throw new IllegalStateException("Failed rho update");
+			      adapt_rho(work);
 		    }
 		  }        // End of ADMM for loop
 
@@ -598,8 +596,8 @@ public class OSQP {
 		  return rho_estimate;
 		}
 	
-	static int osqp_update_rho(Workspace work, double rho_new) {
-		  int exitflag, i;
+	static void osqp_update_rho(Workspace work, double rho_new) {
+		  int i;
 
 		  // Check value of rho
 		  if (rho_new <= 0) {
@@ -625,15 +623,12 @@ public class OSQP {
 		  }
 
 		  // Update rho_vec in KKT matrix
-		  exitflag = work.linsys_solver.update_rho_vec(work.linsys_solver,
-		                                                 work.rho_vec);
+		  work.linsys_solver.update_rho_vec(work.rho_vec);
 
 
-		  return exitflag;
 	}
 	
-	static int adapt_rho(Workspace work) {
-		  int   exitflag = 0; // Exitflag
+	static void adapt_rho(Workspace work) {
 		  double rho_new = compute_rho_estimate(work);
 
 		  // Set rho estimate in info
@@ -642,11 +637,10 @@ public class OSQP {
 		  // Check if the new rho is large or small enough and update it in case
 		  if ((rho_new > work.settings.rho * work.settings.adaptive_rho_tolerance) ||
 		      (rho_new < work.settings.rho /  work.settings.adaptive_rho_tolerance)) {
-		    exitflag = osqp_update_rho(work, rho_new);
+		    osqp_update_rho(work, rho_new);
 		    work.info.rho_updates ++;
 		  }
 
-		  return exitflag;
 		}
 	
 	static void set_rho_vec(Workspace work) {
@@ -673,10 +667,9 @@ public class OSQP {
 		  }
 	}
 	
-	static int update_rho_vec(Workspace work) {
-		  int i, exitflag, constr_type_changed;
+	static void update_rho_vec(Workspace work) {
+		  int i, constr_type_changed;
 
-		  exitflag            = 0;
 		  constr_type_changed = 0;
 
 		  for (i = 0; i < work.data.m; i++) {
@@ -709,11 +702,9 @@ public class OSQP {
 		  }
 		// Update rho_vec in KKT matrix if constraints type has changed
 		  if (constr_type_changed == 1) {
-		    exitflag = work.linsys_solver.update_rho_vec(work.linsys_solver,
-		                                                   work.rho_vec);
+		    work.linsys_solver.update_rho_vec(work.rho_vec);
 		  }
 
-		  return exitflag;
 	}
 	
 	//TODO: need to see if this is what we want

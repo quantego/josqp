@@ -163,7 +163,7 @@ public class QDLDL  {
 	    	//that computes the k^th row of L
 	    	if(bidx == k){
 	    		D[k] = Ax[i];
-	    		continue;
+	    		break;
 	    	}
 	
 	    	yVals[bidx] = Ax[i];   // initialise y(bidx) = b(bidx)

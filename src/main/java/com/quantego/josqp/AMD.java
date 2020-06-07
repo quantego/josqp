@@ -1943,7 +1943,7 @@ public class AMD {
 		    if (j == EMPTY)
 		    {
 			/* Skip a dense variable.  It has no parent. */
-			continue ;
+			break ;
 		    }
 
 		    /* while (j is a variable) */

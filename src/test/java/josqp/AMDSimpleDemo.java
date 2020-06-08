@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import com.quantego.josqp.AMD;
 
-public class AMDTest {
+public class AMDSimpleDemo {
 	
 	public static void main(String... args) {
 		int n=5;

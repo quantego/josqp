@@ -119,34 +119,34 @@ public class OSQP {
 	}
 	
 	public static class Settings {
-		double rho = RHO;                    ///< ADMM step rho
-		double sigma = SIGMA;                  ///< ADMM step sigma
-		int scaling = SCALING;                ///< heuristic data scaling iterations; if 0, then disabled.
+		public double rho = RHO;                    ///< ADMM step rho
+		public double sigma = SIGMA;                  ///< ADMM step sigma
+		public int scaling = SCALING;                ///< heuristic data scaling iterations; if 0, then disabled.
 
-		boolean adaptive_rho = ADAPTIVE_RHO;           ///< boolean, is rho step size adaptive?
-		int   adaptive_rho_interval = ADAPTIVE_RHO_INTERVAL;  ///< number of iterations between rho adaptations; if 0, then it is automatic
-		double adaptive_rho_tolerance = ADAPTIVE_RHO_TOLERANCE; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
-		double adaptive_rho_fraction = ADAPTIVE_RHO_FRACTION;  ///< interval for adapting rho (fraction of the setup time)
+		public boolean adaptive_rho = ADAPTIVE_RHO;           ///< boolean, is rho step size adaptive?
+		public int   adaptive_rho_interval = ADAPTIVE_RHO_INTERVAL;  ///< number of iterations between rho adaptations; if 0, then it is automatic
+		public double adaptive_rho_tolerance = ADAPTIVE_RHO_TOLERANCE; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
+		public double adaptive_rho_fraction = ADAPTIVE_RHO_FRACTION;  ///< interval for adapting rho (fraction of the setup time)
 
-		int max_iter = MAX_ITER;      ///< maximum number of iterations
-		double eps_abs = EPS_ABS;       ///< absolute convergence tolerance
+		public int max_iter = MAX_ITER;      ///< maximum number of iterations
+		public double eps_abs = EPS_ABS;       ///< absolute convergence tolerance
 		double eps_rel = EPS_REL;       ///< relative convergence tolerance
-		double eps_prim_inf = EPS_PRIM_INF;  ///< primal infeasibility tolerance
-		double eps_dual_inf = EPS_DUAL_INF;  ///< dual infeasibility tolerance
-		double  alpha = ALPHA;         ///< relaxation parameter
+		public double eps_prim_inf = EPS_PRIM_INF;  ///< primal infeasibility tolerance
+		public double eps_dual_inf = EPS_DUAL_INF;  ///< dual infeasibility tolerance
+		public double  alpha = ALPHA;         ///< relaxation parameter
 //		LinSys linsys_solver; ///< linear system solver to use
 
-		double delta = DELTA;                         ///< regularization parameter for polishing
-		boolean polish = POLISH;                        ///< boolean, polish ADMM solution
-		int polish_refine_iter = POLISH_REFINE_ITER;            ///< number of iterative refinement steps in polishing
+		public double delta = DELTA;                         ///< regularization parameter for polishing
+		public boolean polish = POLISH;                        ///< boolean, polish ADMM solution
+		public int polish_refine_iter = POLISH_REFINE_ITER;            ///< number of iterative refinement steps in polishing
 
-		boolean verbose = VERBOSE;                         ///< boolean, write out progress
+		public boolean verbose = VERBOSE;                         ///< boolean, write out progress
 
-		boolean scaled_termination = SCALED_TERMINATION;              ///< boolean, use scaled termination criteria
-		int check_termination = CHECK_TERMINATION;               ///< integer, check termination interval; if 0, then termination checking is disabled
-		boolean warm_start = WARM_START;                      ///< boolean, warm start
+		public boolean scaled_termination = SCALED_TERMINATION;              ///< boolean, use scaled termination criteria
+		public int check_termination = CHECK_TERMINATION;               ///< integer, check termination interval; if 0, then termination checking is disabled
+		public boolean warm_start = WARM_START;                      ///< boolean, warm start
 
-		double time_limit = TIME_LIMIT;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
+		public double time_limit = TIME_LIMIT;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
 	}
 	
 	public static class Data {

@@ -56,7 +56,7 @@ public class AMD {
 
 	    nz = Ap [n] ;
 
-	    if (nz < 0) {
+	    if (Ai == null || Ap == null || P == null || n < 0) {
 	    	return (Status.AMD_INVALID) ;
 	    }
 

@@ -83,7 +83,7 @@ public class OSQP {
 		
 		public int iter;          ///< number of iterations taken
 		public Status status;     ///< status string, e.g. 'solved'
-		public Status status_val;    ///< status as c_int, defined in constants.h
+//		public Status status_val;    ///< status as c_int, defined in constants.h
 
 		public int status_polish; ///< polish status: successful (1), unperformed (0), (-1) unsuccessful
 
@@ -252,7 +252,7 @@ public class OSQP {
 		Settings settings; ///< problem settings
 		ScaledProblemData  scaling;  ///< scaling vectors
 		Solution solution; ///< problem solution
-		Info     info;     ///< solver information
+		public Info     info;     ///< solver information
 
 
 		  /// flag indicating whether the solve function has been run before
@@ -416,7 +416,8 @@ public class OSQP {
 			        update_info(work, iter, compute_cost_function, false);
 			      }
 			      // Actually update rho
-			      adapt_rho(work);
+			      if (adapt_rho(work))
+			    	  return 1;
 		    }
 		  }        // End of ADMM for loop
 
@@ -437,7 +438,7 @@ public class OSQP {
 		  }
 
 		  /* if max iterations reached, change status accordingly */
-		  if (work.info.status_val == Status.UNSOLVED) {
+		  if (work.info.status == Status.UNSOLVED) {
 		    if (!check_termination(work, true)) { // Try to check for approximate
 		      work.info.status = Status.MAX_ITER_REACHED;
 		    }
@@ -447,7 +448,7 @@ public class OSQP {
 		  work.info.rho_estimate = compute_rho_estimate(work);
 
 		  // Polish the obtained solution
-		  if (work.settings.polish && (work.info.status_val == Status.SOLVED))
+		  if (work.settings.polish && (work.info.status == Status.SOLVED))
 		    Polish.polish(work);
 
 		  // Store solution
@@ -609,8 +610,9 @@ public class OSQP {
 		  return rho_estimate;
 		}
 	
-	static void osqp_update_rho(Workspace work, double rho_new) {
+	static boolean osqp_update_rho(Workspace work, double rho_new) {
 		  int i;
+		  boolean exitflag = false;
 
 		  // Check value of rho
 		  if (rho_new <= 0) {
@@ -636,13 +638,14 @@ public class OSQP {
 		  }
 
 		  // Update rho_vec in KKT matrix
-		  work.linsys_solver.update_rho_vec(work.rho_vec);
-
+		  exitflag = work.linsys_solver.update_rho_vec(work.rho_vec);
+		  return exitflag;
 
 	}
 	
-	static void adapt_rho(Workspace work) {
+	static boolean adapt_rho(Workspace work) {
 		  double rho_new = compute_rho_estimate(work);
+		  boolean exitflag = false;
 
 		  // Set rho estimate in info
 		  work.info.rho_estimate = rho_new;
@@ -650,10 +653,10 @@ public class OSQP {
 		  // Check if the new rho is large or small enough and update it in case
 		  if ((rho_new > work.settings.rho * work.settings.adaptive_rho_tolerance) ||
 		      (rho_new < work.settings.rho /  work.settings.adaptive_rho_tolerance)) {
-		    osqp_update_rho(work, rho_new);
+			exitflag = osqp_update_rho(work, rho_new);
 		    work.info.rho_updates ++;
 		  }
-
+		  return exitflag;
 		}
 	
 	static void set_rho_vec(Workspace work) {
@@ -1066,11 +1069,11 @@ public class OSQP {
 
 		static boolean has_solution(Info info){
 
-		  return ((info.status_val != Status.PRIMAL_INFEASIBLE) &&
-		      (info.status_val != Status.PRIMAL_INFEASIBLE_INACCURATE) &&
-		      (info.status_val != Status.DUAL_INFEASIBLE) &&
-		      (info.status_val != Status.DUAL_INFEASIBLE_INACCURATE) &&
-		      (info.status_val != Status.NON_CVX));
+		  return ((info.status != Status.PRIMAL_INFEASIBLE) &&
+		      (info.status != Status.PRIMAL_INFEASIBLE_INACCURATE) &&
+		      (info.status != Status.DUAL_INFEASIBLE) &&
+		      (info.status != Status.DUAL_INFEASIBLE_INACCURATE) &&
+		      (info.status != Status.NON_CVX));
 
 		}
 
@@ -1091,14 +1094,14 @@ public class OSQP {
 
 		    // Normalize infeasibility certificates if embedded is off
 		    // NB: It requires a division
-		    if ((work.info.status_val == Status.PRIMAL_INFEASIBLE) ||
-		        ((work.info.status_val == Status.PRIMAL_INFEASIBLE_INACCURATE))) {
+		    if ((work.info.status == Status.PRIMAL_INFEASIBLE) ||
+		        ((work.info.status == Status.PRIMAL_INFEASIBLE_INACCURATE))) {
 		      double norm_vec = LinAlg.vec_norm_inf(work.delta_y);
 		      LinAlg.vec_mult_scalar(work.delta_y, 1. / norm_vec);
 		    }
 
-		    if ((work.info.status_val == Status.DUAL_INFEASIBLE) ||
-		        ((work.info.status_val == Status.DUAL_INFEASIBLE_INACCURATE))) {
+		    if ((work.info.status == Status.DUAL_INFEASIBLE) ||
+		        ((work.info.status == Status.DUAL_INFEASIBLE_INACCURATE))) {
 		      double norm_vec = LinAlg.vec_norm_inf(work.delta_x);
 		      LinAlg.vec_mult_scalar(work.delta_x, 1. / norm_vec);
 		    }

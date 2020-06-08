@@ -20,9 +20,10 @@ public class QDLDL  {
     	
     }
     
-    public void factor(CSCMatrix A) {
+    public boolean factor(CSCMatrix A) {
     	Etree e = computeEtree(A.n,A.Ap,A.Ai);
     	_ldl = QDLDL.decompose(A, e);
+    	return true; //TODO
     }
     
     public double[] solve(double[] b) {

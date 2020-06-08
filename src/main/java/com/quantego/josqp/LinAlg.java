@@ -84,11 +84,11 @@ public class LinAlg {
             a[i] *= sc;
         }
     }
-    public static double[] vec_copy(double[] a){
+    /*public static double[] vec_copy(double[] a){
     double[] b = new double[a.length];
     for (int i = 0; i<a.length; i++) b[i] = a[i];
         return b;
-    }
+    }*/
 
     public static void prea_int_vec_copy(int[] a, int[] b) {
         for (int i = 0; i < a.length; i++) b[i] = a[i];
@@ -100,7 +100,7 @@ public class LinAlg {
 
     public static void vec_ew_recipr(double[] a , double[] b) {
         for (int i = 0; i < a.length; i++) {
-            b[i] = (double) 1.0 / a[i];
+            b[i] = 1.0 / a[i];
         }
     }
 
@@ -121,7 +121,7 @@ public class LinAlg {
 
     public static void vec_ew_sqrt(double[] a) {
         for (int i = 0; i < a.length; i++) {
-            a[i] = (double) Math.sqrt(a[i]);
+            a[i] = Math.sqrt(a[i]);
         }
     }
 
@@ -268,7 +268,7 @@ public class LinAlg {
         // Compute maximum across columns
         for (int j = 0; j < M.n; j++) {
             for (int ptr = M.Ap[j]; ptr < M.Ap[j + 1]; ptr++) {
-                E[j] = (double) Math.max(Math.abs(M.Ax[ptr]), E[j]);
+                E[j] =  Math.max(Math.abs(M.Ax[ptr]), E[j]);
             }
         }
     }
@@ -283,7 +283,7 @@ public class LinAlg {
         for (int j = 0; j < M.n; j++) {
             for (int ptr = M.Ap[j]; ptr < M.Ap[j + 1]; ptr++) {
                 int i    = M.Ai[ptr];
-                E[i] = (double) Math.max(Math.abs(M.Ax[ptr]), E[i]);
+                E[i] = Math.max(Math.abs(M.Ax[ptr]), E[i]);
             }
         }
     }
@@ -321,7 +321,7 @@ public class LinAlg {
                 int i = P.Ai[ptr];                                // Row index
 
                 if (i == j) {                                 // Diagonal element
-                    quad_form += (double) .5 * P.Ax[ptr] * x[i] * x[i];
+                    quad_form += 0.5 * P.Ax[ptr] * x[i] * x[i];
                 }
                 else if (i < j) {                             // Off-diagonal element
                     quad_form += P.Ax[ptr] * x[i] * x[j];

@@ -178,11 +178,7 @@ public class LinSys  {
 	    // Factorize the KKT matrix
 
 
-	    if (polish){ // If KKT passed, assign it to KKT_temp
-	        // Polish, no need for KKT_temp
-	        
-	    }
-	    else { // If not embedded option 1 copy pointer to KKT_temp. Do not free it.
+	    if (!polish){ // If KKT passed, assign it to KKT_temp
 	        this.kkt = KKT_temp;
 	    }
 
@@ -252,7 +248,7 @@ public class LinSys  {
 	}
 
 
-	void update_rho_vec(final double[] rho_vec){
+	boolean update_rho_vec(final double[] rho_vec){
 	    int i;
 
 	    // Update internal rho_inv_vec
@@ -262,8 +258,7 @@ public class LinSys  {
 
 	    // Update KKT matrix with new rho_vec
 	    KKT.update_KKT_param2(this.kkt, this.rho_inv_vec, this.rhotoKKT, this.m);
-
-	    qdldl.factor(this.kkt);
+	    return qdldl.factor(this.kkt);
 	}
 	
 

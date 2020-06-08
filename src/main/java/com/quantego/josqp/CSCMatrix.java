@@ -8,6 +8,8 @@ public class CSCMatrix {
 	public final int[] Ap;
     public final int[] Ai;
     public final double[] Ax;
+    
+    
 	public CSCMatrix(int m, int n, int nzmax, int[] ap, int[] ai, double[] ax) {
 		this.n = n;
 		this.m = m;

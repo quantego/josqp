@@ -494,7 +494,9 @@ public class QuadcopterTest {
 		CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
 		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
 		OSQP opt = new OSQP(data,settings);
+		double tme = System.currentTimeMillis();
 		opt.solve();
+		System.out.println(System.currentTimeMillis()-tme);
 		opt.toString();
 	}
 

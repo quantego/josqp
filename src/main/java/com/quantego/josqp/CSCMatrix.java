@@ -1,5 +1,7 @@
 package com.quantego.josqp;
 
+import java.util.Arrays;
+
 public class CSCMatrix {
 	public final int n;
 	public final int m;
@@ -238,4 +240,18 @@ public class CSCMatrix {
 		  // Return matrix in triplet form
 		  return M_triu;
 		}
+	
+	public String toString() {
+		double[][] mat = new double[m][n];
+		for (int j = 0; j < this.n; j++) {
+		    for (int p = Ap[j]; p < Ap[j + 1]; p++) {
+		      int i = Ai[p];
+		      mat[i][j] = Ax[p];
+		    }
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i=0;i<m;i++)
+			sb.append(Arrays.toString(mat[i])).append("\n");
+		return sb.toString();
+	}
 }

@@ -169,7 +169,7 @@ public class LinSys  {
 
 	        // Permute matrix
 	        if (KKT_temp!=null)
-	            permute_KKT(KKT_temp, this, P.Ap[P.n], A.Ap[A.n], A.m, this.PtoKKT, this.AtoKKT, this.rhotoKKT);
+	        	KKT_temp = permute_KKT(KKT_temp, this, P.Ap[P.n], A.Ap[A.n], A.m, this.PtoKKT, this.AtoKKT, this.rhotoKKT);
 	    }
 
 	    // Check if matrix has been created

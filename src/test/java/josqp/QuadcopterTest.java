@@ -497,7 +497,8 @@ public class QuadcopterTest {
 		double tme = System.currentTimeMillis();
 		opt.solve();
 		System.out.println(System.currentTimeMillis()-tme);
-		opt.toString();
+		OSQP.Info info = opt.getWorkspace().info;
+		System.out.println(info.obj_val+" "+info.status.toString());
 	}
 
 }

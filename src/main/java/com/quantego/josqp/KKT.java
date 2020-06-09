@@ -164,7 +164,6 @@ public class KKT {
 	  }
 
 
-
 	  return KKT;
 	}
 

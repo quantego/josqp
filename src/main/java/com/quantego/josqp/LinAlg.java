@@ -182,7 +182,7 @@ public class LinAlg {
         //TODO: Check m,n
         if (plus_eq==0) {
             // y = 0
-            for (int i = 0; i < A.n; i++) {
+            for (int i = 0; i < A.m; i++) {
                 y[i+start] = 0;
             }
         }
@@ -275,7 +275,7 @@ public class LinAlg {
 
     public static void mat_inf_norm_rows(CSCMatrix M, double[] E) {
         // Initialize zero max elements
-        for (int j = 0; j < M.n; j++) {
+        for (int j = 0; j < M.m; j++) {
             E[j] = 0;
         }
 

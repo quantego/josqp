@@ -204,7 +204,7 @@ public class LinSys  {
 	void LDLSolve(double[] x, double[] b, int[] P, double[] bp) {
 	    /* solves P'LDL'P x = b for x */
 	    permute_x(bp.length, bp, b, P);
-	    qdldl.solve(bp);
+	    bp = qdldl.solve(bp);
 	    permutet_x(bp.length, x, bp, P);
 
 	}

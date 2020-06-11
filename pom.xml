@@ -3,10 +3,6 @@
   <groupId>com.quantego</groupId>
   <artifactId>josqp</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <properties>
-    <maven.compiler.source>1.14</maven.compiler.source>
-    <maven.compiler.target>1.14</maven.compiler.target>
-  </properties>
   <dependencies>
   	
   </dependencies>

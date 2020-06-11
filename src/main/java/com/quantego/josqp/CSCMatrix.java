@@ -15,7 +15,7 @@ public class CSCMatrix {
 	public CSCMatrix(int m, int n, int nzmax, int[] ap, int[] ai, double[] ax) {
 		this.n = n;
 		this.m = m;
-		this.nz = ax.length;
+		this.nz = -1;
 		this.nzmax = nzmax;
 		this.Ap = ap;
 		this.Ai = ai;

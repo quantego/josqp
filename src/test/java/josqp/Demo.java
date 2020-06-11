@@ -23,8 +23,8 @@ public class Demo {
 		  OSQP.Settings settings = new OSQP.Settings();
 			CSCMatrix A = new CSCMatrix(m,n,A_nnz,A_p,A_i,A_x);
 			CSCMatrix P = new CSCMatrix(n,n,P_nnz,P_p,P_i,P_x);
-			System.out.println(A);
-			System.out.println(P);
+			//System.out.println(A);
+			//System.out.println(P);
 			OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
 			OSQP opt = new OSQP(data,settings);
 			opt.solve();

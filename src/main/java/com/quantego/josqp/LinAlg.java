@@ -289,6 +289,7 @@ public class LinAlg {
     }
 
     public static void mat_inf_norm_cols_sym_triu(CSCMatrix M, double[] E) {
+    	
 
         // Initialize zero max elements
         for (int j = 0; j < M.n; j++) {
@@ -302,7 +303,7 @@ public class LinAlg {
         for (int j = 0; j < M.n; j++) {
             for (int ptr = M.Ap[j]; ptr < M.Ap[j + 1]; ptr++) {
                 int i     = M.Ai[ptr];
-                int abs_x = Math.abs(M.Ai[ptr]);
+                double abs_x = Math.abs(M.Ax[ptr]);
                 E[j]  = Math.max(abs_x, E[j]);
 
                 if (i != j) {

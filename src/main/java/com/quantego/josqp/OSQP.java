@@ -312,6 +312,7 @@ public class OSQP {
 		    work.E_temp   = new double[data.m];
 
 		    // Scale data
+		    
 		    Scaling.scale_data(work);
 		  }
 		// Set type of constraints

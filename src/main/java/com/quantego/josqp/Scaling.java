@@ -98,6 +98,7 @@ public class Scaling {
 
 	    // Equilibrate matrices P and A and vector q
 	    // P <- DPD
+	    
 	    LinAlg.mat_premult_diag(work.data.P, work.D_temp);
 	    LinAlg.mat_postmult_diag(work.data.P, work.D_temp);
 
@@ -106,7 +107,7 @@ public class Scaling {
 	    LinAlg.mat_postmult_diag(work.data.A, work.D_temp);
 
 	    // q <- Dq
-	    LinAlg.vec_ew_prod(work.D_temp,     work.data.q, work.data.q);
+	    LinAlg.vec_ew_prod(work.D_temp, work.data.q, work.data.q);
 
 	    // Update equilibration matrices D and E
 	    LinAlg.vec_ew_prod(work.scaling.D, work.D_temp,  work.scaling.D);

@@ -26,10 +26,12 @@ public class Demo {
 			//System.out.println(A);
 			//System.out.println(P);
 			OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
-			OSQP opt = new OSQP(data,settings);
-			opt.solve();
-			OSQP.Info info = opt.getWorkspace().info;
-			System.out.println(info.obj_val+" "+info.status.toString());
+			while(true) {
+				OSQP opt = new OSQP(data,settings);
+				opt.solve();
+//				OSQP.Info info = opt.getWorkspace().info;
+//				System.out.println(info.obj_val+" "+info.status.toString());
+			}
 	}
 	
 

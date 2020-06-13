@@ -3,7 +3,7 @@ package com.quantego.josqp;
 
 public class LinAlg {
     /* VECTOR FUNCTIONS ----------------------------------------------------------*/
-    public static void vec_add_scaled(double[] a, double[] b, double[] c, double sc){
+    public static void vec_add_scaled(double[] c, double[] a, double[] b, double sc){
         if(!(a.length == b.length && b.length == c.length)){
             throw new IllegalArgumentException("a,b,c need to be of the same length");
         }

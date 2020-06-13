@@ -73,10 +73,10 @@ public class OSQP {
 		MAX_ITER_REACHED,
 		PRIMAL_INFEASIBLE,   /* primal infeasible  */
 		DUAL_INFEASIBLE,  /* dual infeasible */
-		SIGINT,             /* interrupted by user */
 		TIME_LIMIT_REACHED,
 		NON_CVX,            /* problem non convex */
-		UNSOLVED  
+		UNSOLVED,
+		ERROR
 	}
 	
 	public static class Info {
@@ -160,11 +160,11 @@ public class OSQP {
 		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u) {
 			this.n = n;
 			this.m = m;
-			this.P = P;
-			this.A = A;
-			this.q = q;
-			this.l = l;
-			this.u = u;
+			this.P = CSCMatrix.copy_csc_mat(P);
+			this.A = CSCMatrix.copy_csc_mat(A);
+			this.q = q.clone();
+			this.l = l.clone();
+			this.u = u.clone();
 		}
 	}
 	
@@ -249,7 +249,7 @@ public class OSQP {
 
 		/** @} */
 
-		Settings settings; ///< problem settings
+		public Settings settings; ///< problem settings
 		ScaledProblemData  scaling;  ///< scaling vectors
 		Solution solution; ///< problem solution
 		public Info     info;     ///< solver information
@@ -357,8 +357,7 @@ public class OSQP {
 		return work;
 	}
 	
-	public int solve() {
-		int exitflag = 0;
+	public OSQP.Status solve() {
 		int iter = 0;
 		boolean compute_cost_function = work.settings.verbose; // Boolean: compute the cost function in the loop or not
 		boolean can_check_termination = false; // Boolean: check termination or not
@@ -400,7 +399,6 @@ public class OSQP {
 		    if (can_check_termination) {
 		        // Update information and compute also objective value
 		        update_info(work, iter, compute_cost_function, false);
-
 		        // Check algorithm termination
 		        if (check_termination(work, false)) {
 		          // Terminate algorithm
@@ -418,7 +416,7 @@ public class OSQP {
 			      }
 			      // Actually update rho
 			      if (adapt_rho(work))
-			    	  return 1;
+			    	  return Status.ERROR;
 		    }
 		  }        // End of ADMM for loop
 
@@ -455,7 +453,7 @@ public class OSQP {
 		  // Store solution
 		  store_solution(work);
 
-		  return exitflag;
+		  return work.info.status;
 	}
 	
 //	static int check_termination(OSQP.Workspace work, boolean approximate) {
@@ -807,7 +805,7 @@ public class OSQP {
 		  // NB: Use z_prev as working vector
 		  // pr = Ax - z
 
-			LinAlg.mat_vec(work.data.A, x, work.Ax, 0, 0 ); // Ax
+			LinAlg.mat_vec(work.data.A, x, work.Ax, 0, 0); // Ax
 			LinAlg.vec_add_scaled(work.z_prev, work.Ax, z, -1.0);
 
 		  // If scaling active . rescale residual
@@ -1265,6 +1263,169 @@ public class OSQP {
 
 		  return exitflag;
 		}
+		
+		public void update_lin_cost(double[] q_new) {
 
+			  // Replace q by the new vector
+			LinAlg.prea_vec_copy(q_new, work.data.q);
+
+			  // Scaling
+			  if (work.settings.scaling>0) {
+			    LinAlg.vec_ew_prod(work.scaling.D, work.data.q, work.data.q);
+			    LinAlg.vec_mult_scalar(work.data.q, work.scaling.c);
+			  }
+
+			  // Reset solver information
+			  reset_info(work.info);
+			}
+		
+		
+		public void update_bounds(double[] l_new, double[] u_new) {
+			int i;
+
+		
+			// Check if lower bound is smaller than upper bound
+			for (i = 0; i < work.data.m; i++) {
+				if (l_new[i] > u_new[i]) {
+					throw new IllegalArgumentException("Lower bound is greater than upper bound in row "+i);
+				}
+			}
+			
+			// Replace l and u by the new vectors
+			LinAlg.prea_vec_copy(l_new, work.data.l);
+			LinAlg.prea_vec_copy(u_new, work.data.u);
+			
+			// Scaling
+			if (work.settings.scaling>0) {
+				LinAlg.vec_ew_prod(work.scaling.E, work.data.l, work.data.l);
+				LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u);
+			}
+			
+			// Reset solver information
+			reset_info(work.info);
+
+		}
+		
+		public void warm_start_x(double[] x) {
+
+			  // Update warm_start setting to true
+			  if (!work.settings.warm_start) work.settings.warm_start = true;
+
+			  // Copy primal variable into the iterate x
+			  LinAlg.prea_vec_copy(x, work.x);
+
+			  // Scale iterate
+			  if (work.settings.scaling>0) {
+				  LinAlg.vec_ew_prod(work.scaling.Dinv, work.x, work.x);
+			  }
+
+			  // Compute Ax = z and store it in z
+			  LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0);
+
+			}
+
+		public void warm_start_y(double[] y) {
+			  // Update warm_start setting to true
+			  if (!work.settings.warm_start) work.settings.warm_start = true;
+
+			  // Copy primal variable into the iterate y
+			  LinAlg.prea_vec_copy(y, work.y);
+
+			  // Scale iterate
+			  if (work.settings.scaling>0) {
+				  LinAlg.vec_ew_prod(work.scaling.Einv, work.y, work.y);
+				  LinAlg.vec_mult_scalar(work.y, work.scaling.c);
+			  }
+
+			}
+		
+		public void  update_P(double[] Px_new,
+                int[]   Px_new_idx) {
+			
+
+			if (work.settings.scaling>0) {
+			// Unscale data
+				Scaling.unscale_data(work);
+			}
+			
+			// Update P elements
+			if (Px_new_idx!= null) { // Change only Px_new_idx
+				for (int i = 0; i < Px_new_idx.length; i++) {
+					work.data.P.Ax[Px_new_idx[i]] = Px_new[i];
+				}
+			}
+			else // Change whole P
+			{
+				int nnzP = work.data.P.Ap[work.data.P.n];
+				for (int i = 0; i < nnzP; i++) {
+					work.data.P.Ax[i] = Px_new[i];
+				}
+			}
+			
+			if (work.settings.scaling>0) {
+			// Scale data
+				Scaling.scale_data(work);
+			}
+			
+			// Update linear system structure with new data
+			work.linsys_solver.update_solver_matrices(work.data.P,work.data.A);
+			
+			// Reset solver information
+			reset_info(work.info);
+		}
+		
+		public void update_A(double[] Ax_new,
+                 int[]   Ax_new_idx) {
+			int i;        // For indexing
+			int nnzA;     // Number of nonzeros in A
+			
+			
+			nnzA = work.data.A.Ap[work.data.A.n];
+			
+		
+			
+			if (work.settings.scaling>0) {
+				// Unscale data
+				Scaling.unscale_data(work);
+			}
+			
+			// Update A elements
+			if (Ax_new_idx!=null) { // Change only Ax_new_idx
+			for (i = 0; i < Ax_new_idx.length; i++) {
+			  work.data.A.Ax[Ax_new_idx[i]] = Ax_new[i];
+			}
+			}
+			else { // Change whole A
+			for (i = 0; i < nnzA; i++) {
+			  work.data.A.Ax[i] = Ax_new[i];
+			}
+			}
+			
+			if (work.settings.scaling>0) {
+				// Scale data
+				Scaling.scale_data(work);
+			}
+			
+			// Update linear system structure with new data
+			work.linsys_solver.update_solver_matrices(work.data.P,
+			                                              work.data.A);
+			
+			// Reset solver information
+			reset_info(work.info);
+
+	
+			}
+		
+		public double[] getPrimalSolution() {
+			return work.solution.x;
+		}
+		
+		public double[] getDualSolution() {
+			return work.solution.y;
+		}
+		
+		public double getObjectiveValue() {
+			return work.info.obj_val;
+		}
 
 }

@@ -57,6 +57,29 @@ public class CSCMatrix {
 		  return C;     /* success; free w and return C */
 	}
 	
+	public static CSCMatrix triplet_to_csc(int m, int n, int nz, int[] Ti, int[] Tj, double[] Tx, int[] TtoC) {
+		int p, k; 
+		CSCMatrix C = new CSCMatrix(m,n,nz,Tx!=null,false);
+		int[] Cp = C.Ap;
+		int[] Ci = C.Ai;
+		double[] Cx = C.Ax;
+		int[] w = new int[n];
+
+		  for (k = 0; k < nz; k++) w[Tj[k]]++;  /* column counts */
+		  csc_cumsum(Cp, w, n);                 /* column pointers */
+
+		  for (k = 0; k < nz; k++) {
+		    Ci[p = w[Tj[k]]++] = Ti[k];         /* A(i,j) is the pth entry in C */
+
+		    if (Cx!=null) {
+		      Cx[p] = Tx[k];
+
+		      if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
+		    }
+		  }
+		  return C;     /* success; free w and return C */
+	}
+	
 	public static CSCMatrix triplet_to_csr(CSCMatrix T, int[] TtoC) {
 		int m = T.m, n=T.n, nz=T.nz, p, k; 
 		int[] Ti = T.Ai, Tj=T.Ap;

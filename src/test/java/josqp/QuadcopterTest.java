@@ -492,25 +492,26 @@ public class QuadcopterTest {
 			        2.40840000e+00,  2.40840000e+00,  2.40840000e+00,  2.40840000e+00};
 		int n=172, m=304;
 		OSQP.Settings settings = new OSQP.Settings();
+		settings.polish = true;
 		settings.check_termination = 10000;
 		settings.max_iter = 10000;
 		
-		for (int i=0; i<10; i++) {
+//		for (int i=0; i<10; i++) {
 			CSCMatrix A = new CSCMatrix(m,n,Ax.length,Ap,Ai,Ax);
 			CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
 			OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
 			OSQP opt = new OSQP(data,settings);
-			double tme = System.currentTimeMillis();
+//			double tme = System.currentTimeMillis();
 			opt.solve();
 			//System.out.println(System.currentTimeMillis()-tme);
 			OSQP.Info info = opt.getWorkspace().info;
-			//System.out.println(info.obj_val+" "+info.status.toString());
+			System.out.println(info.obj_val+" "+info.status.toString());
 			opt.update_bounds(l, u);
 			opt.update_A(Ax, null);
 			
 			opt.update_P(Px, null);
 			System.out.println(Arrays.toString(opt.getDualSolution()));
-		}
+//		}
 
 	}
 

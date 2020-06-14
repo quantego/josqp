@@ -325,8 +325,8 @@ public class OSQP {
 		
 		// Initialize active constraints structure
 		work.pol = new OSQP.PolishedData();
-		work.pol.A_to_Alow = new int[data.m];
 		work.pol.Aupp_to_A = new int[data.m];
+		work.pol.Alow_to_A = new int[data.m];
 		work.pol.A_to_Alow = new int[data.m];
 		work.pol.A_to_Aupp = new int[data.m];
 		work.pol.x = new double[data.n];
@@ -574,25 +574,29 @@ public class OSQP {
 		  double pri_res_norm, dua_res_norm; // Normalization for the residuals
 		  double temp_res_norm;              // Temporary residual norm
 		  double rho_estimate;               // Rho estimate value
+		  
+		// Get problem dimensions
+		  int n = work.data.n;
+		  int m = work.data.m;
 
 
 		  // Get primal and dual residuals
-		  pri_res = LinAlg.vec_norm_inf(work.z_prev);
-		  dua_res = LinAlg.vec_norm_inf(work.x_prev);
+		  pri_res = LinAlg.vec_norm_inf(work.z_prev, m);
+		  dua_res = LinAlg.vec_norm_inf(work.x_prev, n);
 
 		  // Normalize primal residual
-		  pri_res_norm  = LinAlg.vec_norm_inf(work.z);           // ||z||
-		  temp_res_norm = LinAlg.vec_norm_inf(work.Ax);          // ||Ax||
+		  pri_res_norm  = LinAlg.vec_norm_inf(work.z, m);           // ||z||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Ax, m);          // ||Ax||
 		  pri_res_norm  = Math.max(pri_res_norm, temp_res_norm); // max (||z||,||Ax||)
 		  pri_res      /= (pri_res_norm + 1e-10);             // Normalize primal
 		                                                      // residual (prevent 0
 		                                                      // division)
 
 		  // Normalize dual residual
-		  dua_res_norm  = LinAlg.vec_norm_inf(work.data.q);     // ||q||
-		  temp_res_norm = LinAlg.vec_norm_inf(work.Aty);         // ||A' y||
+		  dua_res_norm  = LinAlg.vec_norm_inf(work.data.q,n);     // ||q||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Aty,n);         // ||A' y||
 		  dua_res_norm  = Math.max(dua_res_norm, temp_res_norm);
-		  temp_res_norm = LinAlg.vec_norm_inf(work.Px);          //  ||P x||
+		  temp_res_norm = LinAlg.vec_norm_inf(work.Px,n);          //  ||P x||
 		  dua_res_norm  = Math.max(dua_res_norm, temp_res_norm); // max(||q||,||A' y||,||P
 		                                                      // x||)
 		  dua_res      /= (dua_res_norm + 1e-10);             // Normalize dual residual
@@ -792,7 +796,7 @@ public class OSQP {
 			  double obj_val;
 
 			  obj_val = LinAlg.quad_form(work.data.P, x) +
-					  LinAlg.vec_prod(work.data.q, x);
+					  LinAlg.vec_prod(work.data.q, x, x.length);
 
 			  if (work.settings.scaling>0) {
 			    obj_val *= work.scaling.cinv;
@@ -805,16 +809,16 @@ public class OSQP {
 		  // NB: Use z_prev as working vector
 		  // pr = Ax - z
 
-			LinAlg.mat_vec(work.data.A, x, work.Ax, 0, 0); // Ax
-			LinAlg.vec_add_scaled(work.z_prev, work.Ax, z, -1.0);
+			LinAlg.mat_vec(work.data.A, x, work.Ax, 0,0, 0); // Ax
+			LinAlg.vec_add_scaled(work.z_prev, work.Ax, z, work.data.m, -1.0);
 
 		  // If scaling active . rescale residual
 		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
-		    return LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z_prev);
+		    return LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z_prev, work.data.m);
 		  }
 
 		  // Return norm of the residual
-		  return LinAlg.vec_norm_inf(work.z_prev);
+		  return LinAlg.vec_norm_inf(work.z_prev, work.data.m);
 		}
 
 		static double compute_pri_tol(Workspace work, double eps_abs, double eps_rel) {
@@ -824,20 +828,20 @@ public class OSQP {
 		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		    // ||Einv * z||
 		    max_rel_eps =
-		    		LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z);
+		    		LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z, work.data.m);
 
 		    // ||Einv * A * x||
 		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Einv,
-		                                       work.Ax);
+		                                       work.Ax, work.data.m);
 
 		    // Choose maximum
 		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
 		  } else { // No unscaling required
 		    // ||z||
-		    max_rel_eps = LinAlg.vec_norm_inf(work.z);
+		    max_rel_eps = LinAlg.vec_norm_inf(work.z, work.data.m);
 
 		    // ||A * x||
-		    temp_rel_eps = LinAlg.vec_norm_inf(work.Ax);
+		    temp_rel_eps = LinAlg.vec_norm_inf(work.Ax, work.data.m);
 
 		    // Choose maximum
 		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
@@ -853,30 +857,30 @@ public class OSQP {
 		  // dr = q + A'*y + P*x
 
 		  // dr = q
-			LinAlg.prea_vec_copy(work.data.q, work.x_prev);
+			LinAlg.prea_vec_copy(work.data.q, work.x_prev, work.data.n);
 
 		  // P * x (upper triangular part)
-			LinAlg.mat_vec(work.data.P, x, work.Px, 0, 0);
+			LinAlg.mat_vec(work.data.P, x, work.Px, 0,0, 0);
 
 		  // P' * x (lower triangular part with no diagonal)
-			LinAlg.mat_tpose_vec(work.data.P, x, work.Px,0, 1, true);
+			LinAlg.mat_tpose_vec(work.data.P, x, work.Px,0,0, 1, true);
 
 		  // dr += P * x (full P matrix)
-			LinAlg.vec_add_scaled(work.x_prev, work.x_prev, work.Px, 1);
+			LinAlg.vec_add_scaled(work.x_prev, work.x_prev, work.Px, work.data.n, 1.0);
 
 		  // dr += A' * y
 		  if (work.data.m > 0) {
-			  LinAlg.mat_tpose_vec(work.data.A, y, work.Aty, 0, 0, false);
-			  LinAlg.vec_add_scaled(work.x_prev, work.x_prev, work.Aty, 1);
+			  LinAlg.mat_tpose_vec(work.data.A, y, work.Aty, 0, 0, 0, false);
+			  LinAlg.vec_add_scaled(work.x_prev, work.x_prev, work.Aty, work.data.n, 1);
 		  }
 
 		  // If scaling active . rescale residual
 		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		    return work.scaling.cinv * LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
-		                                                     work.x_prev);
+		                                                     work.x_prev, work.data.n);
 		  }
 
-		  return LinAlg.vec_norm_inf(work.x_prev);
+		  return LinAlg.vec_norm_inf(work.x_prev, work.data.n);
 		}
 
 		static double compute_dua_tol(Workspace work, double eps_abs, double eps_rel) {
@@ -886,30 +890,30 @@ public class OSQP {
 		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		    // || Dinv q||
 		    max_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
-		                                      work.data.q);
+		                                      work.data.q, work.data.n);
 
 		    // || Dinv A' y ||
 		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
-		                                       work.Aty);
+		                                       work.Aty, work.data.n);
 		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
 
 		    // || Dinv P x||
 		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Dinv,
-		                                       work.Px);
+		                                       work.Px, work.data.n);
 		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
 
 		    // Multiply by cinv
 		    max_rel_eps *= work.scaling.cinv;
 		  } else { // No scaling required
 		    // ||q||
-		    max_rel_eps = LinAlg.vec_norm_inf(work.data.q);
+		    max_rel_eps = LinAlg.vec_norm_inf(work.data.q, work.data.n);
 
 		    // ||A'*y||
-		    temp_rel_eps = LinAlg.vec_norm_inf(work.Aty);
+		    temp_rel_eps = LinAlg.vec_norm_inf(work.Aty, work.data.n);
 		    max_rel_eps  = Math.max(max_rel_eps, temp_rel_eps);
 
 		    // ||P*x||
-		    temp_rel_eps = LinAlg.vec_norm_inf(work.Px);
+		    temp_rel_eps = LinAlg.vec_norm_inf(work.Px, work.data.n);
 		    max_rel_eps  = Math.max(max_rel_eps, temp_rel_eps);
 		  }
 
@@ -948,10 +952,10 @@ public class OSQP {
 		  // Compute infinity norm of delta_y (unscale if necessary)
 		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		    // Use work.Adelta_x as temporary vector
-		    LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.Adelta_x);
-		    norm_delta_y = LinAlg.vec_norm_inf(work.Adelta_x);
+		    LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.Adelta_x, work.data.m);
+		    norm_delta_y = LinAlg.vec_norm_inf(work.Adelta_x, work.data.m);
 		  } else {
-		    norm_delta_y = LinAlg.vec_norm_inf(work.delta_y);
+		    norm_delta_y = LinAlg.vec_norm_inf(work.delta_y, work.data.m);
 		  }
 
 		  if (norm_delta_y > eps_prim_inf) { // ||delta_y|| > 0
@@ -964,16 +968,16 @@ public class OSQP {
 		    // Check if the condition is satisfied: ineq_lhs < -eps
 		    if (ineq_lhs < -eps_prim_inf * norm_delta_y) {
 		      // Compute and return ||A'delta_y|| < eps_prim_inf
-		    	LinAlg.mat_tpose_vec(work.data.A, work.delta_y, work.Atdelta_y, 0,0, false);
+		    	LinAlg.mat_tpose_vec(work.data.A, work.delta_y, work.Atdelta_y, 0, 0,0, false);
 
 		      // Unscale if necessary
 		      if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		        LinAlg.vec_ew_prod(work.scaling.Dinv,
 		                    work.Atdelta_y,
-		                    work.Atdelta_y);
+		                    work.Atdelta_y, work.data.n);
 		      }
 
-		      return LinAlg.vec_norm_inf(work.Atdelta_y) < eps_prim_inf * norm_delta_y;
+		      return LinAlg.vec_norm_inf(work.Atdelta_y, work.data.n) < eps_prim_inf * norm_delta_y;
 		    }
 		  }
 
@@ -1003,10 +1007,10 @@ public class OSQP {
 		                                                                        // if
 		                                                                        // necessary
 		    norm_delta_x = LinAlg.vec_scaled_norm_inf(work.scaling.D,
-		                                       work.delta_x);
+		                                       work.delta_x, work.data.n);
 		    cost_scaling = work.scaling.c;
 		  } else {
-		    norm_delta_x = LinAlg.vec_norm_inf(work.delta_x);
+		    norm_delta_x = LinAlg.vec_norm_inf(work.delta_x, work.data.n);
 		    cost_scaling = 1.0;
 		  }
 
@@ -1017,30 +1021,30 @@ public class OSQP {
 		    /* vec_mult_scalar(work.delta_x, 1./norm_delta_x, work.data.n); */
 
 		    // Check first if q'*delta_x < 0
-		    if (LinAlg.vec_prod(work.data.q, work.delta_x) <
+		    if (LinAlg.vec_prod(work.data.q, work.delta_x, work.data.n) <
 		        -cost_scaling * eps_dual_inf * norm_delta_x) {
 		      // Compute product P * delta_x (NB: P is store in upper triangular form)
-		    LinAlg.mat_vec(work.data.P, work.delta_x, work.Pdelta_x, 0,0);
-		    LinAlg.mat_tpose_vec(work.data.P, work.delta_x, work.Pdelta_x, 0, 1, true);
+		    LinAlg.mat_vec(work.data.P, work.delta_x, work.Pdelta_x, 0,0,0);
+		    LinAlg.mat_tpose_vec(work.data.P, work.delta_x, work.Pdelta_x, 0, 0, 1, true);
 
 		      // Scale if necessary
 		      if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		        LinAlg.vec_ew_prod(work.scaling.Dinv,
 		                    work.Pdelta_x,
-		                    work.Pdelta_x);
+		                    work.Pdelta_x, work.data.n);
 		      }
 
 		      // Check if || P * delta_x || = 0
-		      if (LinAlg.vec_norm_inf(work.Pdelta_x) <
+		      if (LinAlg.vec_norm_inf(work.Pdelta_x, work.data.n) <
 		          cost_scaling * eps_dual_inf * norm_delta_x) {
 		        // Compute A * delta_x
-		    	  LinAlg.mat_vec(work.data.A, work.delta_x, work.Adelta_x, 0, 0);
+		    	  LinAlg.mat_vec(work.data.A, work.delta_x, work.Adelta_x, 0,0, 0);
 
 		        // Scale if necessary
 		        if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		        	LinAlg.vec_ew_prod(work.scaling.Einv,
 		                      work.Adelta_x,
-		                      work.Adelta_x);
+		                      work.Adelta_x, work.data.m);
 		        }
 
 		        // De Morgan Law Applied to dual infeasibility conditions for A * x
@@ -1079,30 +1083,30 @@ public class OSQP {
 		static void store_solution(Workspace work) {
 
 		  if (has_solution(work.info)) {
-			  LinAlg.prea_vec_copy(work.x, work.solution.x); // primal
-			  LinAlg.prea_vec_copy(work.y, work.solution.y); // dual
+			  LinAlg.prea_vec_copy(work.x, work.solution.x, work.data.n); // primal
+			  LinAlg.prea_vec_copy(work.y, work.solution.y, work.data.m); // dual
 
 		    // Unscale solution if scaling has been performed
 		    if (work.settings.scaling>0)
 		    	Scaling.unscale_solution(work);
 		  } else {
 		    // No solution present. Solution is NaN
-			  LinAlg.vec_set_scalar(work.solution.x, OSQP_NAN);
-			  LinAlg.vec_set_scalar(work.solution.y, OSQP_NAN);
+			  LinAlg.vec_set_scalar(work.solution.x, OSQP_NAN, work.data.n);
+			  LinAlg.vec_set_scalar(work.solution.y, OSQP_NAN, work.data.m);
 
 
 		    // Normalize infeasibility certificates if embedded is off
 		    // NB: It requires a division
 		    if ((work.info.status == Status.PRIMAL_INFEASIBLE) ||
 		        ((work.info.status == Status.PRIMAL_INFEASIBLE_INACCURATE))) {
-		      double norm_vec = LinAlg.vec_norm_inf(work.delta_y);
-		      LinAlg.vec_mult_scalar(work.delta_y, 1. / norm_vec);
+		      double norm_vec = LinAlg.vec_norm_inf(work.delta_y, work.data.m);
+		      LinAlg.vec_mult_scalar(work.delta_y, 1. / norm_vec, work.data.m);
 		    }
 
 		    if ((work.info.status == Status.DUAL_INFEASIBLE) ||
 		        ((work.info.status == Status.DUAL_INFEASIBLE_INACCURATE))) {
-		      double norm_vec = LinAlg.vec_norm_inf(work.delta_x);
-		      LinAlg.vec_mult_scalar(work.delta_x, 1. / norm_vec);
+		      double norm_vec = LinAlg.vec_norm_inf(work.delta_x, work.data.n);
+		      LinAlg.vec_mult_scalar(work.delta_x, 1. / norm_vec, work.data.n);
 		    }
 
 
@@ -1240,7 +1244,7 @@ public class OSQP {
 
 		    if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		      // Update infeasibility certificate
-		      LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.delta_y);
+		      LinAlg.vec_ew_prod(work.scaling.E, work.delta_y, work.delta_y, work.data.m);
 		    }
 		    work.info.obj_val = OSQP_INFTY;
 		    exitflag            = true;
@@ -1255,7 +1259,7 @@ public class OSQP {
 
 		    if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		      // Update infeasibility certificate
-		      LinAlg.vec_ew_prod(work.scaling.D, work.delta_x, work.delta_x);
+		      LinAlg.vec_ew_prod(work.scaling.D, work.delta_x, work.delta_x, work.data.n);
 		    }
 		    work.info.obj_val = -OSQP_INFTY;
 		    exitflag            = true;
@@ -1267,12 +1271,12 @@ public class OSQP {
 		public void update_lin_cost(double[] q_new) {
 
 			  // Replace q by the new vector
-			LinAlg.prea_vec_copy(q_new, work.data.q);
+			LinAlg.prea_vec_copy(q_new, work.data.q, work.data.n);
 
 			  // Scaling
 			  if (work.settings.scaling>0) {
-			    LinAlg.vec_ew_prod(work.scaling.D, work.data.q, work.data.q);
-			    LinAlg.vec_mult_scalar(work.data.q, work.scaling.c);
+			    LinAlg.vec_ew_prod(work.scaling.D, work.data.q, work.data.q, work.data.n);
+			    LinAlg.vec_mult_scalar(work.data.q, work.scaling.c, work.data.n);
 			  }
 
 			  // Reset solver information
@@ -1292,13 +1296,13 @@ public class OSQP {
 			}
 			
 			// Replace l and u by the new vectors
-			LinAlg.prea_vec_copy(l_new, work.data.l);
-			LinAlg.prea_vec_copy(u_new, work.data.u);
+			LinAlg.prea_vec_copy(l_new, work.data.l, work.data.m);
+			LinAlg.prea_vec_copy(u_new, work.data.u, work.data.m);
 			
 			// Scaling
 			if (work.settings.scaling>0) {
-				LinAlg.vec_ew_prod(work.scaling.E, work.data.l, work.data.l);
-				LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u);
+				LinAlg.vec_ew_prod(work.scaling.E, work.data.l, work.data.l, work.data.m);
+				LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u, work.data.m);
 			}
 			
 			// Reset solver information
@@ -1312,15 +1316,15 @@ public class OSQP {
 			  if (!work.settings.warm_start) work.settings.warm_start = true;
 
 			  // Copy primal variable into the iterate x
-			  LinAlg.prea_vec_copy(x, work.x);
+			  LinAlg.prea_vec_copy(x, work.x, work.data.n);
 
 			  // Scale iterate
 			  if (work.settings.scaling>0) {
-				  LinAlg.vec_ew_prod(work.scaling.Dinv, work.x, work.x);
+				  LinAlg.vec_ew_prod(work.scaling.Dinv, work.x, work.x, work.data.n);
 			  }
 
 			  // Compute Ax = z and store it in z
-			  LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0);
+			  LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0, 0);
 
 			}
 
@@ -1329,12 +1333,12 @@ public class OSQP {
 			  if (!work.settings.warm_start) work.settings.warm_start = true;
 
 			  // Copy primal variable into the iterate y
-			  LinAlg.prea_vec_copy(y, work.y);
+			  LinAlg.prea_vec_copy(y, work.y, work.data.m);
 
 			  // Scale iterate
 			  if (work.settings.scaling>0) {
-				  LinAlg.vec_ew_prod(work.scaling.Einv, work.y, work.y);
-				  LinAlg.vec_mult_scalar(work.y, work.scaling.c);
+				  LinAlg.vec_ew_prod(work.scaling.Einv, work.y, work.y, work.data.m);
+				  LinAlg.vec_mult_scalar(work.y, work.scaling.c, work.data.m);
 			  }
 
 			}
@@ -1414,6 +1418,68 @@ public class OSQP {
 			reset_info(work.info);
 
 	
+			}
+		
+		public void update_P_A(double[] Px_new,
+                int[]   Px_new_idx,
+                double[] Ax_new,
+                int[]   Ax_new_idx) {
+			int i;          // For indexing
+			int nnzP, nnzA; // Number of nonzeros in P and A
+			
+			// Check if workspace has been initialized
+			
+	
+			
+			nnzP = work.data.P.Ap[work.data.P.n];
+			nnzA = work.data.A.Ap[work.data.A.n];
+			
+		
+			
+			if (work.settings.scaling>0) {
+			// Unscale data
+				Scaling.unscale_data(work);
+			}
+			
+			// Update P elements
+			if (Px_new_idx!=null) { // Change only Px_new_idx
+				for (i = 0; i < Px_new_idx.length; i++) {
+					work.data.P.Ax[Px_new_idx[i]] = Px_new[i];
+				}
+			}
+			else // Change whole P
+			{
+				for (i = 0; i < nnzP; i++) {
+					work.data.P.Ax[i] = Px_new[i];
+				}
+			}
+			
+			// Update A elements
+			if (Ax_new_idx!=null) { // Change only Ax_new_idx
+				for (i = 0; i < Ax_new_idx.length; i++) {
+					work.data.A.Ax[Ax_new_idx[i]] = Ax_new[i];
+				}
+			}
+			else { // Change whole A
+				for (i = 0; i < nnzA; i++) {
+					work.data.A.Ax[i] = Ax_new[i];
+				}
+			}
+			
+			if (work.settings.scaling>0) {
+			// Scale data
+				Scaling.scale_data(work);
+			}
+			
+			// Update linear system structure with new data
+			work.linsys_solver.update_solver_matrices(work.data.P,
+			                                            work.data.A);
+			
+			// Reset solver information
+			reset_info(work.info);
+			
+	
+			
 			}
 		
 		public double[] getPrimalSolution() {

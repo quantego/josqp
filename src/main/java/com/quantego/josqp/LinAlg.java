@@ -3,21 +3,17 @@ package com.quantego.josqp;
 
 public class LinAlg {
     /* VECTOR FUNCTIONS ----------------------------------------------------------*/
-    public static void vec_add_scaled(double[] c, double[] a, double[] b, double sc){
-        if(!(a.length == b.length && b.length == c.length)){
-            throw new IllegalArgumentException("a,b,c need to be of the same length");
-        }
-        for (int i=0; i<a.length;i++){
+    public static void vec_add_scaled(double[] c, double[] a, double[] b, int n, double sc){
+
+        for (int i=0; i<n;i++){
             c[i] = a[i] + sc*b[i];
         }
     }
 
-    public static double vec_scaled_norm_inf(double[] S, double[] v){
-        if(S.length != v.length){
-            throw new IllegalArgumentException("S and v need to be of the same length");
-        }
+    public static double vec_scaled_norm_inf(double[] S, double[] v, int l){
+
         double max = 0;
-        for (int i =0;i<v.length;i++){
+        for (int i =0;i<l;i++){
             double abs_Sv_i = Math.abs(S[i] * v[i]);
             if(abs_Sv_i > max){
                 max = abs_Sv_i;
@@ -26,9 +22,9 @@ public class LinAlg {
         return max;
     }
 
-    public static double vec_norm_inf(double [] v){
+    public static double vec_norm_inf(double [] v, int l){
         double max = 0;
-        for (int i = 0; i<v.length; i++){
+        for (int i = 0; i<l; i++){
             double abs_v_i = Math.abs(v[i]);
             if(abs_v_i > max){
                 max = abs_v_i;
@@ -37,13 +33,10 @@ public class LinAlg {
         return max;
     }
 
-    public static double vec_norm_inf_diff(double[] a, double[] b){
-        if(!(a.length == b.length)){
-            throw new IllegalArgumentException("a,b need to be of the same length");
-        }
+    public static double vec_norm_inf_diff(double[] a, double[] b, int l){
         double nmDiff = 0;
         double tmp;
-        for (int i = 0; i<a.length; i++){
+        for (int i = 0; i<l; i++){
             tmp = Math.abs(a[i]-b[i]);
             if(tmp > nmDiff){
                 nmDiff = tmp;
@@ -52,35 +45,35 @@ public class LinAlg {
         return nmDiff;
     }
 
-    public static double vec_mean(double[] a){
+    public static double vec_mean(double[] a, int n){
         double mean = 0;
-        for(int i = 0; i<a.length; i++) {
+        for(int i = 0; i<n; i++) {
             mean += a[i];
         }
-        return mean/a.length;
+        return mean/n;
     }
 
-    public static void int_vec_set_scalar(int[] a , int sc) {
-        for (int i = 0; i < a.length; i++) {
+    public static void int_vec_set_scalar(int[] a , int sc, int n) {
+        for (int i = 0; i < n; i++) {
             a[i] = sc;
         }
     }
 
-    public static void vec_set_scalar(double[] a, double sc) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_set_scalar(double[] a, double sc, int n) {
+        for (int i = 0; i < n; i++) {
             a[i] = sc;
         }
     }
 
 
-    public static void vec_add_scalar(double[] a, double sc) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_add_scalar(double[] a, double sc, int n) {
+        for (int i = 0; i < n; i++) {
             a[i] += sc;
         }
     }
 
-    public static void vec_mult_scalar(double[] a, double sc) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_mult_scalar(double[] a, double sc, int n) {
+        for (int i = 0; i < n; i++) {
             a[i] *= sc;
         }
     }
@@ -90,61 +83,65 @@ public class LinAlg {
         return b;
     }*/
 
-    public static void prea_int_vec_copy(int[] a, int[] b) {
-        for (int i = 0; i < a.length; i++) b[i] = a[i];
+    public static void prea_int_vec_copy(int[] a, int[] b, int n) {
+        for (int i = 0; i < n; i++) b[i] = a[i];
     }
 
-    public static void prea_vec_copy(double[] a, double[] b) {
-        for (int i = 0; i < a.length; i++) b[i] = a[i];
+    public static void prea_vec_copy(double[] a, double[] b, int n) {
+        for (int i = 0; i < n; i++) b[i] = a[i];
     }
 
-    public static void vec_ew_recipr(double[] a , double[] b) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_ew_recipr(double[] a , double[] b, int n) {
+        for (int i = 0; i < n; i++) {
             b[i] = 1.0 / a[i];
         }
     }
 
-    public static double vec_prod(double[] a, double[] b){
+    public static double vec_prod(double[] a, double[] b, int n){
         double prod = 0;
-        for(int i = 0; i<a.length;i++){
+        for(int i = 0; i<n;i++){
             prod+=a[i]*b[i];
         }
 
         return prod;
     }
 
-    public static void vec_ew_prod(double[] a , double[] b, double[] c) {
-        for (int i = 0; i < a.length; i++) {
-            c[i] = b[i] * a[i];
-        }
+    public static void vec_ew_prod(double[] a , double[] b, double[] c, int n) {
+    	try {
+	        for (int i = 0; i < n; i++) {
+	            c[i] = b[i] * a[i];
+	        }
+    	} catch(Exception e) {
+    		System.out.println();
+    	}
     }
 
-    public static void vec_ew_sqrt(double[] a) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_ew_sqrt(double[] a, int n) {
+        for (int i = 0; i < n; i++) {
             a[i] = Math.sqrt(a[i]);
         }
     }
 
-    public static void vec_ew_max(double[] a, double max_val) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_ew_max(double[] a, int n, double max_val) {
+        for (int i = 0; i < n; i++) {
             a[i] = Math.max(a[i], max_val);
         }
     }
 
-    public static void vec_ew_min(double[] a, double min_val) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_ew_min(double[] a, int n, double min_val) {
+        for (int i = 0; i < n; i++) {
             a[i] = Math.min(a[i], min_val);
         }
     }
 
-    public static void vec_ew_max_vec(double[] a, double[] b, double[] c) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_ew_max_vec(double[] a, double[] b, double[] c, int n) {
+        for (int i = 0; i < n; i++) {
             c[i] = Math.max(a[i], b[i]);
         }
     }
 
-    public static void vec_ew_min_vec(double[] a, double[] b, double[] c) {
-        for (int i = 0; i < a.length; i++) {
+    public static void vec_ew_min_vec(double[] a, double[] b, double[] c, int n) {
+        for (int i = 0; i < n; i++) {
             c[i] = Math.min(a[i], b[i]);
         }
     }
@@ -178,12 +175,12 @@ public class LinAlg {
         }
     }
 
-    public static void mat_vec(CSCMatrix A, double[] x, double[] y, int start, int plus_eq) {
+    public static void mat_vec(CSCMatrix A, double[] x, double[] y, int startx, int starty, int plus_eq) {
         //TODO: Check m,n
         if (plus_eq==0) {
             // y = 0
             for (int i = 0; i < A.m; i++) {
-                y[i+start] = 0;
+                y[i+starty] = 0;
             }
         }
 
@@ -196,25 +193,25 @@ public class LinAlg {
             // y -=  A*x
             for (int j = 0; j < A.n; j++) {
                 for (int i = A.Ap[j]; i < A.Ap[j + 1]; i++) {
-                    y[A.Ai[i]+start] -= A.Ax[i] * x[j];
+                    y[A.Ai[i]+starty] -= A.Ax[i] * x[j+startx];
                 }
             }
         } else {
             // y +=  A*x
             for (int j = 0; j < A.n; j++) {
                 for (int i = A.Ap[j]; i < A.Ap[j + 1]; i++) {
-                    y[A.Ai[i]+start] += A.Ax[i] * x[j];
+                    y[A.Ai[i]+starty] += A.Ax[i] * x[j+startx];
                 }
             }
         }
     }
 
-    public static void mat_tpose_vec(CSCMatrix A, double[] x, double[] y, int start, int plus_eq, boolean skip_diag) {
+    public static void mat_tpose_vec(CSCMatrix A, double[] x, double[] y, int startx, int starty, int plus_eq, boolean skip_diag) {
 
         if (plus_eq==0) {
             // y = 0
             for (int i = 0; i < A.n; i++) {
-                y[i+start] = 0;
+                y[i+starty] = 0;
             }
         }
 
@@ -229,13 +226,13 @@ public class LinAlg {
                 for (int j = 0; j < A.n; j++) {
                     for (int k = A.Ap[j]; k < A.Ap[j + 1]; k++) {
                         int i  = A.Ai[k];
-                        y[j+start] -= i == j ? 0 : A.Ax[k] * x[i];
+                        y[j+starty] -= i == j ? 0 : A.Ax[k] * x[i+startx];
                     }
                 }
             } else {
                 for (int j = 0; j < A.n; j++) {
                     for (int k = A.Ap[j]; k < A.Ap[j + 1]; k++) {
-                        y[j+start] -= A.Ax[k] * x[A.Ai[k]];
+                        y[j+starty] -= A.Ax[k] * x[A.Ai[k]+startx];
                     }
                 }
             }
@@ -245,13 +242,13 @@ public class LinAlg {
                 for (int j = 0; j < A.n; j++) {
                     for (int k = A.Ap[j]; k < A.Ap[j + 1]; k++) {
                         int i     = A.Ai[k];
-                        y[j+start] += i == j ? 0 : A.Ax[k] * x[i];
+                        y[j+starty] += i == j ? 0 : A.Ax[k] * x[i+startx];
                     }
                 }
             } else {
                 for (int j = 0; j < A.n; j++) {
                     for (int k = A.Ap[j]; k < A.Ap[j + 1]; k++) {
-                        y[j+start] += A.Ax[k] * x[A.Ai[k]];
+                        y[j+starty] += A.Ax[k] * x[A.Ai[k]+startx];
                     }
                 }
             }

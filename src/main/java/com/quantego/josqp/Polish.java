@@ -49,7 +49,7 @@ public class Polish {
 	  if (work.pol.n_low + work.pol.n_upp == 0) {
 	    // Form empty Ared
 	    work.pol.Ared = new CSCMatrix(0,work.data.n,0,true,false);
-	    LinAlg.int_vec_set_scalar(work.pol.Ared.Ap, 0);
+	    LinAlg.int_vec_set_scalar(work.pol.Ared.Ap, 0, work.data.n + 1);
 	    return 0; // mred = 0
 	  }
 
@@ -130,7 +130,7 @@ public class Polish {
 	                                  double[]      z,
 	                                  double[]      b) {
 	  int i, j, n;
-	  double[]rhs;
+	  double[] rhs;
 
 	  if (work.settings.polish_refine_iter > 0) {
 
@@ -142,20 +142,20 @@ public class Polish {
 
 	      for (i = 0; i < work.settings.polish_refine_iter; i++) {
 	        // Form the RHS for the iterative refinement:  b - K*z
-	        LinAlg.prea_vec_copy(b, rhs);
+	        LinAlg.prea_vec_copy(b, rhs, n);
 	
 	        // Upper Part: R^{n}
 	        // -= Px (upper triang)
-	        LinAlg.mat_vec(work.data.P, z, rhs,0,-1);
+	        LinAlg.mat_vec(work.data.P, z, rhs, 0, 0, -1);
 	
 	        // -= Px (lower triang)
-	        LinAlg.mat_tpose_vec(work.data.P, z, rhs, 0, -1, true);
+	        LinAlg.mat_tpose_vec(work.data.P, z, rhs, 0, 0, -1, true);
 	
 	        // -= Ared'*y_red
-	        LinAlg.mat_tpose_vec(work.pol.Ared, z, rhs, work.data.n, -1, false);
+	        LinAlg.mat_tpose_vec(work.pol.Ared, z, rhs, work.data.n, 0, -1, false);
 	
 	        // Lower Part: R^{m}
-	        LinAlg.mat_vec(work.pol.Ared, z, rhs, work.data.n, -1);
+	        LinAlg.mat_vec(work.pol.Ared, z, rhs, 0, work.data.n, -1);
 	
 	        // Solve linear system. Store solution in rhs
 	        p.solve(rhs);
@@ -180,7 +180,7 @@ public class Polish {
 
 	  // If there are no active constraints
 	  if (work.pol.n_low + work.pol.n_upp == 0) {
-		  LinAlg.vec_set_scalar(work.pol.y, 0.);
+		  LinAlg.vec_set_scalar(work.pol.y, 0., work.data.m);
 	    return;
 	  }
 
@@ -221,7 +221,7 @@ public class Polish {
 
 
 	  // Form reduced right-hand side rhs_red
-	  double[] rhs_red = new double[work.data.n];
+	  double[] rhs_red = new double[work.data.n*mred];
 
 	  form_rhs_red(work, rhs_red);
 
@@ -237,8 +237,8 @@ public class Polish {
 
 
 	  // Store the polished solution (x,z,y)
-	  LinAlg.prea_vec_copy(pol_sol, work.pol.x);   // pol.x
-	  LinAlg.mat_vec(work.data.A, work.pol.x, work.pol.z, 0, 0); // pol.z
+	  LinAlg.prea_vec_copy(pol_sol, work.pol.x, work.data.n);   // pol.x
+	  LinAlg.mat_vec(work.data.A, work.pol.x, work.pol.z, 0, 0, 0); // pol.z
 	  get_ypol_from_yred(work, pol_sol, work.data.n);     // pol.y
 
 	  // Ensure (z,y) satisfies normal cone constraint
@@ -272,9 +272,9 @@ public class Polish {
 
 	    // Update (x, z, y) in ADMM iterations
 	    // NB: z needed for warm starting
-	    LinAlg.prea_vec_copy(work.pol.x, work.x);
-	    LinAlg.prea_vec_copy(work.pol.z, work.z);
-	    LinAlg.prea_vec_copy(work.pol.y, work.y);
+	    LinAlg.prea_vec_copy(work.pol.x, work.x, work.data.n);
+	    LinAlg.prea_vec_copy(work.pol.z, work.z, work.data.m);
+	    LinAlg.prea_vec_copy(work.pol.y, work.y, work.data.m);
 
 	  } else { // Polishing failed
 	    work.info.status_polish = -1;

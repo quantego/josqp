@@ -64,7 +64,6 @@ public class CSCMatrix {
 		int[] Ci = C.Ai;
 		double[] Cx = C.Ax;
 		int[] w = new int[n];
-
 		  for (k = 0; k < nz; k++) w[Tj[k]]++;  /* column counts */
 		  csc_cumsum(Cp, w, n);                 /* column pointers */
 
@@ -179,17 +178,17 @@ public class CSCMatrix {
 	
 	public static CSCMatrix copy_csc_mat(CSCMatrix A) {
 		CSCMatrix B = new CSCMatrix(A.m, A.n, A.Ap[A.n], true, false);
-		  LinAlg.prea_int_vec_copy(A.Ap, B.Ap);
-		  LinAlg.prea_int_vec_copy(A.Ai, B.Ai);
-		  LinAlg.prea_vec_copy(A.Ax, B.Ax);
+		  LinAlg.prea_int_vec_copy(A.Ap, B.Ap, A.n+1);
+		  LinAlg.prea_int_vec_copy(A.Ai, B.Ai,A.Ap[A.n]);
+		  LinAlg.prea_vec_copy(A.Ax, B.Ax, A.Ap[A.n]);
 
 		  return B;
 		}
 	
 	public static void prea_copy_csc_mat(CSCMatrix A, CSCMatrix B) {
-		LinAlg.prea_int_vec_copy(A.Ap, B.Ap);
-		LinAlg.prea_int_vec_copy(A.Ai, B.Ai);
-		LinAlg.prea_vec_copy(A.Ax, B.Ax);
+		LinAlg.prea_int_vec_copy(A.Ap, B.Ap, A.n + 1);
+		LinAlg.prea_int_vec_copy(A.Ai, B.Ai, A.Ap[A.n]);
+		LinAlg.prea_vec_copy(A.Ax, B.Ax, A.Ap[A.n]);
 		B.nzmax = A.nzmax;
 		}
 	

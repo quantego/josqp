@@ -213,10 +213,10 @@ public class LinSys  {
 	public void solve(double[] b) {
 	    int j;
 
-	    if (this.polish) {
-	        /* stores solution to the KKT system in b */
-	        LDLSolve(b, b, this.P, this.bp);
-	    } else {
+//	    if (this.polish) {
+//	        /* stores solution to the KKT system in b */
+//	        LDLSolve(b, b, this.P, this.bp);
+//	    } else {
 	        /* stores solution to the KKT system in s.sol */
 	        LDLSolve(this.sol, b, this.P, this.bp);
 
@@ -229,7 +229,7 @@ public class LinSys  {
 	        for (j = 0 ; j < this.m ; j++) {
 	            b[j + this.n] += this.rho_inv_vec[j] * this.sol[j + this.n];
 	        }
-	    }
+//	    }
 
 	}
 

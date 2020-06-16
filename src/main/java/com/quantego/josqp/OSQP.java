@@ -157,6 +157,12 @@ public class OSQP {
 		final double[] q; ///< dense array for linear part of cost function (size n)
 		final double[] l; ///< dense array for lower bound (size m)
 		final double[] u; ///< dense array for upper bound (size m)
+		public int getN() {
+			return n;
+		}
+		public int getM() {
+			return m;
+		}
 		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u) {
 			this.n = n;
 			this.m = m;
@@ -563,7 +569,7 @@ public class OSQP {
 //		  return exitflag;
 //		}
 	
-	static void cold_start(OSQP.Workspace work) {
+	public static void cold_start(OSQP.Workspace work) {
 		  Arrays.fill(work.x, 0);
 		  Arrays.fill(work.z, 0);
 		  Arrays.fill(work.y, 0);
@@ -613,7 +619,7 @@ public class OSQP {
 		  return rho_estimate;
 		}
 	
-	static boolean osqp_update_rho(Workspace work, double rho_new) {
+	public static boolean osqp_update_rho(Workspace work, double rho_new) {
 		  int i;
 		  boolean exitflag = false;
 

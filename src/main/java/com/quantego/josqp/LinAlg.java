@@ -77,11 +77,11 @@ public class LinAlg {
             a[i] *= sc;
         }
     }
-    /*public static double[] vec_copy(double[] a){
+    public static double[] vec_copy(double[] a, int n){
     double[] b = new double[a.length];
-    for (int i = 0; i<a.length; i++) b[i] = a[i];
+    for (int i = 0; i<n; i++) b[i] = a[i];
         return b;
-    }*/
+    }
 
     public static void prea_int_vec_copy(int[] a, int[] b, int n) {
         for (int i = 0; i < n; i++) b[i] = a[i];

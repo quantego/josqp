@@ -35,11 +35,11 @@ public class OSQP {
 
 	static final double OSQP_NULL = 0.0;
 	static final double OSQP_NAN = Double.NaN;
-	static final double OSQP_INFTY = Double.POSITIVE_INFINITY;
+	static final double OSQP_INFTY = 1.0e30;
 
 	static final boolean ADAPTIVE_RHO = true;
 	static final int ADAPTIVE_RHO_INTERVAL = 0;
-	static final double ADAPTIVE_RHO_FRACTION= 0.4;         ///< fraction of setup time after which we update rho
+	static final double ADAPTIVE_RHO_FRACTION = 0.4;         ///< fraction of setup time after which we update rho
 	static final int ADAPTIVE_RHO_MULTIPLE_TERMINATION = 4; ///< multiple of check_termination after which we update rho (if PROFILING disabled)
 	static final int ADAPTIVE_RHO_FIXED = 100;             ///< number of iterations after which we update rho if termination_check  and PROFILING are disabled
 	static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
@@ -150,13 +150,13 @@ public class OSQP {
 	}
 	
 	public static class Data {
-		final int n; ///< number of variables n
-		final int m; ///< number of constraints m
-		final CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
-		final CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
-		final double[] q; ///< dense array for linear part of cost function (size n)
-		final double[] l; ///< dense array for lower bound (size m)
-		final double[] u; ///< dense array for upper bound (size m)
+		public final int n; ///< number of variables n
+		public final int m; ///< number of constraints m
+		public final CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
+		public final CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
+		public final double[] q; ///< dense array for linear part of cost function (size n)
+		public final double[] l; ///< dense array for lower bound (size m)
+		public final double[] u; ///< dense array for upper bound (size m)
 		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u) {
 			this.n = n;
 			this.m = m;
@@ -176,7 +176,7 @@ public class OSQP {
 	
 	public static class Workspace {
 		/// Problem data to work on (possibly scaled)
-		Data data;
+		public Data data;
 
 		  /// Linear System solver structure
 		LinSys linsys_solver;
@@ -346,6 +346,10 @@ public class OSQP {
 		work.info.setup_time = System.currentTimeMillis();
 		
 		work.info.rho_estimate = work.settings.rho;
+		
+		work.settings.adaptive_rho_interval = Math.max(
+		          work.settings.adaptive_rho_interval,
+		          work.settings.check_termination);
 		
 	}
 	
@@ -686,7 +690,7 @@ public class OSQP {
 		  }
 	}
 	
-	static void update_rho_vec(Workspace work) {
+	public void update_rho_vec() {
 		  int i, constr_type_changed;
 
 		  constr_type_changed = 0;
@@ -747,7 +751,7 @@ public class OSQP {
 		  compute_rhs(work);
 
 		  // Solve linear system
-		  work.linsys_solver.solve(work.xz_tilde);
+		  work.linsys_solver.solve(work.linsys_solver.sol,work.xz_tilde);
 		}
 
 	static void update_x(Workspace work) {
@@ -1138,15 +1142,25 @@ public class OSQP {
 
 		  // Compute the objective if needed
 		  if (compute_objective) {
-		    work.info.obj_val = compute_obj_val(work, x);
+			  if (polish)
+				  work.pol.obj_val = compute_obj_val(work, x);
+			  else
+				  work.info.obj_val = compute_obj_val(work, x);
 		  }
 
 		  // Compute primal residual
 		  if (work.data.m == 0) {
 		    // No constraints . Always primal feasible
-			  work.info.pri_res = 0.;
+			  if (polish)
+				  work.pol.pri_res = 0.;
+			  else
+				  work.info.pri_res = 0.;
+				  
 		  } else {
-			  work.info.pri_res = compute_pri_res(work, x, z);
+			  if (polish)
+				  work.pol.pri_res = compute_pri_res(work, x, z);
+			  else
+				  work.info.pri_res = compute_pri_res(work, x, z);
 		  }
 
 		  // Compute dual residual

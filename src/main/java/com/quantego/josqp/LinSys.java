@@ -210,7 +210,7 @@ public class LinSys  {
 	}
 
 
-	public void solve(double[] b) {
+	public void solve(double[] sol, double[] b) {
 	    int j;
 
 //	    if (this.polish) {
@@ -218,16 +218,16 @@ public class LinSys  {
 //	        LDLSolve(b, b, this.P, this.bp);
 //	    } else {
 	        /* stores solution to the KKT system in s.sol */
-	        LDLSolve(this.sol, b, this.P, this.bp);
+	        LDLSolve(sol, b, this.P, this.bp);
 
 	        /* copy x_tilde from s.sol */
 	        for (j = 0 ; j < this.n ; j++) {
-	            b[j] = this.sol[j];
+	            b[j] = sol[j];
 	        }
 
 	        /* compute z_tilde from b and s.sol */
 	        for (j = 0 ; j < this.m ; j++) {
-	            b[j + this.n] += this.rho_inv_vec[j] * this.sol[j + this.n];
+	            b[j + this.n] += this.rho_inv_vec[j] * sol[j + this.n];
 	        }
 //	    }
 

@@ -21,6 +21,7 @@ public class Demo {
 		  int m = 3;
 		  
 		  OSQP.Settings settings = new OSQP.Settings();
+		  settings.polish=true;
 			CSCMatrix A = new CSCMatrix(m,n,A_nnz,A_p,A_i,A_x);
 			CSCMatrix P = new CSCMatrix(n,n,P_nnz,P_p,P_i,P_x);
 			//System.out.println(A);

@@ -158,7 +158,7 @@ public class Polish {
 	        LinAlg.mat_vec(work.pol.Ared, z, rhs, 0, work.data.n, -1);
 	
 	        // Solve linear system. Store solution in rhs
-	        p.solve(rhs);
+	        p.solve(rhs,rhs);
 	
 	        // Update solution
 	        for (j = 0; j < n; j++) {
@@ -229,7 +229,7 @@ public class Polish {
 	  
 
 	  // Solve the reduced KKT system
-	  plsh.solve(pol_sol);
+	  plsh.solve(pol_sol,pol_sol);
 
 	  // Perform iterative refinement to compensate for the regularization error
 	  iterative_refinement(work, plsh, pol_sol, rhs_red);

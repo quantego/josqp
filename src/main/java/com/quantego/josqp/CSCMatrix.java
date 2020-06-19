@@ -192,7 +192,7 @@ public class CSCMatrix {
 		B.nzmax = A.nzmax;
 		}
 	
-	CSCMatrix csc_to_triu(CSCMatrix M) {
+	public static CSCMatrix csc_to_triu(CSCMatrix M) {
 		CSCMatrix  M_trip;    // Matrix in triplet format
 		CSCMatrix  M_triu;    // Resulting upper triangular matrix
 		  int nnzorigM;  // Number of nonzeros from original matrix M

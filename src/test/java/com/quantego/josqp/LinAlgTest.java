@@ -1,18 +1,12 @@
-package josqp;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+package com.quantego.josqp;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
-import com.quantego.josqp.CSCMatrix;
-import com.quantego.josqp.DataGenerator_Lin_Alg;
-import com.quantego.josqp.DataGenerator_Lin_Alg.lin_alg_sols_data;
-import com.quantego.josqp.LinAlg;
-import com.quantego.josqp.OSQP;
-import com.quantego.josqp.OSQP.Data;
-import com.quantego.josqp.OSQP.Settings;
+
+import com.quantego.josqp.LinAlgDataGenerator.lin_alg_sols_data;
 import java.lang.Math;
 
-public class TestLinAlg{
+public class LinAlgTest {
     final static double TESTS_TOL = 0.0001;
     final static int OSQP_TIME_LIMIT_REACHED = -6;
     public double[] csc_to_dns(CSCMatrix matrix)
@@ -63,7 +57,7 @@ public class TestLinAlg{
     public void test_constr_sparse_mat() {
 
         double []Adns; // Conversion to dense matrix
-        lin_alg_sols_data data =  DataGenerator_Lin_Alg.generate_problem_lin_alg_sols_data();
+        lin_alg_sols_data data =  LinAlgDataGenerator.generate_problem_lin_alg_sols_data();
 
         // Convert sparse to dense
         Adns = csc_to_dns(data.test_sp_matrix_A);
@@ -80,7 +74,7 @@ public class TestLinAlg{
         double []add_scaled;
         double []vec_ew_max_vec_test, vec_ew_min_vec_test;
 
-        lin_alg_sols_data data = DataGenerator_Lin_Alg.generate_problem_lin_alg_sols_data();
+        lin_alg_sols_data data = LinAlgDataGenerator.generate_problem_lin_alg_sols_data();
 
 
         // Add scaled
@@ -155,7 +149,7 @@ public class TestLinAlg{
         double []inf_norm_cols_rows_test;
 
 
-        lin_alg_sols_data data = DataGenerator_Lin_Alg.generate_problem_lin_alg_sols_data();
+        lin_alg_sols_data data = LinAlgDataGenerator.generate_problem_lin_alg_sols_data();
 
 
         // Copy matrices
@@ -196,7 +190,7 @@ public class TestLinAlg{
     public void test_mat_vec_multiplication() {
         double[]Ax, ATy, Px, Ax_cum, ATy_cum, Px_cum;
 
-        lin_alg_sols_data data = DataGenerator_Lin_Alg.generate_problem_lin_alg_sols_data();
+        lin_alg_sols_data data = LinAlgDataGenerator.generate_problem_lin_alg_sols_data();
 
 
         // Allocate vectors
@@ -263,7 +257,7 @@ public class TestLinAlg{
     @Test
     public static void test_extract_upper_triangular() {
         double []inf_norm_cols_test;
-        lin_alg_sols_data data = DataGenerator_Lin_Alg.generate_problem_lin_alg_sols_data();
+        lin_alg_sols_data data = LinAlgDataGenerator.generate_problem_lin_alg_sols_data();
 
         // Extract upper triangular part
         CSCMatrix Ptriu =  CSCMatrix.csc_to_triu(data.test_mat_extr_triu_P);
@@ -285,7 +279,7 @@ public class TestLinAlg{
     public void test_quad_form_upper_triang() {
         double quad_form_t;
 
-        lin_alg_sols_data data =  DataGenerator_Lin_Alg.generate_problem_lin_alg_sols_data();
+        lin_alg_sols_data data =  LinAlgDataGenerator.generate_problem_lin_alg_sols_data();
 
         // Compute quadratic form
         quad_form_t = LinAlg.quad_form(data.test_qpform_Pu, data.test_qpform_x);

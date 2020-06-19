@@ -4,19 +4,36 @@
   <artifactId>josqp</artifactId>
   <version>0.0.1</version>
 
-  <dependencies>
-
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.7.0-M1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-  
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-   </properties>
+    <junit-jupiter.version>5.6.2</junit-jupiter.version>
+    <junit-platform-runner.version>1.6.2</junit-platform-runner.version>
+    <hamcrest-library.version>2.2</hamcrest-library.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit-jupiter.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-runner</artifactId>
+      <version>${junit-platform-runner.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <version>${hamcrest-library.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+
+  
+
 </project>

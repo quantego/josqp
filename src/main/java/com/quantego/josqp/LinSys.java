@@ -209,6 +209,21 @@ public class LinSys  {
 
 	}
 
+	public void solve(double[] b) {
+		int j;
+
+		LDLSolve(this.sol, b, this.P, this.bp);
+
+		for (j = 0; j < this.n; j++) {
+			b[j] = this.sol[j];
+		}
+
+		for (j = 0; j < this.m; j++) {
+			b[j + this.n] += this.rho_inv_vec[j] * this.sol[j + this.n];
+		}
+//	    }
+	}
+
 
 	public void solve(double[] sol, double[] b) {
 	    int j;

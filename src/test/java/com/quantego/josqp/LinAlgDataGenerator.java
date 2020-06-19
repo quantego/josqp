@@ -1,7 +1,7 @@
 package com.quantego.josqp;
 
 
-public class DataGenerator_Lin_Alg
+public class LinAlgDataGenerator
 {
     public static class lin_alg_sols_data
     {
@@ -563,10 +563,3 @@ public class DataGenerator_Lin_Alg
 
 
 };
-
-/*lin_alg_sols_data *  generate_problem_lin_alg_sols_data();
-void clean_problem_lin_alg_sols_data(lin_alg_sols_data * data);
- function to define problem data
-lin_alg_sols_data *  generate_problem_lin_alg_sols_data(){
-
-lin_alg_sols_data * data = (lin_alg_sols_data *)c_malloc(sizeof(lin_alg_sols_data));*/

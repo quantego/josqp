@@ -181,6 +181,15 @@ public class OSQP {
 			this.l = l.clone();
 			this.u = u.clone();
 		}
+		public Data(Data src) {
+			n = src.n;
+			m = src.m;
+			P = CSCMatrix.copy_csc_mat(src.P);
+			A = CSCMatrix.copy_csc_mat(src.A);
+			q = src.q.clone();
+			l = src.l.clone();
+			u = src.u.clone();
+		}
 	}
 	
 	public static class Solution {
@@ -742,6 +751,46 @@ public class OSQP {
 		  if (constr_type_changed == 1) {
 		    work.linsys_solver.update_rho_vec(work.rho_vec);
 		  }
+
+	}
+
+	static void update_rho_vec(Workspace work) {
+		int i, constr_type_changed;
+
+		constr_type_changed = 0;
+
+		for (i = 0; i < work.data.m; i++) {
+			if ((work.data.l[i] < -OSQP_INFTY * MIN_SCALING)
+					&& (work.data.u[i] > OSQP_INFTY * MIN_SCALING)) {
+				// Loose bounds
+				if (work.constr_type[i] != -1) {
+					work.constr_type[i] = -1;
+					work.rho_vec[i] = RHO_MIN;
+					work.rho_inv_vec[i] = 1. / RHO_MIN;
+					constr_type_changed = 1;
+				}
+			} else if (work.data.u[i] - work.data.l[i] < RHO_TOL) {
+				// Equality constraints
+				if (work.constr_type[i] != 1) {
+					work.constr_type[i] = 1;
+					work.rho_vec[i] = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+					work.rho_inv_vec[i] = 1. / work.rho_vec[i];
+					constr_type_changed = 1;
+				}
+			} else {
+				// Inequality constraints
+				if (work.constr_type[i] != 0) {
+					work.constr_type[i] = 0;
+					work.rho_vec[i] = work.settings.rho;
+					work.rho_inv_vec[i] = 1. / work.settings.rho;
+					constr_type_changed = 1;
+				}
+			}
+		}
+		// Update rho_vec in KKT matrix if constraints type has changed
+		if (constr_type_changed == 1) {
+			work.linsys_solver.update_rho_vec(work.rho_vec);
+		}
 
 	}
 	
@@ -1338,6 +1387,74 @@ public class OSQP {
 			reset_info(work.info);
 
 		}
+
+	public void update_lower_bound(double[] l_new) {
+		// Replace l by the new vector
+		LinAlg.prea_vec_copy(l_new, work.data.l, work.data.m);
+
+		// Scaling
+		if (work.settings.scaling != 0) {
+			LinAlg.vec_ew_prod(work.scaling.E, work.data.l, work.data.l, work.data.m);
+		}
+
+		// Check if lower bound is smaller than upper bound
+		for (int i = 0; i < work.data.m; i++) {
+			if (work.data.l[i] > work.data.u[i]) {
+				throw new IllegalStateException(
+						"Lower bound is higher than upper bound in the row " + i);
+			}
+		}
+
+		// Reset solver information
+		reset_info(work.info);
+
+		update_rho_vec(work);
+	}
+
+	public void update_upper_bound(double[] u_new) {
+		// Replace u by the new vector
+		LinAlg.prea_vec_copy(u_new, work.data.u, work.data.m);
+
+		// Scaling
+		if (work.settings.scaling != 0) {
+			LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u, data.m);
+		}
+
+		// Check if upper bound is greater than lower bound
+		for (int i = 0; i < work.data.m; i++) {
+			if (work.data.u[i] < work.data.l[i]) {
+				throw new IllegalStateException(
+						"Upper bound is less than lower bound in the row " + i);
+			}
+		}
+
+		// Reset solver information
+		reset_info(work.info);
+
+		// Update rho_vec and refactor if constraints type changes
+		update_rho_vec(work);
+	}
+
+	public void warm_start(double[] x, double[] y) {
+
+		// Update warm_start setting to true
+		if (!work.settings.warm_start)
+			work.settings.warm_start = true;
+
+		// Copy primal and dual variables into the iterates
+		LinAlg.prea_vec_copy(x, work.x, work.data.n);
+		LinAlg.prea_vec_copy(y, work.y, work.data.m);
+
+		// Scale iterates
+		if (work.settings.scaling != 0) {
+			LinAlg.vec_ew_prod(work.scaling.Dinv, work.x, work.x, work.data.n);
+			LinAlg.vec_ew_prod(work.scaling.Einv, work.y, work.y, work.data.m);
+			LinAlg.vec_mult_scalar(work.y, work.scaling.c, work.data.m);
+		}
+
+		// Compute Ax = z and store it in z
+		LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0, 0);
+	}
 		
 		public void warm_start_x(double[] x) {
 
@@ -1510,6 +1627,9 @@ public class OSQP {
 	
 			
 			}
+
+
+
 		
 		public double[] getPrimalSolution() {
 			return work.solution.x;
@@ -1522,5 +1642,147 @@ public class OSQP {
 		public double getObjectiveValue() {
 			return work.info.obj_val;
 		}
+
+
+	public void update_rho(double rho) {
+		if (!osqp_update_rho(work, rho))
+			throw new RuntimeException("Failed to update rho");
+	}
+
+	public void validate() {
+		validateSettings();
+		validateData();
+	}
+
+	public void validateSettings() {
+		validateSettings(work.settings);
+	}
+
+	public void validateData() {
+		validateData(work.data);
+	}
+
+	private static void validateSettings(Settings settings) {
+		if (settings == null) {
+			throw new IllegalArgumentException("Missing settings!");
+		}
+
+		if (settings.scaling < 0) {
+			throw new IllegalArgumentException("scaling must be nonnegative");
+		}
+
+		if (settings.adaptive_rho_interval < 0) {
+			throw new IllegalArgumentException("adaptive_rho_interval must be nonnegative");
+		}
+
+		if (settings.adaptive_rho_tolerance < 1.0) {
+			throw new IllegalArgumentException("adaptive_rho_tolerance must be >= 1");
+		}
+
+		if (settings.polish_refine_iter < 0) {
+			throw new IllegalArgumentException("polish_refine_iter must be nonnegative");
+		}
+
+		if (settings.rho <= 0.0) {
+			throw new IllegalArgumentException("rho must be positive");
+		}
+
+		if (settings.sigma <= 0.0) {
+			throw new IllegalArgumentException("sigma must be positive");
+		}
+
+		if (settings.delta <= 0.0) {
+			throw new IllegalArgumentException("delta must be positive");
+		}
+
+		if (settings.max_iter <= 0) {
+			throw new IllegalArgumentException("max_iter must be positive");
+		}
+
+		if (settings.eps_abs < 0.0) {
+			throw new IllegalArgumentException("eps_abs must be nonnegative");
+		}
+
+		if (settings.eps_rel < 0.0) {
+			throw new IllegalArgumentException("eps_rel must be nonnegative");
+		}
+
+		if ((settings.eps_rel == 0.0) && (settings.eps_abs == 0.0)) {
+			throw new IllegalArgumentException(
+					"at least one of eps_abs and eps_rel must be positive");
+		}
+
+		if (settings.eps_prim_inf <= 0.0) {
+			throw new IllegalArgumentException("eps_prim_inf must be positive");
+		}
+
+		if (settings.eps_dual_inf <= 0.0) {
+			throw new IllegalArgumentException("eps_dual_inf must be positive");
+		}
+
+		if ((settings.alpha <= 0.0) || (settings.alpha >= 2.0)) {
+			throw new IllegalArgumentException("alpha must be strictly between 0 and 2");
+		}
+
+		if (settings.check_termination < 0) {
+			throw new IllegalArgumentException("check_termination must be nonnegative");
+		}
+
+	}
+
+	private static void validateData(Data data) {
+		int j, ptr;
+
+		if (data == null) {
+			throw new IllegalArgumentException("Missing data");
+		}
+
+		if (data.P == null) {
+			throw new IllegalArgumentException("Missing matrix P");
+		}
+
+		if (data.A == null) {
+			throw new IllegalArgumentException("Missing matrix A");
+		}
+
+		// General dimensions Tests
+		if ((data.n <= 0) || (data.m < 0)) {
+			throw new IllegalArgumentException(String.format(
+					"n must be positive and m nonnegative; n = %d, m = %d", data.n, data.m));
+		}
+
+		// Matrix P
+		if (data.P.m != data.n) {
+			throw new IllegalArgumentException(
+					String.format("P does not have dimension n x n with n = %d", data.n));
+		}
+
+		if (data.P.m != data.P.n) {
+			throw new IllegalArgumentException("P is not square");
+		}
+
+		for (j = 0; j < data.n; j++) { // COLUMN
+			for (ptr = data.P.Ap[j]; ptr < data.P.Ap[j + 1]; ptr++) {
+				if (data.P.Ai[ptr] > j) { // if ROW > COLUMN
+					throw new IllegalArgumentException("P is not upper triangular");
+				}
+			}
+		}
+
+		// Matrix A
+		if ((data.A.m != data.m) || (data.A.n != data.n)) {
+			throw new IllegalArgumentException(
+					String.format("A does not have dimension %d x %d", data.m, data.n));
+		}
+
+		// Lower and upper bounds
+		for (j = 0; j < data.m; j++) {
+			if (data.l[j] > data.u[j]) {
+				throw new IllegalArgumentException(String.format(
+						"Lower bound at index %d is greater than upper bound: %.4e > %.4e", j,
+						data.l[j], data.u[j]));
+			}
+		}
+	}
 
 }

@@ -1,4 +1,4 @@
-package josqp;
+package com.quantego.josqp;
 
 import java.util.Arrays;
 

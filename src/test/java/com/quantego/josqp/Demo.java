@@ -1,4 +1,4 @@
-package josqp;
+package com.quantego.josqp;
 
 import com.quantego.josqp.CSCMatrix;
 import com.quantego.josqp.OSQP;

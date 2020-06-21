@@ -150,22 +150,14 @@ public class OSQP {
 	}
 	
 	public static class Data {
-//<<<<<<< HEAD
-//		public final int n; ///< number of variables n
-//		public final int m; ///< number of constraints m
-//		public final CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
-//		public final CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
-//		public final double[] q; ///< dense array for linear part of cost function (size n)
-//		public final double[] l; ///< dense array for lower bound (size m)
-//		public final double[] u; ///< dense array for upper bound (size m)
-//=======
-		final int n; ///< number of variables n
-		final int m; ///< number of constraints m
-		final CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
-		final CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
-		final double[] q; ///< dense array for linear part of cost function (size n)
-		final double[] l; ///< dense array for lower bound (size m)
-		final double[] u; ///< dense array for upper bound (size m)
+		//TODO: make this private again once all tests pass
+		public final int n; ///< number of variables n
+		public final int m; ///< number of constraints m
+		public final CSCMatrix     P; ///< the upper triangular part of the quadratic cost matrix P in csc format (size n x n).
+		public final CSCMatrix     A; ///< linear constraints matrix A in csc format (size m x n)
+		public final double[] q; ///< dense array for linear part of cost function (size n)
+		public final double[] l; ///< dense array for lower bound (size m)
+		public final double[] u; ///< dense array for upper bound (size m)
 		public int getN() {
 			return n;
 		}

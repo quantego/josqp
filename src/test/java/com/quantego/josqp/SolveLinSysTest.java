@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.lessThan;
 import org.junit.jupiter.api.Test;
 
 public class SolveLinSysTest {
+	
     @Test
     public void testSolveKKT() {
         final SolveLinSysTestSolsData data = SolveLinSysTestDataGenerator.generateData();

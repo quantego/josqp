@@ -246,7 +246,7 @@ public class QDLDL  {
 	    	Dinv[k]= 1/D[k];
 
     	} //end for k
-    	return new LDL(new CSCMatrix(n,m,Lx.length,Lp,Li,Lx), D, Dinv, positiveValuesInD);
+    	return new QDLDL.LDL(new CSCMatrix(n,m,Lx.length,Lp,Li,Lx), D, Dinv, positiveValuesInD);
     }
     
     static void Lsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {

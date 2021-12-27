@@ -1,14 +1,14 @@
 package com.quantego.josqp;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.quantego.josqp.NonCvxTestDataGenerator;
-import com.quantego.josqp.OSQP;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
 import com.quantego.josqp.OSQP.Settings;
 
 public class NonCvxTest {
 
-
+	@Test
     public void test_non_cvx_solve()
     {
         int exitflag = 0;
@@ -46,10 +46,11 @@ public class NonCvxTest {
         //exitflag = osqp_setup(work, data, settings);
 
         // Setup should work this time because (P + sigma I) is positive definite
-        assertTrue(exitflag == 0,"Non Convex test solve: Setup error!");
+        assertTrue(exitflag == 0);
+//        assertTrue(exitflag == 0,"Non Convex test solve: Setup error!");
 
         // Solve Problem first time
-        OSQP.Status status = osqp.solve();
+        osqp.solve();
 
         //boolean exitone  = osqp.ososqp_update_rho(work,compute_rho_estimate(work));
 

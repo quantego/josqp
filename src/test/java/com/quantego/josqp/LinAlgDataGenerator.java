@@ -1,5 +1,6 @@
 package com.quantego.josqp;
 
+import org.junit.Before;
 
 public class LinAlgDataGenerator
 {

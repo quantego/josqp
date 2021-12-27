@@ -200,6 +200,7 @@ public class Polish {
 	}
 
 	public static int polish(OSQP.Workspace work) {
+	work.info.polish_time = System.currentTimeMillis();
 	  int mred;
 	  boolean polish_successful;
 	  LinSys plsh;
@@ -283,7 +284,7 @@ public class Polish {
 	    //       and polished solution
 	  }
 
-	 
+	  work.info.polish_time = (System.currentTimeMillis()-work.info.polish_time)/1000.;
 
 	  return 0;
 	}

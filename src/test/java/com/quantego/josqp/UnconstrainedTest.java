@@ -1,10 +1,9 @@
 package com.quantego.josqp;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
 
 public class UnconstrainedTest {
 
@@ -26,17 +25,17 @@ public class UnconstrainedTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(sols_data.status_test, osqp.work.info.status,
-                "Unconstrained test solve: Error in solver status!");
+        assertEquals("Unconstrained test solve: Error in solver status!",sols_data.status_test, osqp.work.info.status
+                );
 
         // Compare primal solutions
-        assertThat("Unconstrained test solve: Error in primal solution!",
+        assertEquals("Unconstrained test solve: Error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL);
 
         // Compare objective values
-        assertEquals(sols_data.obj_value_test, osqp.work.info.obj_val, OSQPTester.TESTS_TOL,
-                "Unconstrained test solve: Error in objective value!");
+        assertEquals("Unconstrained test solve: Error in objective value!",sols_data.obj_value_test, osqp.work.info.obj_val, OSQPTester.TESTS_TOL
+                );
     }
 
 }

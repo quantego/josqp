@@ -10,12 +10,12 @@ public class CSCMatrix {
 	public final int[] Ap;
     public final int[] Ai;
     public final double[] Ax;
-    
+
     
 	public CSCMatrix(int m, int n, int nzmax, int[] ap, int[] ai, double[] ax) {
 		this.n = n;
 		this.m = m;
-		this.nz = -1;
+		this.nz = ax.length;
 		this.nzmax = nzmax;
 		this.Ap = ap;
 		this.Ai = ai;
@@ -54,6 +54,7 @@ public class CSCMatrix {
 		      if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
 		    }
 		  }
+		  C.nz = Cx.length;
 		  return C;     /* success; free w and return C */
 	}
 	
@@ -76,6 +77,7 @@ public class CSCMatrix {
 		      if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
 		    }
 		  }
+		  C.nz = Cx.length;
 		  return C;     /* success; free w and return C */
 	}
 	
@@ -173,6 +175,7 @@ public class CSCMatrix {
 		      }
 		    }
 		  }
+		  C.nz = Cx.length;
 		  return C; /* success; free workspace, return C */
 		}
 	
@@ -181,7 +184,7 @@ public class CSCMatrix {
 		  LinAlg.prea_int_vec_copy(A.Ap, B.Ap, A.n+1);
 		  LinAlg.prea_int_vec_copy(A.Ai, B.Ai,A.Ap[A.n]);
 		  LinAlg.prea_vec_copy(A.Ax, B.Ax, A.Ap[A.n]);
-
+		  B.nz = A.nz;
 		  return B;
 		}
 	

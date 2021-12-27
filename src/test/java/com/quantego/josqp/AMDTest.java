@@ -1,10 +1,12 @@
 package com.quantego.josqp;
 
-import com.quantego.josqp.AMD;
+import org.junit.Test;
 
-public class AMDDemo {
+
+public class AMDTest {
 	
-	public static void main(String... args) {
+	@Test
+	public void testAmdOrder() {
 		/* The symmetric can_24 Harwell/Boeing matrix, including upper and lower
 	     * triangular parts, and the diagonal entries.  Note that this matrix is
 	     * 0-based, with row and column indices in the range 0 to n-1. */

@@ -1,12 +1,20 @@
 package com.quantego.josqp;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 public class OSQP {
 	
+	static {
+		System.setProperty("java.util.logging.SimpleFormatter.format", 
+	            "%1$tF %1$tT %4$s:\t%5$s%6$s%n");
+	}
+	
+	private final static Logger LOG = Logger.getLogger(OSQP.class.getName());
+	
 	static final double RHO = 0.1;
 	static final double SIGMA = 1E-06;
-	static final int MAX_ITER = 4000;
+	static final int MAX_ITER = 10000;
 	static final double EPS_ABS = 1E-3;
 	static final double EPS_REL = 1E-3;
 	static final double EPS_PRIM_INF = 1E-4;
@@ -36,6 +44,7 @@ public class OSQP {
 	static final double OSQP_NULL = 0.0;
 	static final double OSQP_NAN = Double.NaN;
 	static final double OSQP_INFTY = 1.0e30;
+	static final String OSQP_VERSION = "0.6.0";
 
 	static final boolean ADAPTIVE_RHO = true;
 	static final int ADAPTIVE_RHO_INTERVAL = 0;
@@ -44,7 +53,9 @@ public class OSQP {
 	static final int ADAPTIVE_RHO_FIXED = 100;             ///< number of iterations after which we update rho if termination_check  and PROFILING are disabled
 	static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
 
-	static final int TIME_LIMIT = 0;  
+	static final int TIME_LIMIT = 0; 
+	
+	static final int PRINT_INTERVAL = 200;
 	
 	public static class ScaledProblemData {
 		double  c;    ///< cost function scaling
@@ -130,7 +141,7 @@ public class OSQP {
 
 		public int max_iter = MAX_ITER;      ///< maximum number of iterations
 		public double eps_abs = EPS_ABS;       ///< absolute convergence tolerance
-		double eps_rel = EPS_REL;       ///< relative convergence tolerance
+		public double eps_rel = EPS_REL;       ///< relative convergence tolerance
 		public double eps_prim_inf = EPS_PRIM_INF;  ///< primal infeasibility tolerance
 		public double eps_dual_inf = EPS_DUAL_INF;  ///< dual infeasibility tolerance
 		public double  alpha = ALPHA;         ///< relaxation parameter
@@ -274,20 +285,20 @@ public class OSQP {
 		  /// flag indicating whether the solve function has been run before
 		boolean first_run;
 
-		  /// flag indicating whether the update_time should be cleared
-		int clear_update_time;
-
 		  /// flag indicating that osqp_update_rho is called from osqp_solve function
 		int rho_update_from_solve;
 
 	}
 	
-	Data data;
-	Settings settings;
+//	Data data;
+//	Settings settings;
 	Workspace work;
 	
 	public OSQP(Data data, Settings settings) {
 		this.work = new Workspace();
+		work.info = new OSQP.Info();
+		work.info.status = Status.UNSOLVED;
+		this.work.info.setup_time = System.currentTimeMillis();
 		work.data = data;
 		//TODO: C code creates a deep copy of the data, needed?
 		work.rho_vec = new double[data.m];
@@ -354,18 +365,17 @@ public class OSQP {
 		work.solution.x = new double[data.n];
 		work.solution.y = new double[data.m];
 		
-		work.info = new OSQP.Info();
-		work.info.status = Status.UNSOLVED;
+		
 		
 		//for profiling
 		work.first_run = true;
-		work.info.setup_time = System.currentTimeMillis();
 		
 		work.info.rho_estimate = work.settings.rho;
 		
 		work.settings.adaptive_rho_interval = Math.max(
 		          work.settings.adaptive_rho_interval,
 		          work.settings.check_termination);
+		this.work.info.setup_time = (System.currentTimeMillis()-this.work.info.setup_time)/1000.;
 		
 	}
 	
@@ -379,18 +389,23 @@ public class OSQP {
 	
 	public OSQP.Status solve() {
 		int iter = 0;
+		work.first_run = false;
 		boolean compute_cost_function = work.settings.verbose; // Boolean: compute the cost function in the loop or not
 		boolean can_check_termination = false; // Boolean: check termination or not
-		if (work.clear_update_time == 1)
-		    work.info.update_time = 0.0;
 		work.rho_update_from_solve = 1;
-
-
 
 		// Initialize variables (cold start or warm start depending on settings)
 		if (!work.settings.warm_start) 
 			cold_start(work);  // If not warm start ->
 		                                                      // set x, z, y to zero
+		
+		if (work.settings.verbose) {
+			print_setup_header(work);
+			print_header();
+		}
+		
+		double solve_time = System.currentTimeMillis();
+		work.info.solve_time = 0.;
 
 		// Main ADMM algorithm
 		for (iter = 1; iter <= work.settings.max_iter; iter++) {
@@ -419,6 +434,11 @@ public class OSQP {
 		    if (can_check_termination) {
 		        // Update information and compute also objective value
 		        update_info(work, iter, compute_cost_function, false);
+		        // check if printing is enables
+		        if (work.settings.verbose && iter % PRINT_INTERVAL==0) {
+		        	work.info.solve_time = (System.currentTimeMillis()-solve_time)/1000.;
+		        	print_summary(work);
+		        }
 		        // Check algorithm termination
 		        if (check_termination(work, false)) {
 		          // Terminate algorithm
@@ -435,10 +455,15 @@ public class OSQP {
 			        update_info(work, iter, compute_cost_function, false);
 			      }
 			      // Actually update rho
-			      if (adapt_rho(work))
+			      if (!adapt_rho(work)) {
+			    	  work.info.status = Status.ERROR;
+			    	  if (work.settings.verbose) 
+						  print_footer(work.info, work.settings.polish);
 			    	  return Status.ERROR;
+			      }
 		    }
 		  }        // End of ADMM for loop
+		  
 
 
 		  // Update information and check termination condition if it hasn't been done
@@ -462,18 +487,52 @@ public class OSQP {
 		      work.info.status = Status.MAX_ITER_REACHED;
 		    }
 		  }
+		  
+		  work.info.solve_time = (System.currentTimeMillis()-solve_time)/1000.;
 
 		  /* Update rho estimate */
 		  work.info.rho_estimate = compute_rho_estimate(work);
-
 		  // Polish the obtained solution
 		  if (work.settings.polish && (work.info.status == Status.SOLVED))
 		    Polish.polish(work);
+		  
+		  
 
 		  // Store solution
 		  store_solution(work);
-
+		  
+		  if (work.settings.verbose) {
+		       print_summary(work);
+			  print_footer(work.info, work.settings.polish);
+		  }
+		  work.info.update_time = 0.0;
 		  return work.info.status;
+	}
+	
+	void print_setup_header(Workspace work) {
+		  LOG.info(String.format("Starting OSQP Solver...", OSQP_VERSION));
+		  LOG.info(String.format("Problem stats:\t %d variables, %d constraints, %d non-zeros", work.data.n, work.data.m, work.data.A.nz+work.data.P.nz));
+		  LOG.info(String.format("Settings:\t scaling=%s, warm_start=%s, polish=%s, adaptive_rho=%s",work.settings.scaling>0, 
+				  work.settings.warm_start, work.settings.polish, work.settings.adaptive_rho));
+	}
+	
+	void print_header() {
+		LOG.info(String.format("%s\t%12s\t%12s\t%12s\t%12s\t%12s","iter","objective","primal_res","dual_res", "rho","seconds"));
+	}
+	
+	void print_summary(Workspace work) {
+		OSQP.Info info = work.info;
+		double time = work.first_run ? info.setup_time+info.solve_time : info.update_time+info.solve_time;
+		LOG.info(String.format("%d\t%12.4f\t%12.4f\t%12.4f\t%12.4f\t%12.4f", info.iter, info.obj_val, info.pri_res, info.dua_res, work.settings.rho, time));
+	}
+	
+	void print_footer(OSQP.Info info, boolean polish) {
+		info.run_time = work.first_run ? info.setup_time+info.solve_time+info.polish_time : info.update_time+info.solve_time+info.polish_time;
+		LOG.info(String.format("Status:\t%s",info.status));
+		LOG.info(String.format("Optimal obj:\t%12.4f", info.obj_val));
+		LOG.info(String.format("Iterations: \t%12d", info.iter));
+		LOG.info(String.format("Rho estimate:\t%12.4f", info.rho_estimate));
+		LOG.info(String.format("Run time (s):\t%12.4f", info.run_time));
 	}
 	
 //	static int check_termination(OSQP.Workspace work, boolean approximate) {
@@ -668,7 +727,7 @@ public class OSQP {
 	
 	static boolean adapt_rho(Workspace work) {
 		  double rho_new = compute_rho_estimate(work);
-		  boolean exitflag = false;
+		  boolean exitflag = true;
 
 		  // Set rho estimate in info
 		  work.info.rho_estimate = rho_new;
@@ -1409,7 +1468,7 @@ public class OSQP {
 
 		// Scaling
 		if (work.settings.scaling != 0) {
-			LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u, data.m);
+			LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u, work.data.m);
 		}
 
 		// Check if upper bound is greater than lower bound
@@ -1483,8 +1542,8 @@ public class OSQP {
 		
 		public void  update_P(double[] Px_new,
                 int[]   Px_new_idx) {
+			double tme = System.currentTimeMillis();
 			
-
 			if (work.settings.scaling>0) {
 			// Unscale data
 				Scaling.unscale_data(work);
@@ -1511,7 +1570,7 @@ public class OSQP {
 			
 			// Update linear system structure with new data
 			work.linsys_solver.update_solver_matrices(work.data.P,work.data.A);
-			
+			work.info.update_time += (System.currentTimeMillis()-tme)/1000. ;
 			// Reset solver information
 			reset_info(work.info);
 		}
@@ -1521,7 +1580,7 @@ public class OSQP {
 			int i;        // For indexing
 			int nnzA;     // Number of nonzeros in A
 			
-			
+			double tme = System.currentTimeMillis();
 			nnzA = work.data.A.Ap[work.data.A.n];
 			
 		
@@ -1551,7 +1610,7 @@ public class OSQP {
 			// Update linear system structure with new data
 			work.linsys_solver.update_solver_matrices(work.data.P,
 			                                              work.data.A);
-			
+			work.info.update_time += (System.currentTimeMillis()-tme)/1000. ;
 			// Reset solver information
 			reset_info(work.info);
 
@@ -1567,7 +1626,7 @@ public class OSQP {
 			
 			// Check if workspace has been initialized
 			
-	
+			double tme = System.currentTimeMillis();
 			
 			nnzP = work.data.P.Ap[work.data.P.n];
 			nnzA = work.data.A.Ap[work.data.A.n];
@@ -1612,14 +1671,14 @@ public class OSQP {
 			// Update linear system structure with new data
 			work.linsys_solver.update_solver_matrices(work.data.P,
 			                                            work.data.A);
-			
+			work.info.update_time += (System.currentTimeMillis()-tme)/1000. ;
 			// Reset solver information
 			reset_info(work.info);
 			
 	
 			
 			}
-
+			
 
 
 		

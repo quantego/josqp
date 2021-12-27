@@ -1,13 +1,78 @@
 package com.quantego.josqp;
 
-import java.util.Arrays;
+import org.junit.Test;
 
-import com.quantego.josqp.CSCMatrix;
-import com.quantego.josqp.OSQP;
-
-public class QuadcopterTest {
+public class LPTest {
 	
-	public static void main(String... args) {
+	@Test
+	public void suboptimalTest() {
+
+		double[] P_x = {-0.0,-0.0,-0.0,-0.0,-0.0,};
+		int[] P_i = {0,1,2,3,4,};
+		int[] P_p = {0,1,2,3,4,5,};
+		double[] A_x = {1.0,1.0,1.0,-1.0,1.0,-1.0,-13.820750661910893,1.0,1.0,-9.564788905220015,1.0,1.0,-1.0,};
+		int[] A_i = {0,7,1,7,2,5,7,3,6,7,4,5,6,};
+		int[] A_p = {0,2,4,7,10,13,};
+		double[] q = {-1.0,1.0,1.0,0.2,2.0,};
+		double[] l = {0.0,0.0,20.0,0.0,0.0,-OSQP.OSQP_INFTY,0.0,-OSQP.OSQP_INFTY,};
+		double[] u = {OSQP.OSQP_INFTY,OSQP.OSQP_INFTY,100.0,100.0,OSQP.OSQP_INFTY,0.0,0.0,0.0,};
+		int P_nnz = 5;
+		int A_nnz = 13;
+		int n = 5;
+		int m = 8;
+		  
+	    OSQP.Settings settings = new OSQP.Settings();
+//	    settings.polish = true;
+//	    settings.rho = 0.01;
+	    settings.eps_rel = 0.0001;
+		CSCMatrix A = new CSCMatrix(m,n,A_nnz,A_p,A_i,A_x);
+		CSCMatrix P = new CSCMatrix(n,n,P_nnz,P_p,P_i,P_x);
+		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		OSQP opt = new OSQP(data,settings);
+		opt.solve();
+	}
+	
+	@Test
+	public void suboptimalTest2() {
+		
+		CSCMatrix P = new CSCMatrixBuilder(5)
+			.set(0, 0, 0.)
+			.set(1, 1, 0.)
+			.set(2, 2, 0.)
+			.set(3, 3, 0.)
+			.set(4, 4, 0.)
+		.build();
+		
+		CSCMatrix A = new CSCMatrixBuilder(5)
+			.set(0, 0, 1.)
+			.set(7, 0, 1.)
+			.set(1, 1, 1.)
+			.set(7, 1, -1.)
+			.set(2, 2, 1.)
+			.set(5, 2, -1.)
+			.set(7, 2, -13.820750661910893)
+			.set(3, 3, 1.)
+			.set(6, 3, 1.)
+			.set(7, 3, -9.564788905220015)
+			.set(4, 4, 1.)
+			.set(5, 4, 1.)
+			.set(6, 4, -1.)
+		.build();
+		double[] q = {-1.0,1.0,1.0,0.2,2.0,};
+		double[] l = {0.0,0.0,20.0,0.0,0.0,-OSQP.OSQP_INFTY,0.0,-OSQP.OSQP_INFTY,};
+		double[] u = {OSQP.OSQP_INFTY,OSQP.OSQP_INFTY,100.0,100.0,OSQP.OSQP_INFTY,0.0,0.0,0.0,};
+		int n = 5;
+		int m = 8;
+		 
+	    OSQP.Settings settings = new OSQP.Settings();
+	    settings.eps_rel = 0.0001;
+		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		OSQP opt = new OSQP(data,settings);
+		opt.solve();
+	}
+		
+	@Test
+	public void quadcopterTest() {
 		double[] Px = new double[] {10. , 10. , 10. , 10. ,  5. ,  5. ,  5. , 10. , 10. , 10. , 10. ,
 		                             5. ,  5. ,  5. , 10. , 10. , 10. , 10. ,  5. ,  5. ,  5. , 10. ,
 		                             10. , 10. , 10. ,  5. ,  5. ,  5. , 10. , 10. , 10. , 10. ,  5. ,
@@ -492,27 +557,15 @@ public class QuadcopterTest {
 			        2.40840000e+00,  2.40840000e+00,  2.40840000e+00,  2.40840000e+00};
 		int n=172, m=304;
 		OSQP.Settings settings = new OSQP.Settings();
-		settings.polish = true;
-		settings.check_termination = 10000;
-		settings.max_iter = 10000;
 		
-//		for (int i=0; i<10; i++) {
-			CSCMatrix A = new CSCMatrix(m,n,Ax.length,Ap,Ai,Ax);
-			CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
-			OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
-			OSQP opt = new OSQP(data,settings);
-//			double tme = System.currentTimeMillis();
-			opt.solve();
-			//System.out.println(System.currentTimeMillis()-tme);
-			OSQP.Info info = opt.getWorkspace().info;
-			System.out.println(info.obj_val+" "+info.status.toString());
-			opt.update_bounds(l, u);
-			opt.update_A(Ax, null);
-			
-			opt.update_P(Px, null);
-			System.out.println(Arrays.toString(opt.getDualSolution()));
-//		}
+		CSCMatrix A = new CSCMatrix(m,n,Ax.length,Ap,Ai,Ax);
+		CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
+		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		OSQP opt = new OSQP(data,settings);
+		for (int i=0; i<100; i++)
+		opt.solve();
 
 	}
+	
 
 }

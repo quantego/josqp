@@ -1,11 +1,10 @@
 package com.quantego.josqp;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.lessThan;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 public class UpdateMatricesTest {
 
@@ -33,16 +32,14 @@ public class UpdateMatricesTest {
                 rho_inv_vec, PtoKKT, AtoKKT, Pdiag_idx, Pdiag_n, null);
 
         // Assert if KKT matrix is the same as predicted one
-        assertTrue(OSQPTester.is_eq_csc(kkt, data.test_form_KKT_KKTu, OSQPTester.TESTS_TOL),
-                "Update matrices: error in forming KKT matrix!");
+        assertTrue("Update matrices: error in forming KKT matrix!", OSQPTester.is_eq_csc(kkt, data.test_form_KKT_KKTu, OSQPTester.TESTS_TOL));
 
         // Update KKT matrix with new P and new A
         KKT.update_KKT_P(kkt, data.test_form_KKT_Pu_new, PtoKKT, sigma, Pdiag_idx[0], Pdiag_n[0]);
         KKT.update_KKT_A(kkt, data.test_form_KKT_A_new, AtoKKT);
 
         // Assert if KKT matrix is the same as predicted one
-        assertTrue(OSQPTester.is_eq_csc(kkt, data.test_form_KKT_KKTu_new, OSQPTester.TESTS_TOL),
-                "Update matrices: error in updating KKT matrix!");
+        assertTrue("Update matrices: error in updating KKT matrix!",OSQPTester.is_eq_csc(kkt, data.test_form_KKT_KKTu_new, OSQPTester.TESTS_TOL));
     }
 
     @Test
@@ -70,18 +67,17 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_status, osqp.work.info.status,
-                "Update matrices: original problem, error in solver status!");
+        assertEquals("Update matrices: original problem, error in solver status!",data.test_solve_status, osqp.work.info.status);
 
         // Compare primal solutions
-        assertThat("Update matrices: original problem, error in primal solution!",
+        assertEquals("Update matrices: original problem, error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_x, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat("Update matrices: original problem, error in dual solution!",
+        assertEquals("Update matrices: original problem, error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Update P
         final int nnzP = data.test_solve_Pu.Ap[data.test_solve_Pu.n];
@@ -98,18 +94,18 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_P_new_status, osqp.work.info.status,
-                "Update matrices: problem with updating P, error in solver status!");
+        assertEquals("Update matrices: problem with updating P, error in solver status!",data.test_solve_P_new_status, osqp.work.info.status
+                );
 
         // Compare primal solutions
-        assertThat("Update matrices: problem with updating P, error in primal solution!",
+        assertEquals("Update matrices: problem with updating P, error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_new_x,
                         data.n) < OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat("Update matrices: problem with updating P, error in dual solution!",
+        assertEquals("Update matrices: problem with updating P, error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_P_new_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
         osqp = new OSQP(problem, settings);
@@ -121,20 +117,20 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_P_new_status, osqp.work.info.status,
-                "Update matrices: problem with updating P (all indices), error in solver status!");
+        assertEquals("Update matrices: problem with updating P (all indices), error in solver status!",data.test_solve_P_new_status, osqp.work.info.status
+                );
 
         // Compare primal solutions
-        assertThat(
+        assertEquals(
                 "Update matrices: problem with updating P (all indices), error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_new_x, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat(
+        assertEquals(
                 "Update matrices: problem with updating P (all indices), error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_P_new_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
         osqp = new OSQP(problem, settings);
@@ -154,18 +150,18 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_A_new_status, osqp.work.info.status,
-                "Update matrices: problem with updating A, error in solver status!");
+        assertEquals("Update matrices: problem with updating A, error in solver status!",data.test_solve_A_new_status, osqp.work.info.status
+                );
 
         // Compare primal solutions
-        assertThat("Update matrices: problem with updating A, error in primal solution!",
+        assertEquals("Update matrices: problem with updating A, error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_A_new_x, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat("Update matrices: problem with updating A, error in dual solution!",
+        assertEquals("Update matrices: problem with updating A, error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_A_new_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
         osqp = new OSQP(problem, settings);
@@ -177,20 +173,20 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_A_new_status, osqp.work.info.status,
-                "Update matrices: problem with updating A (all indices), error in solver status!");
+        assertEquals("Update matrices: problem with updating A (all indices), error in solver status!",data.test_solve_A_new_status, osqp.work.info.status
+                );
 
         // Compare primal solutions
-        assertThat(
+        assertEquals(
                 "Update matrices: problem with updating A (all indices), error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_A_new_x, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat(
+        assertEquals(
                 "Update matrices: problem with updating A (all indices), error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_A_new_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
         osqp = new OSQP(problem, settings);
@@ -203,18 +199,18 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_P_A_new_status, osqp.work.info.status,
-                "Update matrices: problem with updating P and A, error in solver status!");
+        assertEquals("Update matrices: problem with updating P and A, error in solver status!",data.test_solve_P_A_new_status, osqp.work.info.status
+                );
 
         // Compare primal solutions
-        assertThat("Update matrices: problem with updating P and A, error in primal solution!",
+        assertEquals("Update matrices: problem with updating P and A, error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_A_new_x, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat("Update matrices: problem with updating P and A, error in dual solution!",
+        assertEquals("Update matrices: problem with updating P and A, error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_P_A_new_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
         osqp = new OSQP(problem, settings);
@@ -226,19 +222,18 @@ public class UpdateMatricesTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(data.test_solve_P_A_new_status, osqp.work.info.status,
-                "Update matrices: problem with updating P and A (all indices), error in solver status!");
+        assertEquals("Update matrices: problem with updating P and A (all indices), error in solver status!",data.test_solve_P_A_new_status, osqp.work.info.status);
 
         // Compare primal solutions
-        assertThat(
+        assertEquals(
                 "Update matrices: problem with updating P and A (all indices), error in primal solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_A_new_x, data.n),
-                lessThan(OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
-        assertThat(
+        assertEquals(
                 "Update matrices: problem with updating P and A (all indices), error in dual solution!",
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_P_A_new_y, data.m),
-                lessThan(OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL));
+                OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL);
     }
 }

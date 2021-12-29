@@ -23,7 +23,7 @@ public class QDLDL  {
     public boolean factor(CSCMatrix A) {
     	Etree e = computeEtree(A.n,A.Ap,A.Ai);
     	_ldl = QDLDL.decompose(A, e);
-    	return true; //TODO
+    	return true;
     }
     
     public double[] solve(double[] b) {
@@ -75,8 +75,7 @@ public class QDLDL  {
         sumLnz  = 0;
         for(i = 0; i < n; i++){
             if(sumLnz > QDLDL_INT_MAX - Lnz[i]){
-                sumLnz = -2;
-                break;
+                throw new IllegalStateException(String.format("There are more than %d non-zero elements, which exceeds the capacity of LDL factorization.",Integer.MAX_VALUE));
             }
             else{
                 sumLnz += Lnz[i];

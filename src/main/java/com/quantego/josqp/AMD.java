@@ -925,7 +925,7 @@ public class AMD {
 		dense, aggressive ;
 	    boolean ok;
 
-	    int hash ;	    /* unsigned, so that hash % n is well defined.*/
+	    long hash ;	int hash_;    /* unsigned, so that hash % n is well defined.*/
 
 	/*
 	 * deg:		the degree of a variable or element
@@ -1629,15 +1629,15 @@ public class AMD {
 			 * standard does not define a % b when a and/or b are negative.
 			 * That's why hash is defined as an unsigned Int, to avoid this
 			 * problem. */
-			hash = hash % n ;
+			hash_ = (int)(hash % n) ;
 
 			/* if the Hhead array is not used: */
-			j = Head [hash] ;
+			j = Head [hash_] ;
 			if (j <= EMPTY)
 			{
 			    /* degree list is empty, hash head is FLIP (j) */
 			    Next [i] = FLIP (j) ;
-			    Head [hash] = FLIP (i) ;
+			    Head [hash_] = FLIP (i) ;
 			}
 			else
 			{
@@ -1652,7 +1652,7 @@ public class AMD {
 			Hhead [hash] = i ;
 			*/
 
-			Last [i] = hash ;
+			Last [i] = hash_ ;
 		    }
 		}
 
@@ -1687,9 +1687,10 @@ public class AMD {
 
 			/* let i = head of hash bucket, and empty the hash bucket */
 			hash = Last [i] ;
+			hash_ = (int)(hash);
 
 			/* if Hhead array is not used: */
-			j = Head [hash] ;
+			j = Head [hash_] ;
 			if (j == EMPTY)
 			{
 			    /* hash bucket and degree list are both empty */
@@ -1699,7 +1700,7 @@ public class AMD {
 			{
 			    /* degree list is empty */
 			    i = FLIP (j) ;
-			    Head [hash] = EMPTY ;
+			    Head [hash_] = EMPTY ;
 			}
 			else
 			{

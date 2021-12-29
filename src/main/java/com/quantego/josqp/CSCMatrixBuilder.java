@@ -79,23 +79,8 @@ public class CSCMatrixBuilder  {
 	
 	public CSCMatrix build() {
 		return new CSCMatrix(this._numRows, this._numCols, this._numElements,
-    			this._starts, toPrimitive(this._indices.toArray(INTEGERS)), toPrimitive(this._elements.toArray(DOUBLES)));
+    			this._starts, Utils.toPrimitive(this._indices.toArray(INTEGERS)), Utils.toPrimitive(this._elements.toArray(DOUBLES)));
     }
 	 
-	private static double[] toPrimitive(final Double[] array) {
-        final double[] result = new double[array.length];
-        for (int i = 0; i < array.length; i++) {
-            result[i] = array[i].doubleValue();
-        }
-        return result;
-    }
-	    
-    private static int[] toPrimitive(final Integer[] array) {
-        final int[] result = new int[array.length];
-        for (int i = 0; i < array.length; i++) {
-            result[i] = array[i].intValue();
-        }
-        return result;
-    }
 
 }

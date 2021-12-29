@@ -25,11 +25,13 @@ public class LPTest {
 //	    settings.polish = true;
 //	    settings.rho = 0.01;
 	    settings.eps_rel = 0.0001;
+//		settings.time_limit = 0.01;
 		CSCMatrix A = new CSCMatrix(m,n,A_nnz,A_p,A_i,A_x);
 		CSCMatrix P = new CSCMatrix(n,n,P_nnz,P_p,P_i,P_x);
 		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
 		OSQP opt = new OSQP(data,settings);
 		opt.solve();
+
 	}
 	
 	@Test
@@ -557,13 +559,14 @@ public class LPTest {
 			        2.40840000e+00,  2.40840000e+00,  2.40840000e+00,  2.40840000e+00};
 		int n=172, m=304;
 		OSQP.Settings settings = new OSQP.Settings();
-		
 		CSCMatrix A = new CSCMatrix(m,n,Ax.length,Ap,Ai,Ax);
 		CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
 		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		
 		OSQP opt = new OSQP(data,settings);
-		for (int i=0; i<100; i++)
+		
 		opt.solve();
+		
 
 	}
 	

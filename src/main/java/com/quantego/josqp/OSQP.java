@@ -12,50 +12,50 @@ public class OSQP {
 	
 	private final static Logger LOG = Logger.getLogger(OSQP.class.getName());
 	
-	static final double RHO = 0.1;
-	static final double SIGMA = 1E-06;
-	static final int MAX_ITER = 10000;
-	static final double EPS_ABS = 1E-3;
-	static final double EPS_REL = 1E-3;
-	static final double EPS_PRIM_INF = 1E-4;
-	static final double EPS_DUAL_INF = 1E-4;
-	static final double ALPHA = 1.6;
+	public static final double RHO = 0.1;
+	public static final double SIGMA = 1E-06;
+	public static final int MAX_ITER = 10000;
+	public static final double EPS_ABS = 1E-3;
+	public static final double EPS_REL = 1E-3;
+	public static final double EPS_PRIM_INF = 1E-4;
+	public static final double EPS_DUAL_INF = 1E-4;
+	public static final double ALPHA = 1.6;
 
-	static final double RHO_MIN = 1e-06;
-	static final double RHO_MAX = 1e06;
-	static final double RHO_EQ_OVER_RHO_INEQ = 1e03;
-	static final double RHO_TOL = 1e-04; ///< tolerance for detecting if an inequality is set to equality
-
-
-	static final double DELTA = 1.0e-6;
-	static final boolean POLISH = false;
-	static final int POLISH_REFINE_ITER = 3;
-	static final boolean VERBOSE = true;
-
-	static final boolean SCALED_TERMINATION = false;
-	static final int CHECK_TERMINATION = 25;
-	static final boolean WARM_START = true;
-	static final int SCALING = 10;
-
-	static final double MIN_SCALING = 1.0e-04; ///< minimum scaling value
-	static final double MAX_SCALING = 1.0e+04; ///< maximum scaling value
+	public static final double RHO_MIN = 1e-06;
+	public static final double RHO_MAX = 1e06;
+	public static final double RHO_EQ_OVER_RHO_INEQ = 1e03;
+	public static final double RHO_TOL = 1e-04; ///< tolerance for detecting if an inequality is set to equality
 
 
-	static final double OSQP_NULL = 0.0;
-	static final double OSQP_NAN = Double.NaN;
-	static final double OSQP_INFTY = 1.0e30;
-	static final String OSQP_VERSION = "0.6.0";
+	public static final double DELTA = 1.0e-6;
+	public static final boolean POLISH = false;
+	public static final int POLISH_REFINE_ITER = 3;
+	public static final boolean VERBOSE = true;
 
-	static final boolean ADAPTIVE_RHO = true;
-	static final int ADAPTIVE_RHO_INTERVAL = 0;
-	static final double ADAPTIVE_RHO_FRACTION = 0.4;         ///< fraction of setup time after which we update rho
-	static final int ADAPTIVE_RHO_MULTIPLE_TERMINATION = 4; ///< multiple of check_termination after which we update rho (if PROFILING disabled)
-	static final int ADAPTIVE_RHO_FIXED = 100;             ///< number of iterations after which we update rho if termination_check  and PROFILING are disabled
-	static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
+	public static final boolean SCALED_TERMINATION = false;
+	public static final int CHECK_TERMINATION = 25;
+	public static final boolean WARM_START = true;
+	public static final int SCALING = 10;
 
-	static final int TIME_LIMIT = 0; 
+	public static final double MIN_SCALING = 1.0e-04; ///< minimum scaling value
+	public static final double MAX_SCALING = 1.0e+04; ///< maximum scaling value
+
+
+	public static final double OSQP_NULL = 0.0;
+	public static final double OSQP_NAN = Double.NaN;
+	public static final double OSQP_INFTY = 1.0e30;
+	public static final String OSQP_VERSION = "0.6.0";
+
+	public static final boolean ADAPTIVE_RHO = true;
+	public static final int ADAPTIVE_RHO_INTERVAL = 0;
+	public static final double ADAPTIVE_RHO_FRACTION = 0.4;         ///< fraction of setup time after which we update rho
+	public static final int ADAPTIVE_RHO_MULTIPLE_TERMINATION = 4; ///< multiple of check_termination after which we update rho (if PROFILING disabled)
+	public static final int ADAPTIVE_RHO_FIXED = 100;             ///< number of iterations after which we update rho if termination_check  and PROFILING are disabled
+	public static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
+
+	public static final double TIME_LIMIT = Double.POSITIVE_INFINITY;
 	
-	static final int PRINT_INTERVAL = 200;
+	public static final int PRINT_INTERVAL = 200;
 	
 	public static class ScaledProblemData {
 		double  c;    ///< cost function scaling
@@ -444,6 +444,10 @@ public class OSQP {
 		          // Terminate algorithm
 		          break;
 		        }
+		        if (work.settings.time_limit<Double.POSITIVE_INFINITY & work.info.run_time >= work.settings.time_limit) {
+				      work.info.status = Status.TIME_LIMIT_REACHED;
+				      break;
+		        }
 		      }
 		    // Adapt rho
 		    if (work.settings.adaptive_rho &&
@@ -480,6 +484,8 @@ public class OSQP {
 		  if (!compute_cost_function && has_solution(work.info)){
 		    work.info.obj_val = compute_obj_val(work, work.x);
 		  }
+		  
+		  
 
 		  /* if max iterations reached, change status accordingly */
 		  if (work.info.status == Status.UNSOLVED) {
@@ -488,10 +494,14 @@ public class OSQP {
 		    }
 		  }
 		  
-		  work.info.solve_time = (System.currentTimeMillis()-solve_time)/1000.;
+		  
 
 		  /* Update rho estimate */
 		  work.info.rho_estimate = compute_rho_estimate(work);
+		  
+		  /* Update solve time one last time*/
+		  work.info.solve_time = (System.currentTimeMillis()-solve_time)/1000.;
+		  
 		  // Polish the obtained solution
 		  if (work.settings.polish && (work.info.status == Status.SOLVED))
 		    Polish.polish(work);
@@ -522,12 +532,11 @@ public class OSQP {
 	
 	void print_summary(Workspace work) {
 		OSQP.Info info = work.info;
-		double time = work.first_run ? info.setup_time+info.solve_time : info.update_time+info.solve_time;
-		LOG.info(String.format("%d\t%12.4f\t%12.4f\t%12.4f\t%12.4f\t%12.4f", info.iter, info.obj_val, info.pri_res, info.dua_res, work.settings.rho, time));
+		info.run_time = work.first_run ? info.setup_time+info.solve_time+info.polish_time : info.update_time+info.solve_time+info.polish_time;
+		LOG.info(String.format("%d\t%12.4f\t%12.4f\t%12.4f\t%12.4f\t%12.4f", info.iter, info.obj_val, info.pri_res, info.dua_res, work.settings.rho, info.run_time));
 	}
 	
 	void print_footer(OSQP.Info info, boolean polish) {
-		info.run_time = work.first_run ? info.setup_time+info.solve_time+info.polish_time : info.update_time+info.solve_time+info.polish_time;
 		LOG.info(String.format("Status:\t%s",info.status));
 		LOG.info(String.format("Optimal obj:\t%12.4f", info.obj_val));
 		LOG.info(String.format("Iterations: \t%12d", info.iter));
@@ -1692,6 +1701,10 @@ public class OSQP {
 		
 		public double getObjectiveValue() {
 			return work.info.obj_val;
+		}
+		
+		public Info getInfo() {
+			return work.info;
 		}
 
 

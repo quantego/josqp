@@ -1,6 +1,6 @@
 package com.quantego.josqp;
 
-public class Projection {
+class Projection {
 	
 	public static void project(OSQP.Workspace work, double[] z) {
 		  int i, m;

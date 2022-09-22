@@ -303,7 +303,7 @@ public class QDLDL  {
 		}
     }
     
-    public static void main(String... args) {
+    /*public static void main(String... args) {
     	int An   = 10;
     	int[] Ap = {0, 1, 2, 4, 5, 6, 8, 10, 12, 14, 17};
     	int[] Ai = {0, 1, 1, 2, 3, 4, 1, 5, 0, 6, 3, 7, 6, 8, 1, 2, 9};
@@ -336,5 +336,5 @@ public class QDLDL  {
     	System.out.println();
     	System.out.println(Arrays.toString(x));
     	
-    }
+    }*/
 }

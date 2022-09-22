@@ -14,8 +14,6 @@ public class CSCMatrixBuilder  {
 	ArrayList<Double> _elements;
 	ArrayList<Integer> _indices;
 	int[] _starts;
-    static Double[] DOUBLES = new Double[0];
-    static Integer[] INTEGERS = new Integer[0]; 
 	
 	/**
 	 * Creates a new empty matrix with a given number of columns. The matrix can start empty, but adding non-zero elements
@@ -76,10 +74,20 @@ public class CSCMatrixBuilder  {
 			_starts[i] = _starts[_numCols];
 		_numCols = col+1;
 	}
+
+	public int getNumRows() {
+		return _numRows;
+	}
 	
-	public CSCMatrix build() {
-		return new CSCMatrix(this._numRows, this._numCols, this._numElements,
-    			this._starts, Utils.toPrimitive(this._indices.toArray(INTEGERS)), Utils.toPrimitive(this._elements.toArray(DOUBLES)));
+	public CSCMatrix build(boolean negate) {
+		return new CSCMatrix(
+				this._numRows,
+				this._numCols,
+				this._numElements,
+    			this._starts,
+				Utils.toIntArray(this._indices),
+				negate ? Utils.toDoubleArrayNeg(this._elements) : Utils.toDoubleArray(this._elements)
+		);
     }
 	 
 

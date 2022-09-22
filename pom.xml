@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.quantego</groupId>
   <artifactId>josqp</artifactId>
-  <version>0.0.1</version>
+  <version>0.6.2</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

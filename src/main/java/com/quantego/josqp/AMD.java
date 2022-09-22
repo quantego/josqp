@@ -1,6 +1,6 @@
 package com.quantego.josqp;
 
-public class AMD {
+class AMD {
 	
 	
 	public enum Status {

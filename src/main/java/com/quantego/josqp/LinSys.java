@@ -1,6 +1,6 @@
 package com.quantego.josqp;
 
-public class LinSys  {
+class LinSys  {
 	
 
 

@@ -2,7 +2,7 @@ package com.quantego.josqp;
 
 import java.util.Arrays;
 
-public class Polish {
+class Polish {
 
 	/**
 	 * Form reduced matrix A that contains only rows that are active at the

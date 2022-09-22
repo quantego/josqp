@@ -1,6 +1,6 @@
 package com.quantego.josqp;
 
-public class Scaling {
+class Scaling {
 
 
 	// Set values lower than threshold SCALING_REG to 1

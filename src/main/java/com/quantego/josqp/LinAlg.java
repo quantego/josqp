@@ -1,7 +1,7 @@
 package com.quantego.josqp;
 
 
-public class LinAlg {
+class LinAlg {
     /* VECTOR FUNCTIONS ----------------------------------------------------------*/
     public static void vec_add_scaled(double[] c, double[] a, double[] b, int n, double sc){
 

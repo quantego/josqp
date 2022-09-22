@@ -10,11 +10,11 @@ public class OSQP {
 	            "%1$tF %1$tT %4$s:\t%5$s%6$s%n");
 	}
 	
-	private final static Logger LOG = Logger.getLogger(OSQP.class.getName());
+	public final static Logger LOG = Logger.getLogger(OSQP.class.getName());
 	
 	public static final double RHO = 0.1;
 	public static final double SIGMA = 1E-06;
-	public static final int MAX_ITER = 10000;
+	public static final int MAX_ITER = Integer.MAX_VALUE;
 	public static final double EPS_ABS = 1E-3;
 	public static final double EPS_REL = 1E-3;
 	public static final double EPS_PRIM_INF = 1E-4;
@@ -23,7 +23,7 @@ public class OSQP {
 
 	public static final double RHO_MIN = 1e-06;
 	public static final double RHO_MAX = 1e06;
-	public static final double RHO_EQ_OVER_RHO_INEQ = 1e03;
+	public static final double RHO_EQ_OVER_RHO_INEQ = 1e04;
 	public static final double RHO_TOL = 1e-04; ///< tolerance for detecting if an inequality is set to equality
 
 

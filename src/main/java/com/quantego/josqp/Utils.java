@@ -6,16 +6,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
-	
+
 	public static double[] toDoubleArray(List<Double> array) {
-        double[] result = new double[array.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = array.get(i);
-        }
-        return result;
-    }
+		double[] result = new double[array.size()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = array.get(i);
+		}
+		return result;
+	}
 
 	public static double[] toDoubleArrayNeg(List<Double> array) {
 		double[] result = new double[array.size()];

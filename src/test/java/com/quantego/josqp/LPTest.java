@@ -22,7 +22,7 @@ public class LPTest {
 		int m = 8;
 		  
 	    OSQP.Settings settings = new OSQP.Settings();
-//	    settings.polish = true;
+	    settings.polish = true;
 //	    settings.rho = 0.01;
 	    settings.eps_rel = 0.0001;
 //		settings.time_limit = 0.01;
@@ -37,15 +37,15 @@ public class LPTest {
 	@Test
 	public void suboptimalTest2() {
 		
-		CSCMatrix P = new CSCMatrixBuilder(5)
+		CSCMatrix P = new CSCMatrixBuilder()
 			.set(0, 0, 0.)
 			.set(1, 1, 0.)
 			.set(2, 2, 0.)
 			.set(3, 3, 0.)
 			.set(4, 4, 0.)
-		.build();
+		.build(false);
 		
-		CSCMatrix A = new CSCMatrixBuilder(5)
+		CSCMatrix A = new CSCMatrixBuilder()
 			.set(0, 0, 1.)
 			.set(7, 0, 1.)
 			.set(1, 1, 1.)
@@ -59,7 +59,7 @@ public class LPTest {
 			.set(4, 4, 1.)
 			.set(5, 4, 1.)
 			.set(6, 4, -1.)
-		.build();
+		.build(false);
 		double[] q = {-1.0,1.0,1.0,0.2,2.0,};
 		double[] l = {0.0,0.0,20.0,0.0,0.0,-OSQP.OSQP_INFTY,0.0,-OSQP.OSQP_INFTY,};
 		double[] u = {OSQP.OSQP_INFTY,OSQP.OSQP_INFTY,100.0,100.0,OSQP.OSQP_INFTY,0.0,0.0,0.0,};
@@ -559,6 +559,7 @@ public class LPTest {
 			        2.40840000e+00,  2.40840000e+00,  2.40840000e+00,  2.40840000e+00};
 		int n=172, m=304;
 		OSQP.Settings settings = new OSQP.Settings();
+		//settings.polish = true;
 		CSCMatrix A = new CSCMatrix(m,n,Ax.length,Ap,Ai,Ax);
 		CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
 		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);

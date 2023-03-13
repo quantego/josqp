@@ -374,8 +374,8 @@ public class Model {
     double[] _y;
     double _offset;
     public Model() {
-        _A = new CSCMatrixBuilder(0);
-        _P = new CSCMatrixBuilder(0);
+        _A = new CSCMatrixBuilder();
+        _P = new CSCMatrixBuilder();
         _ub = new ArrayList<>();
         _lb = new ArrayList<>();
         _q = new ArrayList<>();
@@ -392,9 +392,9 @@ public class Model {
 
     public int addVar() {
         _q.add(0.);
-        int i = addCtr(Constraint.Type.GEQ, 0);
-        _A.set(i,_nCols,1);
-        _P.set(_nCols,_nCols,0);
+        int i = addCtr(Constraint.Type.GEQ, 0.0);
+        _A.set(i,_nCols,1.0);
+        _P.set(_nCols,_nCols,0.0);
         _cr.add(i);
         _newCols = true;
         return _nCols++;
@@ -524,10 +524,12 @@ public class Model {
                 if (_newL || _newU)
                     _solver.update_bounds(Utils.toDoubleArray(_lb), Utils.toDoubleArray(_ub));
                 if (_newA) {
-                    _solver.update_A(Utils.toDoubleArray(_A._elements), Utils.toIntArray(_A._indices));
+                    _A.update(false);
+                    _solver.update_A(_A.getElements(), _A.getIndices());
                 }
                 if (_newP) {
-                    _solver.update_P(_maximize ? Utils.toDoubleArrayNeg(_P._elements) : Utils.toDoubleArray(_P._elements), Utils.toIntArray(_P._indices));
+                    _P.update(_maximize);
+                    _solver.update_P(_P.getElements(), _P.getIndices());
                 }
             }
         }
@@ -550,7 +552,7 @@ public class Model {
     //TODO: Is this even correct?
     public double getDual(int ctr) {
         if (_x==null) throw new IllegalStateException("Solver does not have a dual solution. Call solve first.");
-        return (_maximize?-1:1)*_y[ctr];
+        return (_maximize?-1.0:1.0)*_y[ctr];
     }
 
     public double getObj() {
@@ -558,12 +560,12 @@ public class Model {
     }
 
     static String termToString(double d, String s) {
-		if (d==0) return "";
-		if (d==1)
+		if (d==0.0) return "";
+		if (d==1.0)
 			return " + "+s;
-		if (d==-1)
+		if (d==-1.0)
 			return " - "+s;
-		if (d>0)
+		if (d>0.0)
 			return String.format(" + %.5f %s",d,s);
 		return String.format(" - %.5f %s",-d,s);
 	}
@@ -572,7 +574,7 @@ public class Model {
 	public String toString() {
 		StringBuilder modelString = new StringBuilder();
 		modelString.append(_maximize ? "Maximize" : "Minimize").append("\nobj:");
-		if (_offset != 0) modelString.append(" "+_offset);
+		if (_offset != 0.0) modelString.append(" "+_offset);
 		//objective function
 		for (int col=0; col<_nCols; col++) {
 			double c = _q.get(col);
@@ -580,15 +582,17 @@ public class Model {
 		}
 		if (_P != null) {
 			modelString.append(" + [");
-            int[] starts = _P._starts;
-            List<Integer> index = _P._indices;
+            _P.update(_maximize);
+            int[] starts = _P.getStarts();
+            double[] elements = _P.getElements();
+            int[] index = _P.getIndices();
             for (int col=0; col<_nCols; col++) {
                 int begin = starts[col];
                 int end = starts[col+1];
                 for (int j=begin; j<end; j++) {
-                    int col2 = index.get(j);
-                    double element = _P._elements.get(j);
-                    if (element != 0) {
+                    int col2 = index[j];
+                    double element = elements[j];
+                    if (element != 0.0) {
                         if (col!=col2)
                             modelString.append(termToString(element,getName(col)+" "+getName(col2)));
                         else
@@ -605,14 +609,16 @@ public class Model {
 		List<StringBuilder> constraintStrings = new ArrayList<>(_nRows);
 		for (int row=0; row<_nRows; row++)
 			constraintStrings.add(new StringBuilder());
-		int[] starts = _A._starts;
-		List<Integer> index = _A._indices;
+        _A.update(false);
+		int[] starts = _A.getStarts();
+        double[] elements = _A.getElements();
+		int[] index = _A.getIndices();
 		for (int col=0; col<_nCols; col++) {
 			int begin = starts[col];
 			int end = starts[col+1];
 			for (int j=begin; j<end; j++) {
-				int row = index.get(j);
-				double element = _A._elements.get(j);
+				int row = index[j];
+				double element = elements[j];
 				constraintStrings.get(row).append(termToString(element,getName(col)));
 			}
 		}

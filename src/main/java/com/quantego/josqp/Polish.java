@@ -222,7 +222,7 @@ class Polish {
 
 
 	  // Form reduced right-hand side rhs_red
-	  double[] rhs_red = new double[work.data.n*mred];
+	  double[] rhs_red = new double[work.data.n+mred];
 
 	  form_rhs_red(work, rhs_red);
 

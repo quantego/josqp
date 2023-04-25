@@ -1,15 +1,16 @@
 package com.quantego.josqp;
 
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
+import java.util.logging.SimpleFormatter;
 
 
 public class Parser {
@@ -320,27 +321,47 @@ public class Parser {
 	}
 
 	public static void main(String... args) {
-		//Parser p = Parser.readMps("src/test/resources/neos-3025225_lp.mps"); //Optimal objective  5.257405203e-02
-		//Parser p = Parser.readMps("src/test/resources/s82_lp.mps"); //Optimal objective -3.457971082e+01
-		//Parser p = Parser.readMps("src/test/resources/qap15.mps"); //Optimal objective  1.040994041e+03
-		//Parser p = Parser.readMps("src/test/resources/irish-electricity.mps"); //Optimal objective  2.546254563e+06
-//		Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
-		//Parser p = Parser.readMps("src/test/resources/ex10.mps"); //Optimal objective 100
-//		Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
-		Parser p = Parser.readMps("src/test/resources/sample1.mps"); //Optimal objective -1.710967560e-01
-		OSQP.Data data = p.getData();
-		OSQP.Settings settings = new OSQP.Settings();
-		//settings.eps_rel = 1.e-6;
-		//settings.alpha = 1.66666667;
-		//settings.sigma = 1.e-4;
-		settings.polish = true;
-		//settings.adaptive_rho = false;
-		//settings.rho = 0.000001;
-		//settings.eps_rel = 1.e-6;
-		settings.verbose = true;
-		OSQP opt = new OSQP(data,settings);
-		opt.solve();
 
-	}
+		try {
+			FileHandler fh = new FileHandler("josqp.log");
+			OSQP.LOG.addHandler(fh);
+			Formatter formatter = new SimpleFormatter();
+			fh.setFormatter(formatter);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		//Parser p = Parser.readMps("src/test/resources/neos-3025225_lp.mps"); //Optimal objective  5.257405203e-02
+			//Parser p = Parser.readMps("src/test/resources/s82_lp.mps"); //Optimal objective -3.457971082e+01
+			//Parser p = Parser.readMps("src/test/resources/qap15.mps"); //Optimal objective  1.040994041e+03
+			//Parser p = Parser.readMps("src/test/resources/irish-electricity.mps"); //Optimal objective  2.546254563e+06
+//		Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
+			//Parser p = Parser.readMps("src/test/resources/ex10.mps"); //Optimal objective 100
+//		Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
+			//Parser p = Parser.readMps("src/test/resources/sample1.mps");
+			String mpsFileDir = "src/test/resources/sample1.mps";
+			if (args.length >= 1)
+				mpsFileDir = args[0];
+			else {
+				OSQP.LOG.info("Usage: java -jar josqp.jar <mps_file_name>");
+				return;
+			}
+			//String mpsFileDir = "src/test/resources/sample1.mps";
+			Parser p = Parser.readMps(mpsFileDir);
+
+			OSQP.Data data = p.getData();
+			OSQP.Settings settings = new OSQP.Settings();
+			//settings.eps_rel = 1.e-6;
+			//settings.alpha = 1.66666667;
+			//settings.sigma = 1.e-4;
+			settings.polish = true;
+			//settings.adaptive_rho = false;
+			//settings.rho = 0.000001;
+			//settings.eps_rel = 1.e-6;
+			settings.verbose = true;
+			OSQP opt = new OSQP(data,settings);
+			opt.solve();
+
+		}
 
 }

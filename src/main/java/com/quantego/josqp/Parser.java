@@ -1,5 +1,6 @@
 package com.quantego.josqp;
 
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,8 +11,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class Parser {
-	
+
 	int nRows;
 	int nCols;
 	int Anz;
@@ -25,7 +27,7 @@ public class Parser {
 	public double[] q;
 	public double[] l;
 	public double[] u;
-	
+
 	/**
 	 * Create a new Problem instance based on vector inputs (CSC formatted).
 	 * @param q linear objective coefficients
@@ -53,7 +55,7 @@ public class Parser {
 		Anz = Ax.length;
 		Pnz = Px.length;
 	}
-	
+
 	/**
 	 * Read problem as a collection of files containing the individual vectors as CSV (without header but a row index).
 	 * Requires files 'prefix q', 'prefix P_x', 'prefix P_p', 'prefix P_i', 'prefix l', 'prefix u', , 'prefix A_x', 'prefix A_p', 'prefix A_i' without (file ending).
@@ -71,10 +73,10 @@ public class Parser {
 				Utils.readIntColumn(prefix+ " A_i", ",", skipRows, skipCols),
 				Utils.readDoubleColumn(prefix+ " l", ",", skipRows, skipCols),
 				Utils.readDoubleColumn(prefix+ " u", ",", skipRows, skipCols)
-				);
+		);
 		return p;
 	}
-	
+
 	/**
 	 * Prints this problem as vectors that can be directly dumped into C code (probably easiest to test small problems before writing a parser in C).
 	 */
@@ -93,77 +95,78 @@ public class Parser {
 		System.out.println(String.format("c_int A_nnz=%d;",Anz));
 		System.out.println(String.format("c_int P_nnz=%d;",Pnz));
 	}
-	
+
 	public CSCMatrix getA( ) {
 		return new CSCMatrix(nRows, nCols, Anz, Ap, Ai, Ax);
 	}
-	
+
 	public CSCMatrix getP() {
 		return new CSCMatrix(nCols, nCols, Pnz, Pp, Pi, Px);
 	}
-	
+
 	public double[] getl() {
 		return l;
 	}
-	
+
 	public double[] getu() {
 		return u;
 	}
-	
+
 	public double[] getq() {
 		return q;
 	}
-	
+
 	public OSQP.Data getData() {
 		return new OSQP.Data(nCols,nRows,getP(),getA(),q,l,u);
 	}
-	
+
 	private enum Section {
-		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ;
+		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ, RANGES;
 	}
-	
+
 	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
 		String rowName = tokens[2];
 		switch(tokens[1]) {
 			case "L": u.add(0.); l.add(-OSQP.OSQP_INFTY); rows.put(rowName, shape[0]++); break;
 			case "G": u.add(OSQP.OSQP_INFTY); l.add(0.); rows.put(rowName, shape[0]++); break;
 			case "E": u.add(0.); l.add(0.); rows.put(rowName, shape[0]++); break;
-		default: break;
+			default: break;
 		}
 	}
-	
+
 	private static void parseBnd(Map<String, Integer> cols, List<Integer> Ai, List<Integer> Ap, List<Double> l, List<Double> u, String[] tokens) {
 		String col = tokens[3];
 		int rowIndex = Ai.get(Ap.get(cols.get(col)));
 		double bnd;
 		switch(tokens[1]) {
-		case "LO":
-			bnd = Double.parseDouble(tokens[4]);
-			l.set(rowIndex, bnd);
-			break;
-		case "UP": 
-			bnd = Double.parseDouble(tokens[4]);
-			u.set(rowIndex, bnd);
-			break;
-		case "FX": 
-			bnd = Double.parseDouble(tokens[4]);
-			l.set(rowIndex, bnd); u.set(rowIndex, bnd);
-			break;
-		case "MI":
-			break;
-		case "PI": 
-			break;
-		case "FR": 
-			l.set(rowIndex, -OSQP.OSQP_INFTY); u.set(rowIndex, OSQP.OSQP_INFTY); 
-			break;
-		default: throw new IllegalStateException("Unkown bound key: "+tokens[1]);
+			case "LO":
+				bnd = Double.parseDouble(tokens[4]);
+				l.set(rowIndex, bnd);
+				break;
+			case "UP":
+				bnd = Double.parseDouble(tokens[4]);
+				u.set(rowIndex, bnd);
+				break;
+			case "FX":
+				bnd = Double.parseDouble(tokens[4]);
+				l.set(rowIndex, bnd); u.set(rowIndex, bnd);
+				break;
+			//TODO: Complete the following bound keys.
+			case "MI":
+				break;
+			case "PI":
+				break;
+			case "FR":
+				l.set(rowIndex, -OSQP.OSQP_INFTY); u.set(rowIndex, OSQP.OSQP_INFTY);
+				break;
+			default: throw new IllegalStateException("Unkown bound key: "+tokens[1]);
 		}
 	}
-	
-	private static void parseCol(int[] shape, Map<String, Integer> rows, Map<String, Integer> cols, 
-			List<Integer> Ai, List<Integer> Ap, List<Double> Ax, 
-			List<Double> l, List<Double> u, List<Double> q,
-			String objName, String[] tokens, double sign) {
+
+	private static void parseCol(int[] shape, Map<String, Integer> rows, Map<String, Integer> cols,
+								 List<Integer> Ai, List<Integer> Ap, List<Double> Ax,
+								 List<Double> l, List<Double> u, List<Double> q,
+								 String objName, String[] tokens, double sign) {
 		String colName = tokens[1];
 		if (!cols.containsKey(colName)) {
 			q.add(0.);
@@ -175,20 +178,19 @@ public class Parser {
 			u.add(OSQP.OSQP_INFTY);
 			cols.put(colName, shape[1]++);
 		}
-		int colIndex = cols.get(colName); //this won't work if columns are not ordered
+		int colIndex = cols.get(colName); //TODO: this won't work if columns are not ordered
 		for (int i=2; i<tokens.length; i+=2) {
 			String rowName = tokens[i];
 			if (!rowName.matches(objName)) {
 				Ai.add(rows.get(rowName));
 				Ax.add(Double.parseDouble(tokens[i+1]));
 				Ap.set(colIndex+1, Ai.size());
-			}
-			else {
+			} else {
 				q.set(colIndex, sign*Double.parseDouble(tokens[i+1]));
 			}
 		}
 	}
-	
+
 	private static void parseRhs(Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
 		for (int i=2; i<tokens.length; i+=2) {
 			int row = rows.get(tokens[i]);
@@ -198,7 +200,22 @@ public class Parser {
 				l.set(row, Double.parseDouble(tokens[i+1]));
 		}
 	}
-	
+
+
+	private static void parseRanges(Map<String, Integer> rows, List<Double> l, List<Double>  u, String[] tokens) {
+		if (!rows.containsKey(tokens[2]))
+			throw new IllegalStateException(String.format("Error in reading ranges."));
+		Integer rowNum = rows.get(tokens[2]);
+		Double range = Double.parseDouble(tokens[3]);
+		if (u.get(rowNum) == OSQP.OSQP_INFTY)
+			u.set(rowNum, l.get(rowNum) + range);
+		else if (l.get(rowNum) == -OSQP.OSQP_INFTY)
+			l.set(rowNum, u.get(rowNum) - range);
+		else
+			throw new IllegalStateException(String.format("Error in reading ranges."));
+	}
+
+
 	public static Parser readMps(String filename) {
 		OSQP.LOG.info(String.format("Begin parsing file %s.",filename));
 		double tme = System.currentTimeMillis();
@@ -219,12 +236,13 @@ public class Parser {
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
 			Section section = Section.HEAD;
 			String line;
-//			String lastCol = "";
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split("\\s+");
 				if (tokens.length > 1 || !tokens[0].isEmpty())
 					try {
 						if (tokens[0].isEmpty()) {
+							if (tokens[1].charAt(0) == '*') // skipping commented lines
+								continue;
 							switch(section) {
 								case ROWS:
 									if (objname==null && tokens[1].matches("N"))
@@ -235,39 +253,44 @@ public class Parser {
 								case COLUMNS:
 									parseCol(shape, rows, cols, Ai, Ap, Ax, l, u, q, objname, tokens, maximize?-1.:1.);
 									break;
-								case RHS: 
+								case RHS:
 									parseRhs(rows, l, u, tokens);
 									break;
-								case BOUNDS: 
+								case RANGES:
+									parseRanges(rows, l, u, tokens);
+									break;
+								case BOUNDS:
 									parseBnd(cols, Ai, Ap, l, u, tokens);
 									break;
-								case OBJ: 
-									objname = tokens[1]; 
+								case OBJ:
+									objname = tokens[1];
 									break;
 								case SENSE:
 									maximize = tokens[1].matches("MAX") || tokens[1].matches("MAXIMIZE");
 									break;
-								default: 
+								default:
 									throw new IllegalStateException(
 											String.format("Line %s started with an empty character but contains no data.",line)
-											);
+									);
 							}
-						}
-						else {
+						} else {
+							// skipping the commented lines
+							if (tokens[0].charAt(0) == '*')
+								continue;
+							// At this stage, it is for sure that the line is a header line.
 							switch(tokens[0]) {
-								case "NAME": section = Section.HEAD; break;
-								case "OBJSENSE": section = Section.SENSE; break;
-								case "OBJNAME": section = Section.OBJ; 
-								break;
-								case "ROWS": section = Section.ROWS; break;
-								case "COLUMNS": section = Section.COLUMNS; break;
-								case "RHS": section = Section.RHS; break;
-								case "BOUNDS": section = Section.BOUNDS; break;
-								case "ENDATA": break; //end of file
-								case "*": break; //comments
+								case "NAME":     section = Section.HEAD;    break;
+								case "OBJSENSE": section = Section.SENSE;   break;
+								case "OBJNAME":  section = Section.OBJ;     break;
+								case "ROWS":     section = Section.ROWS;    break;
+								case "COLUMNS":  section = Section.COLUMNS; break;
+								case "RHS":      section = Section.RHS;     break;
+								case "RANGES":   section = Section.RANGES;  break;
+								case "BOUNDS":   section = Section.BOUNDS;  break;
+								case "ENDATA":                              break; //end of file
 								default: throw new IllegalStateException(
 										String.format("Unknown section name: %s",tokens[0])
-										);
+								);
 							}
 						}
 					} catch (ArrayIndexOutOfBoundsException e) {
@@ -281,8 +304,8 @@ public class Parser {
 			e.printStackTrace();
 		}
 		Utils.toDoubleArray(q);
-		double[] P_x = new double[shape[1]]; 
-		int[] P_p = new int[shape[1]+1]; 
+		double[] P_x = new double[shape[1]];
+		int[] P_p = new int[shape[1]+1];
 		int[] P_i = new int[shape[1]];
 		for (int i=0; i<shape[1]; i++) {
 			P_i[i] = i;
@@ -304,7 +327,7 @@ public class Parser {
 //		Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
 		//Parser p = Parser.readMps("src/test/resources/ex10.mps"); //Optimal objective 100
 //		Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
-		Parser p = Parser.readMps("src/test/resources/s100.mps"); //Optimal objective -1.710967560e-01
+		Parser p = Parser.readMps("src/test/resources/sample1.mps"); //Optimal objective -1.710967560e-01
 		OSQP.Data data = p.getData();
 		OSQP.Settings settings = new OSQP.Settings();
 		//settings.eps_rel = 1.e-6;
@@ -317,7 +340,7 @@ public class Parser {
 		settings.verbose = true;
 		OSQP opt = new OSQP(data,settings);
 		opt.solve();
-		
+
 	}
 
 }

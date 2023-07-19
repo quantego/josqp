@@ -2,11 +2,7 @@ package com.quantego.josqp;
 
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
@@ -122,7 +118,7 @@ public class Parser {
 	}
 
 	private enum Section {
-		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ, RANGES;
+		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ, RANGES, QUADOBJ;
 	}
 
 	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
@@ -216,8 +212,118 @@ public class Parser {
 			throw new IllegalStateException(String.format("Error in reading ranges."));
 	}
 
+	private static void parseQuadObj(Map<String, Integer> cols, List<Integer> PrcvR, List<Integer> PrcvC, List<Double> PrcvV, String[] tokens) {
 
-	public static Parser readMps(String filename) {
+		// First constructing a matrix in RCV format and then translating it to the CSC format.
+
+		ArrayList<Integer> rows, columns;
+		ArrayList<Double> values;
+		int col1, col2;
+		double val;
+		try {
+			col1 = cols.get(tokens[1]);
+			col2 = cols.get(tokens[2]);
+			val  = Double.parseDouble(tokens[3]);
+			if (col1 != col2) {
+				PrcvR.add(col1);
+				PrcvC.add(col2);
+				PrcvV.add(val);
+				PrcvR.add(col2);
+				PrcvC.add(col1);
+				PrcvV.add(val);
+			} else {
+				PrcvR.add(col1);
+				PrcvC.add(col2);
+				PrcvV.add(2 * val);
+			}
+		}
+		catch (Exception e) {
+			System.out.println("Error in reading the QUADOBJ section!");
+		}
+	}
+
+	private static void extractUpperTriangle(List<Integer> rcvR, List<Integer> rcvC, List<Double> rcvV) {
+		for (int i = 0; i < rcvR.size(); i++) {
+			if (rcvR.get(i) > rcvC.get(i)) {
+				rcvR.remove(i);
+				rcvC.remove(i);
+				rcvV.remove(i);
+			}
+		}
+	}
+
+	private static void convertRcvToCsc(List<Integer> rcvR, List<Integer> rcvC, List<Double> rcvV, int NCol,
+										List<Integer> cscI, List<Integer> cscP, List<Double> cscX) {
+		// convert RCV format to CSC format.
+
+		// sorting the RCV format (first based on the column, then based on the row).
+		int r, c, col;
+		double v;
+			// step 1: sorting based on the column
+		for (int i = 0; i < rcvC.size(); i++) {
+			for (int j = 0; j < i; j++) {
+				if (rcvC.get(i) < rcvC.get(j)) {
+					r = rcvR.get(i);   c = rcvC.get(i);   v = rcvV.get(i);
+					rcvR.remove(i);    rcvC.remove(i);    rcvV.remove(i);
+					rcvR.add(j, r);    rcvC.add(j, c);    rcvV.add(j, v);
+					break;
+				}
+			}
+		}
+			// step 2: sorting each column based on the rows.
+		int idxStart = 0;
+		int idxEnd = 0;
+		for (int colN = 0; colN < Collections.max(rcvC); colN++) {
+			if (rcvC.get(idxStart) > colN)
+				continue;
+			while (rcvC.get(idxEnd + 1) == colN)
+				idxEnd++;
+			for (int i = idxStart; i <= idxEnd; i++) {
+				for (int j = idxStart; j < i; j++) {
+					if (rcvR.get(i) < rcvR.get(j)) {
+						r = rcvR.get(i);    c = rcvC.get(i);    v = rcvV.get(i);
+						rcvR.remove(i);     rcvC.remove(i);     v = rcvV.remove(i);
+						rcvR.add(j, r);     rcvC.add(j, c);     rcvV.add(j, v);
+						break;
+					}
+				}
+			}
+			idxStart = ++idxEnd;
+		}
+
+		// constructing the CSC vectors based on the RCV vectors.
+		for (int i = 0; i < rcvV.size(); i++) {
+			cscX.add(rcvV.get(i));
+			cscI.add(rcvR.get(i));
+		}
+		cscP.add(0);
+		int totNCol = 0, currColParsed = 0;
+		for (c = 0; c < rcvC.size(); c++) {
+			col = rcvC.get(c);
+			while (col > currColParsed) { // This while loop is to handle the empty columns at the beginning.
+				cscP.add(totNCol);
+				currColParsed++;
+			}
+			totNCol++;
+			if (c != rcvC.size() - 1) {
+				if (rcvC.get(c + 1) != col) {
+					cscP.add(totNCol);
+					currColParsed++;
+				}
+			} else {
+				cscP.add(totNCol);
+				while (currColParsed < NCol - 1) { // This while loop is to handle the empty columns at the end.
+					cscP.add(totNCol);
+					currColParsed++;
+				}
+			}
+		}
+		for (int i = 0; i < cscP.size(); i++) { // Because the indexing in OSQP starts from 1.
+			cscP.set(i, cscP.get(i) + 1);
+		}
+	}
+
+	public static Parser readQmps(String filename) {
 		OSQP.LOG.info(String.format("Begin parsing file %s.",filename));
 		double tme = System.currentTimeMillis();
 		String objname = null;
@@ -229,13 +335,20 @@ public class Parser {
 		List<Integer> Ap = new ArrayList<>();
 		Ap.add(0);
 		List<Double> Ax = new ArrayList<>();
+		List<Integer> Pi = new ArrayList<>(); // row indices
+		List<Integer> Pp = new ArrayList<>(); // column pointers
+		List<Double>  Px = new ArrayList<>();
+		List<Integer> PrcvR = new ArrayList<>();
+		List<Integer> PrcvC = new ArrayList<>();
+		List<Double> PrcvV = new ArrayList<>();
 		List<Double> u = new ArrayList<>();
 		List<Double> l = new ArrayList<>();
 		List<Double> q = new ArrayList<>();
 		try {
 			FileInputStream in = new FileInputStream(filename);
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			Section section = Section.HEAD;
+			Section currentSection = Section.HEAD;
+			Section prevSection = currentSection;
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split("\\s+");
@@ -244,35 +357,22 @@ public class Parser {
 						if (tokens[0].isEmpty()) {
 							if (tokens[1].charAt(0) == '*') // skipping commented lines
 								continue;
-							switch(section) {
+							switch(currentSection) {
 								case ROWS:
 									if (objname==null && tokens[1].matches("N"))
 										objname = tokens[2];
 									else
 										parseRow(shape, rows, l, u, tokens);
-									break;
-								case COLUMNS:
-									parseCol(shape, rows, cols, Ai, Ap, Ax, l, u, q, objname, tokens, maximize?-1.:1.);
-									break;
-								case RHS:
-									parseRhs(rows, l, u, tokens);
-									break;
-								case RANGES:
-									parseRanges(rows, l, u, tokens);
-									break;
-								case BOUNDS:
-									parseBnd(cols, Ai, Ap, l, u, tokens);
-									break;
-								case OBJ:
-									objname = tokens[1];
-									break;
-								case SENSE:
-									maximize = tokens[1].matches("MAX") || tokens[1].matches("MAXIMIZE");
-									break;
-								default:
-									throw new IllegalStateException(
+									break; case COLUMNS: parseCol(shape, rows, cols, Ai, Ap, Ax, l, u, q, objname, tokens, maximize?-1.:1.);
+									break; case RHS: parseRhs(rows, l, u, tokens);
+									break; case RANGES: parseRanges(rows, l, u, tokens);
+									break; case BOUNDS: parseBnd(cols, Ai, Ap, l, u, tokens);
+									break; case OBJ: objname = tokens[1];
+									break; case SENSE: maximize = tokens[1].matches("MAX") || tokens[1].matches("MAXIMIZE");
+									break; case QUADOBJ: parseQuadObj(cols, PrcvR, PrcvC, PrcvV, tokens);
+									break; default: throw new IllegalStateException(
 											String.format("Line %s started with an empty character but contains no data.",line)
-									);
+								);
 							}
 						} else {
 							// skipping the commented lines
@@ -280,16 +380,48 @@ public class Parser {
 								continue;
 							// At this stage, it is for sure that the line is a header line.
 							switch(tokens[0]) {
-								case "NAME":     section = Section.HEAD;    break;
-								case "OBJSENSE": section = Section.SENSE;   break;
-								case "OBJNAME":  section = Section.OBJ;     break;
-								case "ROWS":     section = Section.ROWS;    break;
-								case "COLUMNS":  section = Section.COLUMNS; break;
-								case "RHS":      section = Section.RHS;     break;
-								case "RANGES":   section = Section.RANGES;  break;
-								case "BOUNDS":   section = Section.BOUNDS;  break;
-								case "ENDATA":                              break; //end of file
-								default: throw new IllegalStateException(
+								case "NAME":
+									currentSection = Section.HEAD;
+									prevSection = currentSection;
+									break;
+								case "OBJSENSE":
+									currentSection = Section.SENSE;
+									prevSection = currentSection;
+									break;
+								case "OBJNAME":
+									currentSection = Section.OBJ;
+									break;
+								case "ROWS":
+									currentSection = Section.ROWS;
+									prevSection = currentSection;
+									break;
+								case "COLUMNS":
+									currentSection = Section.COLUMNS;
+									prevSection = currentSection;
+									break;
+								case "RHS":
+									currentSection = Section.RHS;
+									prevSection = currentSection;
+									break;
+								case "RANGES":
+									currentSection = Section.RANGES;
+									prevSection = currentSection;
+									break;
+								case "BOUNDS":
+									currentSection = Section.BOUNDS;
+									prevSection = currentSection;
+									break;
+								case "QUADOBJ":
+									currentSection = Section.QUADOBJ;
+									prevSection = currentSection;
+									break;
+								case "ENDATA":
+									if (prevSection == Section.QUADOBJ) // postprocessing of the quadratic objective section
+										extractUpperTriangle(PrcvR, PrcvC, PrcvV);
+										convertRcvToCsc(PrcvR, PrcvC, PrcvV, cols.size(), Pi, Pp, Px);
+									break; //end of file
+								default:
+									throw new IllegalStateException(
 										String.format("Unknown section name: %s",tokens[0])
 								);
 							}
@@ -308,10 +440,12 @@ public class Parser {
 		double[] P_x = new double[shape[1]];
 		int[] P_p = new int[shape[1]+1];
 		int[] P_i = new int[shape[1]];
-		for (int i=0; i<shape[1]; i++) {
-			P_i[i] = i;
-			P_p[i+1] = i+1;
-//			P_x[i] = 1.e-4;
+		for (int i = 0; i < Pi.size(); i++) {
+			P_i[i] = Pi.get(i);
+			P_x[i] = Px.get(i);
+		}
+		for (int i = 0; i < Pp.size(); i++) {
+			P_p[i] = Pp.get(i);
 		}
 		OSQP.LOG.info(String.format("Read MPS in %.2fsec.",(System.currentTimeMillis()-tme)/1000.));
 		return new Parser(Utils.toDoubleArray(q),
@@ -332,36 +466,37 @@ public class Parser {
 		}
 
 		//Parser p = Parser.readMps("src/test/resources/neos-3025225_lp.mps"); //Optimal objective  5.257405203e-02
-			//Parser p = Parser.readMps("src/test/resources/s82_lp.mps"); //Optimal objective -3.457971082e+01
-			//Parser p = Parser.readMps("src/test/resources/qap15.mps"); //Optimal objective  1.040994041e+03
-			//Parser p = Parser.readMps("src/test/resources/irish-electricity.mps"); //Optimal objective  2.546254563e+06
-//		Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
-			//Parser p = Parser.readMps("src/test/resources/ex10.mps"); //Optimal objective 100
-//		Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
-			//Parser p = Parser.readMps("src/test/resources/sample1.mps");
-			String mpsFileDir = "src/test/resources/sample1.mps";
-			if (args.length >= 1)
-				mpsFileDir = args[0];
-			else {
-				OSQP.LOG.info("Usage: java -jar josqp.jar <mps_file_name>");
-				return;
-			}
-			//String mpsFileDir = "src/test/resources/sample1.mps";
-			Parser p = Parser.readMps(mpsFileDir);
-
-			OSQP.Data data = p.getData();
-			OSQP.Settings settings = new OSQP.Settings();
-			//settings.eps_rel = 1.e-6;
-			//settings.alpha = 1.66666667;
-			//settings.sigma = 1.e-4;
-			settings.polish = true;
-			//settings.adaptive_rho = false;
-			//settings.rho = 0.000001;
-			//settings.eps_rel = 1.e-6;
-			settings.verbose = true;
-			OSQP opt = new OSQP(data,settings);
-			opt.solve();
-
+		//Parser p = Parser.readMps("src/test/resources/s82_lp.mps"); //Optimal objective -3.457971082e+01
+		//Parser p = Parser.readMps("src/test/resources/qap15.mps"); //Optimal objective  1.040994041e+03
+		//Parser p = Parser.readMps("src/test/resources/irish-electricity.mps"); //Optimal objective  2.546254563e+06
+        //Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
+		//Parser p = Parser.readMps("src/test/resources/ex10.mps"); //Optimal objective 100
+		//Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
+		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
+		//	String mpsFileDir = "src/test/resources/sample1.mps";
+		String qpsFileDir = "src/test/resources/sample1.qps";
+		if (args.length >= 1)
+			qpsFileDir = args[0];
+		else {
+			OSQP.LOG.info("Usage: java -jar josqp.jar <mps_file_name>");
+			//return;
 		}
+		//Parser p = Parser.readMps(mpsFileDir);
+		Parser p = Parser.readQmps(qpsFileDir);
+
+		OSQP.Data data = p.getData();
+		OSQP.Settings settings = new OSQP.Settings();
+		//settings.eps_rel = 1.e-6;
+		//settings.alpha = 1.66666667;
+		//settings.sigma = 1.e-4;
+		settings.polish = true;
+		//settings.adaptive_rho = false;
+		//settings.rho = 0.000001;
+		//settings.eps_rel = 1.e-6;
+		settings.verbose = true;
+		OSQP opt = new OSQP(data,settings);
+		opt.solve();
+
+	}
 
 }

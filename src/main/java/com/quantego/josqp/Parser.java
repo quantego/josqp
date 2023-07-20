@@ -318,9 +318,12 @@ public class Parser {
 				}
 			}
 		}
-		for (int i = 0; i < cscP.size(); i++) { // Because the indexing in OSQP starts from 1.
-			cscP.set(i, cscP.get(i) + 1);
-		}
+		//for (int i = 0; i < cscP.size(); i++) { // Because the indexing in OSQP starts from 1.
+		//	cscP.set(i, cscP.get(i) + 1);
+		//}
+		//for (int i = 0; i < cscI.size(); i++) {
+		//	cscI.set(i, cscI.get(i) + 1);
+		//}
 	}
 
 	public static Parser readQmps(String filename) {
@@ -437,19 +440,9 @@ public class Parser {
 			e.printStackTrace();
 		}
 		Utils.toDoubleArray(q);
-		double[] P_x = new double[shape[1]];
-		int[] P_p = new int[shape[1]+1];
-		int[] P_i = new int[shape[1]];
-		for (int i = 0; i < Pi.size(); i++) {
-			P_i[i] = Pi.get(i);
-			P_x[i] = Px.get(i);
-		}
-		for (int i = 0; i < Pp.size(); i++) {
-			P_p[i] = Pp.get(i);
-		}
 		OSQP.LOG.info(String.format("Read MPS in %.2fsec.",(System.currentTimeMillis()-tme)/1000.));
 		return new Parser(Utils.toDoubleArray(q),
-				P_x, P_p, P_i,
+				Utils.toDoubleArray(Px), Utils.toIntArray(Pp), Utils.toIntArray(Pi),
 				Utils.toDoubleArray(Ax), Utils.toIntArray(Ap), Utils.toIntArray(Ai),
 				Utils.toDoubleArray(l), Utils.toDoubleArray(u));
 	}
@@ -474,7 +467,8 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
-		String qpsFileDir = "src/test/resources/sample1.qps";
+		//String qpsFileDir = "src/test/resources/sample1.qps";
+		String qpsFileDir = "src/test/resources/qafiro.qps";
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {

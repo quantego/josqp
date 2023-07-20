@@ -14,7 +14,7 @@ public class OSQP {
 	
 	public static final double RHO = 0.1;
 	public static final double SIGMA = 1E-06;
-	public static final int MAX_ITER = Integer.MAX_VALUE;
+	public static final int MAX_ITER = 4000; // Integer.MAX_VALUE;
 	public static final double EPS_ABS = 1E-3;
 	public static final double EPS_REL = 1E-3;
 	public static final double EPS_PRIM_INF = 1E-4;

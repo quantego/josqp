@@ -234,7 +234,7 @@ public class Parser {
 			} else {
 				PrcvR.add(col1);
 				PrcvC.add(col2);
-				PrcvV.add(2 * val);
+				PrcvV.add(val);
 			}
 		}
 		catch (Exception e) {
@@ -318,12 +318,6 @@ public class Parser {
 				}
 			}
 		}
-		//for (int i = 0; i < cscP.size(); i++) { // Because the indexing in OSQP starts from 1.
-		//	cscP.set(i, cscP.get(i) + 1);
-		//}
-		//for (int i = 0; i < cscI.size(); i++) {
-		//	cscI.set(i, cscI.get(i) + 1);
-		//}
 	}
 
 	public static Parser readQmps(String filename) {
@@ -366,14 +360,30 @@ public class Parser {
 										objname = tokens[2];
 									else
 										parseRow(shape, rows, l, u, tokens);
-									break; case COLUMNS: parseCol(shape, rows, cols, Ai, Ap, Ax, l, u, q, objname, tokens, maximize?-1.:1.);
-									break; case RHS: parseRhs(rows, l, u, tokens);
-									break; case RANGES: parseRanges(rows, l, u, tokens);
-									break; case BOUNDS: parseBnd(cols, Ai, Ap, l, u, tokens);
-									break; case OBJ: objname = tokens[1];
-									break; case SENSE: maximize = tokens[1].matches("MAX") || tokens[1].matches("MAXIMIZE");
-									break; case QUADOBJ: parseQuadObj(cols, PrcvR, PrcvC, PrcvV, tokens);
-									break; default: throw new IllegalStateException(
+									break;
+									case COLUMNS:
+										parseCol(shape, rows, cols, Ai, Ap, Ax, l, u, q, objname, tokens, maximize?-1.:1.);
+										break;
+								case RHS:
+									parseRhs(rows, l, u, tokens);
+									break;
+								case RANGES:
+									parseRanges(rows, l, u, tokens);
+									break;
+								case BOUNDS:
+									parseBnd(cols, Ai, Ap, l, u, tokens);
+									break;
+								case OBJ:
+									objname = tokens[1];
+									break;
+								case SENSE:
+									maximize = tokens[1].matches("MAX") || tokens[1].matches("MAXIMIZE");
+									break;
+								case QUADOBJ:
+									parseQuadObj(cols, PrcvR, PrcvC, PrcvV, tokens);
+									break;
+								default:
+									throw new IllegalStateException(
 											String.format("Line %s started with an empty character but contains no data.",line)
 								);
 							}
@@ -468,7 +478,8 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
-		String qpsFileDir = "src/test/resources/qafiro.qps";
+		//String qpsFileDir = "src/test/resources/qafiro.qps";
+		String qpsFileDir = "src/test/resources/qbandm.qps";
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {
@@ -483,7 +494,7 @@ public class Parser {
 		//settings.eps_rel = 1.e-6;
 		//settings.alpha = 1.66666667;
 		//settings.sigma = 1.e-4;
-		settings.polish = true;
+		//settings.polish = true;
 		//settings.adaptive_rho = false;
 		//settings.rho = 0.000001;
 		//settings.eps_rel = 1.e-6;

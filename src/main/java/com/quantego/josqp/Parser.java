@@ -478,8 +478,9 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
-		//String qpsFileDir = "src/test/resources/qafiro.qps";
-		String qpsFileDir = "src/test/resources/qbandm.qps";
+		String qpsFileDir = "src/test/resources/qafiro.qps";
+		//String qpsFileDir = "src/test/resources/qbandm.qps";
+		//String qpsFileDir = "src/test/resources/qsctap1.qps";
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {

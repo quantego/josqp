@@ -118,7 +118,7 @@ public class Parser {
 	}
 
 	private enum Section {
-		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ, RANGES, QUADOBJ;
+		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ, RANGES, QUADOBJ, ENDDATA;
 	}
 
 	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
@@ -161,27 +161,35 @@ public class Parser {
 	}
 
 	private static void parseCol(int[] shape, Map<String, Integer> rows, Map<String, Integer> cols,
-								 List<Integer> Ai, List<Integer> Ap, List<Double> Ax,
+								 List<Integer> ArcvR, List<Integer> ArcvC, List<Double> ArcvV,
 								 List<Double> l, List<Double> u, List<Double> q,
 								 String objName, String[] tokens, double sign) {
 		String colName = tokens[1];
+		int colN;
 		if (!cols.containsKey(colName)) {
 			q.add(0.);
-			Ap.set(shape[1],Ai.size());
-			Ai.add(shape[0]++);
-			Ax.add(1.);
-			Ap.add(Ai.size());
+			colN = shape[1];
+			ArcvR.add(shape[0]++);
+			ArcvC.add(colN);
+			ArcvV.add(1.0);
+			//Ap.set(shape[1],Ai.size());
+			//Ai.add(shape[0]++);
+			//Ax.add(1.);
+			//Ap.add(Ai.size());
 			l.add(0.);
 			u.add(OSQP.OSQP_INFTY);
 			cols.put(colName, shape[1]++);
 		}
-		int colIndex = cols.get(colName); //TODO: this won't work if columns are not ordered
+		int colIndex = cols.get(colName);
 		for (int i=2; i<tokens.length; i+=2) {
 			String rowName = tokens[i];
 			if (!rowName.matches(objName)) {
-				Ai.add(rows.get(rowName));
-				Ax.add(Double.parseDouble(tokens[i+1]));
-				Ap.set(colIndex+1, Ai.size());
+				ArcvR.add(rows.get(rowName));
+				ArcvC.add(colIndex);
+				ArcvV.add(Double.parseDouble(tokens[i+1]));
+				//Ai.add(rows.get(rowName));
+				//Ax.add(Double.parseDouble(tokens[i+1]));
+				//Ap.set(colIndex+1, Ai.size());
 			} else {
 				q.set(colIndex, sign*Double.parseDouble(tokens[i+1]));
 			}
@@ -328,19 +336,24 @@ public class Parser {
 		int[] shape = new int[2];
 		Map<String, Integer> rows = new HashMap<>();
 		Map<String, Integer> cols = new HashMap<>();
-		List<Integer> Ai = new ArrayList<>();
-		List<Integer> Ap = new ArrayList<>();
-		Ap.add(0);
-		List<Double> Ax = new ArrayList<>();
-		List<Integer> Pi = new ArrayList<>(); // row indices
-		List<Integer> Pp = new ArrayList<>(); // column pointers
-		List<Double>  Px = new ArrayList<>();
+		List<Integer> Ai    = new ArrayList<>();
+		List<Integer> Ap    = new ArrayList<>();
+		List<Double>  Ax    = new ArrayList<>();
+		List<Integer> ArcvR = new ArrayList<>();
+		List<Integer> ArcvC = new ArrayList<>();
+		List<Double>  ArcvV = new ArrayList<>();
+		List<Integer> Pi    = new ArrayList<>(); // row indices
+		List<Integer> Pp    = new ArrayList<>(); // column pointers
+		List<Double>  Px    = new ArrayList<>();
 		List<Integer> PrcvR = new ArrayList<>();
 		List<Integer> PrcvC = new ArrayList<>();
-		List<Double> PrcvV = new ArrayList<>();
-		List<Double> u = new ArrayList<>();
-		List<Double> l = new ArrayList<>();
-		List<Double> q = new ArrayList<>();
+		List<Double>  PrcvV = new ArrayList<>();
+		Map<String, Double> uMap = new HashMap<>();
+		List<Double> u           = new ArrayList<>();
+		Map<String, Double> lMap = new HashMap<>();
+		List<Double> l           = new ArrayList<>();
+		Map<String, Double> qMap = new HashMap<>();
+		List<Double> q           = new ArrayList<>();
 		try {
 			FileInputStream in = new FileInputStream(filename);
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -361,9 +374,9 @@ public class Parser {
 									else
 										parseRow(shape, rows, l, u, tokens);
 									break;
-									case COLUMNS:
-										parseCol(shape, rows, cols, Ai, Ap, Ax, l, u, q, objname, tokens, maximize?-1.:1.);
-										break;
+								case COLUMNS:
+									parseCol(shape, rows, cols, ArcvR, ArcvC, ArcvV, l, u, q, objname, tokens, maximize?-1.:1.);
+									break;
 								case RHS:
 									parseRhs(rows, l, u, tokens);
 									break;
@@ -395,54 +408,59 @@ public class Parser {
 							switch(tokens[0]) {
 								case "NAME":
 									currentSection = Section.HEAD;
-									prevSection = currentSection;
 									break;
 								case "OBJSENSE":
 									currentSection = Section.SENSE;
-									prevSection = currentSection;
 									break;
 								case "OBJNAME":
 									currentSection = Section.OBJ;
 									break;
 								case "ROWS":
 									currentSection = Section.ROWS;
-									prevSection = currentSection;
 									break;
 								case "COLUMNS":
 									currentSection = Section.COLUMNS;
-									prevSection = currentSection;
 									break;
 								case "RHS":
 									currentSection = Section.RHS;
-									prevSection = currentSection;
 									break;
 								case "RANGES":
 									currentSection = Section.RANGES;
-									prevSection = currentSection;
 									break;
 								case "BOUNDS":
 									currentSection = Section.BOUNDS;
-									prevSection = currentSection;
 									break;
 								case "QUADOBJ":
 									currentSection = Section.QUADOBJ;
-									prevSection = currentSection;
 									break;
 								case "ENDATA":
-									if (prevSection == Section.QUADOBJ) // postprocessing of the quadratic objective section
-										extractUpperTriangle(PrcvR, PrcvC, PrcvV);
-										convertRcvToCsc(PrcvR, PrcvC, PrcvV, cols.size(), Pi, Pp, Px);
+									currentSection = Section.ENDDATA;
 									break; //end of file
 								default:
 									throw new IllegalStateException(
 										String.format("Unknown section name: %s",tokens[0])
 								);
 							}
+							if (prevSection != currentSection) { // postprocessing phase of parsing each section
+								switch (prevSection) {
+									case COLUMNS:
+										convertRcvToCsc(ArcvR, ArcvC, ArcvV, cols.size(), Ai, Ap, Ax);
+										break;
+									case QUADOBJ:
+										extractUpperTriangle(PrcvR, PrcvC, PrcvV);
+										convertRcvToCsc(PrcvR, PrcvC, PrcvV, cols.size(), Pi, Pp, Px);
+										break;
+									default:
+										break;
+								}
+								prevSection = currentSection;
+							}
 						}
 					} catch (ArrayIndexOutOfBoundsException e) {
 						e.printStackTrace();
 						throw new IllegalStateException(String.format("Error in line: '%s'", line));
 					}
+
 			}
 			br.close();
 			in.close();
@@ -478,8 +496,8 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
-		String qpsFileDir = "src/test/resources/qafiro.qps";
-		//String qpsFileDir = "src/test/resources/qbandm.qps";
+		//String qpsFileDir = "src/test/resources/qafiro.qps";
+		String qpsFileDir = "src/test/resources/qbandm.qps";
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
 		if (args.length >= 1)
 			qpsFileDir = args[0];

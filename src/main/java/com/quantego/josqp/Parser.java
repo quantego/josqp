@@ -7,6 +7,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
+import java.util.regex.Pattern;
 
 
 public class Parser {
@@ -123,11 +124,28 @@ public class Parser {
 
 	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
 		String rowName = tokens[2];
+		int rowN;
 		switch(tokens[1]) {
-			case "L": u.add(0.); l.add(-OSQP.OSQP_INFTY); rows.put(rowName, shape[0]++); break;
-			case "G": u.add(OSQP.OSQP_INFTY); l.add(0.); rows.put(rowName, shape[0]++); break;
-			case "E": u.add(0.); l.add(0.); rows.put(rowName, shape[0]++); break;
-			default: break;
+			case "L":
+				rowN = shape[0]++;
+				rows.put(rowName, rowN);
+				u.add(rowN, 0.0);
+				l.add(rowN, -OSQP.OSQP_INFTY);
+				break;
+			case "G":
+				rowN = shape[0]++;
+				rows.put(rowName, rowN);
+				u.add(rowN, OSQP.OSQP_INFTY);
+				l.add(rowN, 0.0);
+				break;
+			case "E":
+				rowN = shape[0]++;
+				rows.put(rowName, rowN);
+				u.add(rowN, 0.0);
+				l.add(rowN, 0.0);
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -165,44 +183,51 @@ public class Parser {
 								 List<Double> l, List<Double> u, List<Double> q,
 								 String objName, String[] tokens, double sign) {
 		String colName = tokens[1];
-		int colN;
+		int colN, rowN;
 		if (!cols.containsKey(colName)) {
-			q.add(0.);
-			colN = shape[1];
-			ArcvR.add(shape[0]++);
+			colN = shape[1]++;
+			rowN = shape[0]++;
+			String rowName = colName + "_bnd";
+			cols.put(colName, colN);
+			q.add(0.0);
+			rows.put(rowName, rowN);
+			ArcvR.add(rowN);
 			ArcvC.add(colN);
 			ArcvV.add(1.0);
-			//Ap.set(shape[1],Ai.size());
-			//Ai.add(shape[0]++);
-			//Ax.add(1.);
-			//Ap.add(Ai.size());
-			l.add(0.);
-			u.add(OSQP.OSQP_INFTY);
-			cols.put(colName, shape[1]++);
+			l.add(rowN, 0.0);
+			u.add(rowN, OSQP.OSQP_INFTY);
 		}
 		int colIndex = cols.get(colName);
+		if (colIndex == 32)
+			System.out.println("colIndex = 32");
 		for (int i=2; i<tokens.length; i+=2) {
 			String rowName = tokens[i];
 			if (!rowName.matches(objName)) {
 				ArcvR.add(rows.get(rowName));
 				ArcvC.add(colIndex);
 				ArcvV.add(Double.parseDouble(tokens[i+1]));
-				//Ai.add(rows.get(rowName));
-				//Ax.add(Double.parseDouble(tokens[i+1]));
-				//Ap.set(colIndex+1, Ai.size());
 			} else {
+				if (rowName.matches(objName))
+					System.out.println(".matches: " + rowName + " matches " + objName);
+				if (Pattern.matches(rowName, objName))
+					System.out.println("Pattern: " + rowName + " matches " + objName);
 				q.set(colIndex, sign*Double.parseDouble(tokens[i+1]));
 			}
 		}
 	}
 
 	private static void parseRhs(Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
+		int rowN;
+		String rowName;
 		for (int i=2; i<tokens.length; i+=2) {
-			int row = rows.get(tokens[i]);
-			if (u.get(row)==0.)
-				u.set(row, Double.parseDouble(tokens[i+1]));
-			if (l.get(row)==0.)
-				l.set(row, Double.parseDouble(tokens[i+1]));
+			rowName = tokens[i];
+			rowN = rows.get(rowName);
+			assert u.size() == l.size();
+			assert rowN <= u.size() : "Error in parsing RHS!";
+			if (u.get(rowN) == 0.0)
+				u.set(rowN, Double.parseDouble(tokens[i+1]));
+			if (l.get(rowN) == 0.0)
+				l.set(rowN, Double.parseDouble(tokens[i+1]));
 		}
 	}
 
@@ -348,11 +373,8 @@ public class Parser {
 		List<Integer> PrcvR = new ArrayList<>();
 		List<Integer> PrcvC = new ArrayList<>();
 		List<Double>  PrcvV = new ArrayList<>();
-		Map<String, Double> uMap = new HashMap<>();
 		List<Double> u           = new ArrayList<>();
-		Map<String, Double> lMap = new HashMap<>();
 		List<Double> l           = new ArrayList<>();
-		Map<String, Double> qMap = new HashMap<>();
 		List<Double> q           = new ArrayList<>();
 		try {
 			FileInputStream in = new FileInputStream(filename);

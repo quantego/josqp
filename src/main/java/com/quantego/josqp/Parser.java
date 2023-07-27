@@ -198,19 +198,13 @@ public class Parser {
 			u.add(rowN, OSQP.OSQP_INFTY);
 		}
 		int colIndex = cols.get(colName);
-		if (colIndex == 32)
-			System.out.println("colIndex = 32");
 		for (int i=2; i<tokens.length; i+=2) {
 			String rowName = tokens[i];
-			if (!rowName.matches(objName)) {
+			if (!Pattern.matches(rowName, objName)) { // initially there was rowName.matches method, but that was showing a strange behavior in some examples (e.g. qbandm.qps)! It could be a bug in the Java language!
 				ArcvR.add(rows.get(rowName));
 				ArcvC.add(colIndex);
 				ArcvV.add(Double.parseDouble(tokens[i+1]));
 			} else {
-				if (rowName.matches(objName))
-					System.out.println(".matches: " + rowName + " matches " + objName);
-				if (Pattern.matches(rowName, objName))
-					System.out.println("Pattern: " + rowName + " matches " + objName);
 				q.set(colIndex, sign*Double.parseDouble(tokens[i+1]));
 			}
 		}

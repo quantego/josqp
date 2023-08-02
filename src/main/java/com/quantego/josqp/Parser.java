@@ -122,25 +122,29 @@ public class Parser {
 		ROWS, COLUMNS, RHS, BOUNDS, HEAD, SENSE, OBJ, RANGES, QUADOBJ, ENDDATA;
 	}
 
-	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
-		String rowName = tokens[2];
+	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u,
+								 List<Integer> rowSense, String[] tokens) {
+		String rowName = tokens[2].replace(".", "\\.");
 		int rowN;
 		switch(tokens[1]) {
 			case "L":
 				rowN = shape[0]++;
 				rows.put(rowName, rowN);
+				rowSense.add(rowN, -1);
 				u.add(rowN, 0.0);
 				l.add(rowN, -OSQP.OSQP_INFTY);
 				break;
 			case "G":
 				rowN = shape[0]++;
 				rows.put(rowName, rowN);
+				rowSense.add(rowN, 1);
 				u.add(rowN, OSQP.OSQP_INFTY);
 				l.add(rowN, 0.0);
 				break;
 			case "E":
 				rowN = shape[0]++;
 				rows.put(rowName, rowN);
+				rowSense.add(rowN, 0);
 				u.add(rowN, 0.0);
 				l.add(rowN, 0.0);
 				break;
@@ -149,9 +153,9 @@ public class Parser {
 		}
 	}
 
-	private static void parseBnd(Map<String, Integer> cols, List<Integer> Ai, List<Integer> Ap, List<Double> l, List<Double> u, String[] tokens) {
-		String col = tokens[3];
-		int rowIndex = Ai.get(Ap.get(cols.get(col)));
+	private static void parseBnd(Map<String, Integer> cols, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
+		String colName = tokens[3].replace(".", "\\.");
+		int rowIndex = rows.get(colName + "_bnd");
 		double bnd;
 		switch(tokens[1]) {
 			case "LO":
@@ -164,17 +168,21 @@ public class Parser {
 				break;
 			case "FX":
 				bnd = Double.parseDouble(tokens[4]);
-				l.set(rowIndex, bnd); u.set(rowIndex, bnd);
+				l.set(rowIndex, bnd);
+				u.set(rowIndex, bnd);
 				break;
-			//TODO: Complete the following bound keys.
-			case "MI":
+			case "MI": // inf lower bound
+				l.set(rowIndex, -OSQP.OSQP_INFTY);
 				break;
-			case "PI":
+			case "PI": // inf upper bound
+				u.set(rowIndex, OSQP.OSQP_INFTY);
 				break;
-			case "FR":
-				l.set(rowIndex, -OSQP.OSQP_INFTY); u.set(rowIndex, OSQP.OSQP_INFTY);
+			case "FR": // free variable, no upper or lower bound
+				l.set(rowIndex, -OSQP.OSQP_INFTY);
+				u.set(rowIndex,  OSQP.OSQP_INFTY);
 				break;
-			default: throw new IllegalStateException("Unkown bound key: "+tokens[1]);
+			default:
+				throw new IllegalStateException("Unkown bound key: " + tokens[1]);
 		}
 	}
 
@@ -182,7 +190,7 @@ public class Parser {
 								 List<Integer> ArcvR, List<Integer> ArcvC, List<Double> ArcvV,
 								 List<Double> l, List<Double> u, List<Double> q,
 								 String objName, String[] tokens, double sign) {
-		String colName = tokens[1];
+		String colName = tokens[1].replace(".", "\\.");
 		int colN, rowN;
 		if (!cols.containsKey(colName)) {
 			colN = shape[1]++;
@@ -199,7 +207,7 @@ public class Parser {
 		}
 		int colIndex = cols.get(colName);
 		for (int i=2; i<tokens.length; i+=2) {
-			String rowName = tokens[i];
+			String rowName = tokens[i].replace(".", "\\.");
 			if (!Pattern.matches(rowName, objName)) { // initially there was rowName.matches method, but that was showing a strange behavior in some examples (e.g. qbandm.qps)! It could be a bug in the Java language!
 				ArcvR.add(rows.get(rowName));
 				ArcvC.add(colIndex);
@@ -210,18 +218,28 @@ public class Parser {
 		}
 	}
 
-	private static void parseRhs(Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
+	private static void parseRhs(Map<String, Integer> rows, List<Integer> rowSense, List<Double> l, List<Double> u, String[] tokens) {
 		int rowN;
 		String rowName;
 		for (int i=2; i<tokens.length; i+=2) {
-			rowName = tokens[i];
+			rowName = tokens[i].replace(".", "\\.");
 			rowN = rows.get(rowName);
 			assert u.size() == l.size();
 			assert rowN <= u.size() : "Error in parsing RHS!";
-			if (u.get(rowN) == 0.0)
-				u.set(rowN, Double.parseDouble(tokens[i+1]));
-			if (l.get(rowN) == 0.0)
-				l.set(rowN, Double.parseDouble(tokens[i+1]));
+			switch (rowSense.get(rowN)) {
+				case -1:
+					u.set(rowN, Double.parseDouble(tokens[i+1]));
+					break;
+				case 1:
+					l.set(rowN, Double.parseDouble(tokens[i+1]));
+					break;
+				case 0:
+					u.set(rowN, Double.parseDouble(tokens[i+1]));
+					l.set(rowN, Double.parseDouble(tokens[i+1]));
+					break;
+				default:
+					throw new IllegalStateException(String.format("Error in reading RHS."));
+			}
 		}
 	}
 
@@ -367,9 +385,10 @@ public class Parser {
 		List<Integer> PrcvR = new ArrayList<>();
 		List<Integer> PrcvC = new ArrayList<>();
 		List<Double>  PrcvV = new ArrayList<>();
-		List<Double> u           = new ArrayList<>();
-		List<Double> l           = new ArrayList<>();
-		List<Double> q           = new ArrayList<>();
+		List<Double>  u          = new ArrayList<>();
+		List<Double>  l          = new ArrayList<>();
+		List<Double>  q          = new ArrayList<>();
+		List<Integer> rowSense   = new ArrayList<>();
 		try {
 			FileInputStream in = new FileInputStream(filename);
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
@@ -388,19 +407,19 @@ public class Parser {
 									if (objname==null && tokens[1].matches("N"))
 										objname = tokens[2];
 									else
-										parseRow(shape, rows, l, u, tokens);
+										parseRow(shape, rows, l, u, rowSense, tokens);
 									break;
 								case COLUMNS:
 									parseCol(shape, rows, cols, ArcvR, ArcvC, ArcvV, l, u, q, objname, tokens, maximize?-1.:1.);
 									break;
 								case RHS:
-									parseRhs(rows, l, u, tokens);
+									parseRhs(rows, rowSense, l, u, tokens);
 									break;
 								case RANGES:
 									parseRanges(rows, l, u, tokens);
 									break;
 								case BOUNDS:
-									parseBnd(cols, Ai, Ap, l, u, tokens);
+									parseBnd(cols, rows, l, u, tokens);
 									break;
 								case OBJ:
 									objname = tokens[1];
@@ -513,12 +532,14 @@ public class Parser {
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
 		//String qpsFileDir = "src/test/resources/qafiro.qps";
-		String qpsFileDir = "src/test/resources/qbandm.qps";
+		//String qpsFileDir = "src/test/resources/qbandm.qps";
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
+		String qpsFileDir = "src/test/resources/cvxqp1_l.qps";
+		//String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {
-			OSQP.LOG.info("Usage: java -jar josqp.jar <mps_file_name>");
+			OSQP.LOG.info("Usage: java -jar josqp.jar <qps_file_name>");
 			//return;
 		}
 		//Parser p = Parser.readMps(mpsFileDir);

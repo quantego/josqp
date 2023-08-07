@@ -9,7 +9,34 @@ import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
 
+class RcvMat {
+	public int cap, nnz;
+	public int[] rows, cols;
+	public double[] vals;
 
+	public RcvMat(int cap) {
+		this.cap = cap;
+		nnz = 0;
+		rows = new int[cap];
+		cols = new int[cap];
+		vals = new double[cap];
+	}
+
+	public void addEntry(int r, int c, double v) {
+		// Check capacity and add space if needed
+		if (nnz >= cap) {
+			rows = Arrays.copyOf(rows, 2 * cap);
+			cols = Arrays.copyOf(cols, 2 * cap);
+			vals = Arrays.copyOf(vals, 2 * cap);
+			cap *= 2;
+		}
+		// add the new entry
+		rows[nnz] = r;
+		cols[nnz] = c;
+		vals[nnz] = v;
+		nnz++;
+	}
+}
 public class Parser {
 
 	int nRows;
@@ -187,8 +214,7 @@ public class Parser {
 	}
 
 	private static void parseCol(int[] shape, Map<String, Integer> rows, Map<String, Integer> cols,
-								 List<Integer> ArcvR, List<Integer> ArcvC, List<Double> ArcvV,
-								 List<Double> l, List<Double> u, List<Double> q,
+								 RcvMat Arcv, List<Double> l, List<Double> u, List<Double> q,
 								 String objName, String[] tokens, double sign) {
 		String colName = tokens[1].replace(".", "\\.");
 		int colN, rowN;
@@ -199,9 +225,7 @@ public class Parser {
 			cols.put(colName, colN);
 			q.add(0.0);
 			rows.put(rowName, rowN);
-			ArcvR.add(rowN);
-			ArcvC.add(colN);
-			ArcvV.add(1.0);
+			Arcv.addEntry(rowN, colN, 1.0);
 			l.add(rowN, 0.0);
 			u.add(rowN, OSQP.OSQP_INFTY);
 		}
@@ -209,9 +233,7 @@ public class Parser {
 		for (int i=2; i<tokens.length; i+=2) {
 			String rowName = tokens[i].replace(".", "\\.");
 			if (!Pattern.matches(rowName, objName)) { // initially there was rowName.matches method, but that was showing a strange behavior in some examples (e.g. qbandm.qps)! It could be a bug in the Java language!
-				ArcvR.add(rows.get(rowName));
-				ArcvC.add(colIndex);
-				ArcvV.add(Double.parseDouble(tokens[i+1]));
+				Arcv.addEntry(rows.get(rowName), colIndex, Double.parseDouble(tokens[i+1]));
 			} else {
 				q.set(colIndex, sign*Double.parseDouble(tokens[i+1]));
 			}
@@ -257,10 +279,8 @@ public class Parser {
 			throw new IllegalStateException(String.format("Error in reading ranges."));
 	}
 
-	private static void parseQuadObj(Map<String, Integer> cols, List<Integer> PrcvR, List<Integer> PrcvC, List<Double> PrcvV, String[] tokens) {
-
+	private static void parseQuadObj(Map<String, Integer> cols, RcvMat Prcv, String[] tokens) {
 		// First constructing a matrix in RCV format and then translating it to the CSC format.
-
 		ArrayList<Integer> rows, columns;
 		ArrayList<Double> values;
 		int col1, col2;
@@ -269,25 +289,19 @@ public class Parser {
 			col1 = cols.get(tokens[1]);
 			col2 = cols.get(tokens[2]);
 			val  = Double.parseDouble(tokens[3]);
-			if (col1 != col2) {
-				PrcvR.add(col1);
-				PrcvC.add(col2);
-				PrcvV.add(val);
-				PrcvR.add(col2);
-				PrcvC.add(col1);
-				PrcvV.add(val);
+			if (col1 < col2) {
+				Prcv.addEntry(col1, col2, val);
+			} else if (col1 > col2) {
+				Prcv.addEntry(col2, col1, val);
 			} else {
-				PrcvR.add(col1);
-				PrcvC.add(col2);
-				PrcvV.add(val);
+				Prcv.addEntry(col1, col2, val);
 			}
-		}
-		catch (Exception e) {
-			System.out.println("Error in reading the QUADOBJ section!");
+		} catch (Exception e) {
+		System.out.println("Error in reading the QUADOBJ section!");
 		}
 	}
 
-	private static void extractUpperTriangle(List<Integer> rcvR, List<Integer> rcvC, List<Double> rcvV) {
+	private static void extractUpperTriangle(ArrayList<Integer> rcvR, ArrayList<Integer> rcvC, ArrayList<Double> rcvV) {
 		for (int i = 0; i < rcvR.size(); i++) {
 			if (rcvR.get(i) > rcvC.get(i)) {
 				rcvR.remove(i);
@@ -297,25 +311,28 @@ public class Parser {
 		}
 	}
 
-	private static void convertRcvToCsc(List<Integer> rcvR, List<Integer> rcvC, List<Double> rcvV, int NCol,
+	private static void convertRcvToCsc(ArrayList<Integer> rcvR, ArrayList<Integer> rcvC, ArrayList<Double> rcvV, int NCol,
 										List<Integer> cscI, List<Integer> cscP, List<Double> cscX) {
 		// convert RCV format to CSC format.
 
 		// sorting the RCV format (first based on the column, then based on the row).
 		int r, c, col;
 		double v;
-			// step 1: sorting based on the column
+		// step 1: sorting based on the column
 		for (int i = 0; i < rcvC.size(); i++) {
 			for (int j = 0; j < i; j++) {
 				if (rcvC.get(i) < rcvC.get(j)) {
-					r = rcvR.get(i);   c = rcvC.get(i);   v = rcvV.get(i);
-					rcvR.remove(i);    rcvC.remove(i);    rcvV.remove(i);
-					rcvR.add(j, r);    rcvC.add(j, c);    rcvV.add(j, v);
+					Collections.swap(rcvR, i, j);
+					Collections.swap(rcvC, i, j);
+					Collections.swap(rcvV, i, j);
+					//r = rcvR.get(i);   c = rcvC.get(i);   v = rcvV.get(i);
+					//rcvR.remove(i);    rcvC.remove(i);    rcvV.remove(i);
+					//rcvR.add(j, r);    rcvC.add(j, c);    rcvV.add(j, v);
 					break;
 				}
 			}
 		}
-			// step 2: sorting each column based on the rows.
+		// step 2: sorting each column based on the rows.
 		int idxStart = 0;
 		int idxEnd = 0;
 		for (int colN = 0; colN < Collections.max(rcvC); colN++) {
@@ -326,9 +343,12 @@ public class Parser {
 			for (int i = idxStart; i <= idxEnd; i++) {
 				for (int j = idxStart; j < i; j++) {
 					if (rcvR.get(i) < rcvR.get(j)) {
-						r = rcvR.get(i);    c = rcvC.get(i);    v = rcvV.get(i);
-						rcvR.remove(i);     rcvC.remove(i);     v = rcvV.remove(i);
-						rcvR.add(j, r);     rcvC.add(j, c);     rcvV.add(j, v);
+						Collections.swap(rcvR, i, j);
+						Collections.swap(rcvC, i, j);
+						Collections.swap(rcvV, i, j);
+						//r = rcvR.get(i);    c = rcvC.get(i);    v = rcvV.get(i);
+						//rcvR.remove(i);     rcvC.remove(i);     v = rcvV.remove(i);
+						//rcvR.add(j, r);     rcvC.add(j, c);     rcvV.add(j, v);
 						break;
 					}
 				}
@@ -365,6 +385,7 @@ public class Parser {
 		}
 	}
 
+
 	public static Parser readQmps(String filename) {
 		OSQP.LOG.info(String.format("Begin parsing file %s.",filename));
 		double tme = System.currentTimeMillis();
@@ -376,15 +397,13 @@ public class Parser {
 		List<Integer> Ai    = new ArrayList<>();
 		List<Integer> Ap    = new ArrayList<>();
 		List<Double>  Ax    = new ArrayList<>();
-		List<Integer> ArcvR = new ArrayList<>();
-		List<Integer> ArcvC = new ArrayList<>();
-		List<Double>  ArcvV = new ArrayList<>();
+		RcvMat Arcv = new RcvMat(1024);
+		CSCMatrix Acsc;
 		List<Integer> Pi    = new ArrayList<>(); // row indices
 		List<Integer> Pp    = new ArrayList<>(); // column pointers
 		List<Double>  Px    = new ArrayList<>();
-		List<Integer> PrcvR = new ArrayList<>();
-		List<Integer> PrcvC = new ArrayList<>();
-		List<Double>  PrcvV = new ArrayList<>();
+		RcvMat Prcv = new RcvMat(1024);
+		CSCMatrix Pcsc;
 		List<Double>  u          = new ArrayList<>();
 		List<Double>  l          = new ArrayList<>();
 		List<Double>  q          = new ArrayList<>();
@@ -410,7 +429,7 @@ public class Parser {
 										parseRow(shape, rows, l, u, rowSense, tokens);
 									break;
 								case COLUMNS:
-									parseCol(shape, rows, cols, ArcvR, ArcvC, ArcvV, l, u, q, objname, tokens, maximize?-1.:1.);
+									parseCol(shape, rows, cols, Arcv, l, u, q, objname, tokens, maximize?-1.:1.);
 									break;
 								case RHS:
 									parseRhs(rows, rowSense, l, u, tokens);
@@ -428,12 +447,12 @@ public class Parser {
 									maximize = tokens[1].matches("MAX") || tokens[1].matches("MAXIMIZE");
 									break;
 								case QUADOBJ:
-									parseQuadObj(cols, PrcvR, PrcvC, PrcvV, tokens);
+									parseQuadObj(cols, Prcv, tokens);
 									break;
 								default:
 									throw new IllegalStateException(
 											String.format("Line %s started with an empty character but contains no data.",line)
-								);
+									);
 							}
 						} else {
 							// skipping the commented lines
@@ -473,17 +492,17 @@ public class Parser {
 									break; //end of file
 								default:
 									throw new IllegalStateException(
-										String.format("Unknown section name: %s",tokens[0])
-								);
+											String.format("Unknown section name: %s",tokens[0])
+									);
 							}
 							if (prevSection != currentSection) { // postprocessing phase of parsing each section
 								switch (prevSection) {
 									case COLUMNS:
-										convertRcvToCsc(ArcvR, ArcvC, ArcvV, cols.size(), Ai, Ap, Ax);
+										//convertRcvToCsc(ArcvR, ArcvC, ArcvV, cols.size(), Ai, Ap, Ax);
 										break;
 									case QUADOBJ:
-										extractUpperTriangle(PrcvR, PrcvC, PrcvV);
-										convertRcvToCsc(PrcvR, PrcvC, PrcvV, cols.size(), Pi, Pp, Px);
+										//extractUpperTriangle(PrcvR, PrcvC, PrcvV);
+										//convertRcvToCsc(PrcvR, PrcvC, PrcvV, cols.size(), Pi, Pp, Px);
 										break;
 									default:
 										break;
@@ -504,9 +523,11 @@ public class Parser {
 		}
 		Utils.toDoubleArray(q);
 		OSQP.LOG.info(String.format("Read MPS in %.2fsec.",(System.currentTimeMillis()-tme)/1000.));
+		Acsc = CSCMatrix.triplet_to_csc(rows.size(), cols.size(), Arcv.nnz, Arcv.rows, Arcv.cols, Arcv.vals, null);
+		Pcsc = CSCMatrix.triplet_to_csc(rows.size(), cols.size(), Prcv.nnz, Prcv.rows, Prcv.cols, Prcv.vals, null);
 		return new Parser(Utils.toDoubleArray(q),
-				Utils.toDoubleArray(Px), Utils.toIntArray(Pp), Utils.toIntArray(Pi),
-				Utils.toDoubleArray(Ax), Utils.toIntArray(Ap), Utils.toIntArray(Ai),
+				Pcsc.Ax, Pcsc.Ap, Pcsc.Ai,
+				Acsc.Ax, Acsc.Ap, Acsc.Ai,
 				Utils.toDoubleArray(l), Utils.toDoubleArray(u));
 	}
 
@@ -531,10 +552,11 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
-		//String qpsFileDir = "src/test/resources/qafiro.qps";
+		String qpsFileDir = "src/test/resources/qafiro.qps";
 		//String qpsFileDir = "src/test/resources/qbandm.qps";
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
-		String qpsFileDir = "src/test/resources/cvxqp1_l.qps";
+		//String qpsFileDir = "src/test/resources/cvxqp1_l.qps";
+		//String qpsFileDir = "src/test/resources/boyd1.qps";
 		//String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];
@@ -547,6 +569,7 @@ public class Parser {
 
 		OSQP.Data data = p.getData();
 		OSQP.Settings settings = new OSQP.Settings();
+		settings.max_iter = 100000;
 		//settings.eps_rel = 1.e-6;
 		//settings.alpha = 1.66666667;
 		//settings.sigma = 1.e-4;

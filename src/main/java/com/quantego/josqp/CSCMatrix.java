@@ -1,5 +1,6 @@
 package com.quantego.josqp;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class CSCMatrix {
@@ -59,26 +60,53 @@ public class CSCMatrix {
 	}
 	
 	public static CSCMatrix triplet_to_csc(int m, int n, int nz, int[] Ti, int[] Tj, double[] Tx, int[] TtoC) {
-		int p, k; 
+		int p, k, i, iChk;
 		CSCMatrix C = new CSCMatrix(m,n,nz,Tx!=null,false);
 		int[] Cp = C.Ap;
 		int[] Ci = C.Ai;
 		double[] Cx = C.Ax;
 		int[] w = new int[n];
-		  for (k = 0; k < nz; k++) w[Tj[k]]++;  /* column counts */
-		  csc_cumsum(Cp, w, n);                 /* column pointers */
+		int iooRcvCap = 1, iooRcvSize = 0;
+		int[] iooRcv = new int[iooRcvCap];
 
-		  for (k = 0; k < nz; k++) {
-		    Ci[p = w[Tj[k]]++] = Ti[k];         /* A(i,j) is the pth entry in C */
+		// determining the column pointers
+		for (k = 0; k < nz; k++) w[Tj[k]]++;  /* column counts */
+		csc_cumsum(Cp, w, n);                 /* column pointers */
 
-		    if (Cx!=null) {
-		      Cx[p] = Tx[k];
-
-		      if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
-		    }
-		  }
-		  C.nz = Cx.length;
-		  return C;     /* success; free w and return C */
+		// determining the row indices
+		for (k = 0; k < nz; k++) {
+			if (k == 0 || Tj[k] != Tj[k-1]) { // if colum number is changed (assuming the RCV data is already sorted based on the column number
+				if (iooRcvCap < Cp[Tj[k] + 1] - Cp[Tj[k]]) {
+					iooRcvCap = 2 * (Cp[Tj[k] + 1] - Cp[Tj[k]]);
+					iooRcv = new int[iooRcvCap];
+				} else {
+					Arrays.fill(iooRcv, 0);
+				}
+				iooRcvSize = Cp[Tj[k] + 1] - Cp[Tj[k]];
+				// sorting based on the row number (for each column)
+				for (i = 1; i < iooRcvSize; i++) {
+					iChk = i - 1;
+					while (iChk != -1 && Ti[k + iooRcv[iChk]] > Ti[k + i]) {
+						iooRcv[iChk + 1] = iooRcv[iChk];
+						iChk--;
+					}
+					iooRcv[iChk + 1] = i;
+				}
+				for (i = 0; i < iooRcvSize; i++) {
+					Ci[k + i] = Ti[k + iooRcv[i]];
+					if (Cx != null) {
+						Cx[k + i] = Tx[k + iooRcv[i]];
+					}
+				}
+			}
+			//Ci[p = w[Tj[k]]++] = Ti[k];         /* A(i,j) is the pth entry in C */
+		  //if (Cx!=null) {
+		  //  Cx[p] = Tx[k];
+			//	if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
+			//}
+		}
+		C.nz = Cx.length;
+		return C;     /* success; free w and return C */
 	}
 	
 	public static CSCMatrix triplet_to_csr(CSCMatrix T, int[] TtoC) {

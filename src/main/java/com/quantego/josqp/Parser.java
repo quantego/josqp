@@ -394,14 +394,8 @@ public class Parser {
 		int[] shape = new int[2];
 		Map<String, Integer> rows = new HashMap<>();
 		Map<String, Integer> cols = new HashMap<>();
-		List<Integer> Ai    = new ArrayList<>();
-		List<Integer> Ap    = new ArrayList<>();
-		List<Double>  Ax    = new ArrayList<>();
 		RcvMat Arcv = new RcvMat(1024);
 		CSCMatrix Acsc;
-		List<Integer> Pi    = new ArrayList<>(); // row indices
-		List<Integer> Pp    = new ArrayList<>(); // column pointers
-		List<Double>  Px    = new ArrayList<>();
 		RcvMat Prcv = new RcvMat(1024);
 		CSCMatrix Pcsc;
 		List<Double>  u          = new ArrayList<>();
@@ -524,7 +518,7 @@ public class Parser {
 		Utils.toDoubleArray(q);
 		OSQP.LOG.info(String.format("Read MPS in %.2fsec.",(System.currentTimeMillis()-tme)/1000.));
 		Acsc = CSCMatrix.triplet_to_csc(rows.size(), cols.size(), Arcv.nnz, Arcv.rows, Arcv.cols, Arcv.vals, null);
-		Pcsc = CSCMatrix.triplet_to_csc(rows.size(), cols.size(), Prcv.nnz, Prcv.rows, Prcv.cols, Prcv.vals, null);
+		Pcsc = CSCMatrix.triplet_to_csc(cols.size(), cols.size(), Prcv.nnz, Prcv.rows, Prcv.cols, Prcv.vals, null);
 		return new Parser(Utils.toDoubleArray(q),
 				Pcsc.Ax, Pcsc.Ap, Pcsc.Ai,
 				Acsc.Ax, Acsc.Ap, Acsc.Ai,
@@ -552,11 +546,12 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
-		String qpsFileDir = "src/test/resources/qafiro.qps";
+		//String qpsFileDir = "src/test/resources/qafiro.qps";
 		//String qpsFileDir = "src/test/resources/qbandm.qps";
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
 		//String qpsFileDir = "src/test/resources/cvxqp1_l.qps";
 		//String qpsFileDir = "src/test/resources/boyd1.qps";
+		String qpsFileDir = "src/test/resources/boyd2.qps";
 		//String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];

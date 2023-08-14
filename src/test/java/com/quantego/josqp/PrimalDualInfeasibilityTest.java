@@ -17,7 +17,7 @@ public class PrimalDualInfeasibilityTest {
 
         // Populate problem data
         final OSQP.Data problem = new OSQP.Data(data.P.n, data.A12.m, data.P, data.A12, data.q,
-                data.l, data.u1);
+                data.l, data.u1, 0);
 
         // Define Solver settings as default
         final OSQP.Settings settings = new OSQP.Settings();
@@ -60,7 +60,7 @@ public class PrimalDualInfeasibilityTest {
 
         // Populate problem data
         final OSQP.Data problem = new OSQP.Data(data.P.n, data.A12.m, data.P, data.A12, data.q,
-                data.l, data.u2);
+                data.l, data.u2, 0);
 
         // Define Solver settings as default
         final OSQP.Settings settings = new OSQP.Settings();
@@ -89,7 +89,7 @@ public class PrimalDualInfeasibilityTest {
 
         // Populate problem data
         final OSQP.Data problem = new OSQP.Data(data.P.n, data.A34.m, data.P, data.A34, data.q,
-                data.l, data.u3);
+                data.l, data.u3, 0);
 
         // Define Solver settings as default
         final OSQP.Settings settings = new OSQP.Settings();
@@ -118,7 +118,7 @@ public class PrimalDualInfeasibilityTest {
 
         // Populate problem data
         final OSQP.Data problem = new OSQP.Data(data.P.n, data.A34.m, data.P, data.A34, data.q,
-                data.l, data.u4);
+                data.l, data.u4, 0);
 
         // Define Solver settings as default
         final OSQP.Settings settings = new OSQP.Settings();

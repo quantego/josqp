@@ -169,13 +169,14 @@ public class OSQP {
 		public final double[] q; ///< dense array for linear part of cost function (size n)
 		public final double[] l; ///< dense array for lower bound (size m)
 		public final double[] u; ///< dense array for upper bound (size m)
+		public final double offset; // offset of the objective function
 		public int getN() {
 			return n;
 		}
 		public int getM() {
 			return m;
 		}
-		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u) {
+		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u, double offset) {
 			this.n = n;
 			this.m = m;
 			this.P = CSCMatrix.copy_csc_mat(P);
@@ -183,6 +184,7 @@ public class OSQP {
 			this.q = q.clone();
 			this.l = l.clone();
 			this.u = u.clone();
+			this.offset = offset;
 		}
 		public Data(Data src) {
 			n = src.n;
@@ -192,6 +194,7 @@ public class OSQP {
 			q = src.q.clone();
 			l = src.l.clone();
 			u = src.u.clone();
+			offset = src.offset;
 		}
 	}
 	
@@ -1700,7 +1703,7 @@ public class OSQP {
 		}
 		
 		public double getObjectiveValue() {
-			return work.info.obj_val;
+			return work.info.obj_val + work.data.offset;
 		}
 		
 		public Info getInfo() {

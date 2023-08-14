@@ -52,6 +52,7 @@ public class Parser {
 	public double[] q;
 	public double[] l;
 	public double[] u;
+	public double offset;
 
 	/**
 	 * Create a new Problem instance based on vector inputs (CSC formatted).
@@ -65,6 +66,23 @@ public class Parser {
 	 * @param l constraint lower bounds
 	 * @param u constraint upper bounds
 	 */
+	public Parser(double[] q, double[] P_x, int[] P_p, int[] P_i, double[] A_x, int[] A_p, int[] A_i, double[] l, double[] u,
+								double offset) {
+		this.q = q;
+		this.Px = P_x;
+		this.Pp = P_p;
+		this.Pi = P_i;
+		this.Ax = A_x;
+		this.Ap = A_p;
+		this.Ai = A_i;
+		this.l = l;
+		this.u = u;
+		this.offset = offset;
+		nCols = q.length;
+		nRows = l.length;
+		Anz = Ax.length;
+		Pnz = Px.length;
+	}
 	public Parser(double[] q, double[] P_x, int[] P_p, int[] P_i, double[] A_x, int[] A_p, int[] A_i, double[] l, double[] u) {
 		this.q = q;
 		this.Px = P_x;
@@ -75,6 +93,7 @@ public class Parser {
 		this.Ai = A_i;
 		this.l = l;
 		this.u = u;
+		this.offset = offset;
 		nCols = q.length;
 		nRows = l.length;
 		Anz = Ax.length;
@@ -142,7 +161,7 @@ public class Parser {
 	}
 
 	public OSQP.Data getData() {
-		return new OSQP.Data(nCols,nRows,getP(),getA(),q,l,u);
+		return new OSQP.Data(nCols, nRows, getP(), getA(), q, l, u, offset);
 	}
 
 	private enum Section {
@@ -151,7 +170,7 @@ public class Parser {
 
 	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u,
 								 List<Integer> rowSense, String[] tokens) {
-		String rowName = tokens[2].replace(".", "\\.");
+		String rowName = tokens[2].replace(".", "!_");
 		int rowN;
 		switch(tokens[1]) {
 			case "L":
@@ -181,7 +200,7 @@ public class Parser {
 	}
 
 	private static void parseBnd(Map<String, Integer> cols, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
-		String colName = tokens[3].replace(".", "\\.");
+		String colName = tokens[3].replace(".", "!_");
 		int rowIndex = rows.get(colName + "_bnd");
 		double bnd;
 		switch(tokens[1]) {
@@ -216,7 +235,7 @@ public class Parser {
 	private static void parseCol(int[] shape, Map<String, Integer> rows, Map<String, Integer> cols,
 								 RcvMat Arcv, List<Double> l, List<Double> u, List<Double> q,
 								 String objName, String[] tokens, double sign) {
-		String colName = tokens[1].replace(".", "\\.");
+		String colName = tokens[1].replace(".", "!_");
 		int colN, rowN;
 		if (!cols.containsKey(colName)) {
 			colN = shape[1]++;
@@ -231,7 +250,7 @@ public class Parser {
 		}
 		int colIndex = cols.get(colName);
 		for (int i=2; i<tokens.length; i+=2) {
-			String rowName = tokens[i].replace(".", "\\.");
+			String rowName = tokens[i].replace(".", "!_");
 			if (!Pattern.matches(rowName, objName)) { // initially there was rowName.matches method, but that was showing a strange behavior in some examples (e.g. qbandm.qps)! It could be a bug in the Java language!
 				Arcv.addEntry(rows.get(rowName), colIndex, Double.parseDouble(tokens[i+1]));
 			} else {
@@ -240,11 +259,16 @@ public class Parser {
 		}
 	}
 
-	private static void parseRhs(Map<String, Integer> rows, List<Integer> rowSense, List<Double> l, List<Double> u, String[] tokens) {
+	private static void parseRhs(Map<String, Integer> rows, List<Integer> rowSense, List<Double> l, List<Double> u,
+															 String objName, List<Double> offset, String[] tokens) {
 		int rowN;
 		String rowName;
 		for (int i=2; i<tokens.length; i+=2) {
-			rowName = tokens[i].replace(".", "\\.");
+			rowName = tokens[i].replace(".", "!_");
+			if (Pattern.matches(rowName, objName)) {
+				offset.add(0, -Double.parseDouble(tokens[i + 1]));
+				continue;
+			}
 			rowN = rows.get(rowName);
 			assert u.size() == l.size();
 			assert rowN <= u.size() : "Error in parsing RHS!";
@@ -267,9 +291,9 @@ public class Parser {
 
 
 	private static void parseRanges(Map<String, Integer> rows, List<Double> l, List<Double>  u, String[] tokens) {
-		if (!rows.containsKey(tokens[2]))
+		if (!rows.containsKey(tokens[2].replace(".", "!_")))
 			throw new IllegalStateException(String.format("Error in reading ranges."));
-		Integer rowNum = rows.get(tokens[2]);
+		Integer rowNum = rows.get(tokens[2].replace(".", "!_"));
 		Double range = Double.parseDouble(tokens[3]);
 		if (u.get(rowNum) == OSQP.OSQP_INFTY)
 			u.set(rowNum, l.get(rowNum) + range);
@@ -286,8 +310,8 @@ public class Parser {
 		int col1, col2;
 		double val;
 		try {
-			col1 = cols.get(tokens[1]);
-			col2 = cols.get(tokens[2]);
+			col1 = cols.get(tokens[1].replace(".", "!_"));
+			col2 = cols.get(tokens[2].replace(".", "!_"));
 			val  = Double.parseDouble(tokens[3]);
 			if (col1 < col2) {
 				Prcv.addEntry(col1, col2, val);
@@ -402,11 +426,11 @@ public class Parser {
 		List<Double>  l          = new ArrayList<>();
 		List<Double>  q          = new ArrayList<>();
 		List<Integer> rowSense   = new ArrayList<>();
+		List<Double>  offset     = new ArrayList<>();
 		try {
 			FileInputStream in = new FileInputStream(filename);
 			BufferedReader br = new BufferedReader(new InputStreamReader(in));
 			Section currentSection = Section.HEAD;
-			Section prevSection = currentSection;
 			String line;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split("\\s+");
@@ -418,7 +442,7 @@ public class Parser {
 							switch(currentSection) {
 								case ROWS:
 									if (objname==null && tokens[1].matches("N"))
-										objname = tokens[2];
+										objname = tokens[2].replace(".", "!_");
 									else
 										parseRow(shape, rows, l, u, rowSense, tokens);
 									break;
@@ -426,7 +450,7 @@ public class Parser {
 									parseCol(shape, rows, cols, Arcv, l, u, q, objname, tokens, maximize?-1.:1.);
 									break;
 								case RHS:
-									parseRhs(rows, rowSense, l, u, tokens);
+									parseRhs(rows, rowSense, l, u, objname, offset, tokens);
 									break;
 								case RANGES:
 									parseRanges(rows, l, u, tokens);
@@ -489,20 +513,6 @@ public class Parser {
 											String.format("Unknown section name: %s",tokens[0])
 									);
 							}
-							if (prevSection != currentSection) { // postprocessing phase of parsing each section
-								switch (prevSection) {
-									case COLUMNS:
-										//convertRcvToCsc(ArcvR, ArcvC, ArcvV, cols.size(), Ai, Ap, Ax);
-										break;
-									case QUADOBJ:
-										//extractUpperTriangle(PrcvR, PrcvC, PrcvV);
-										//convertRcvToCsc(PrcvR, PrcvC, PrcvV, cols.size(), Pi, Pp, Px);
-										break;
-									default:
-										break;
-								}
-								prevSection = currentSection;
-							}
 						}
 					} catch (ArrayIndexOutOfBoundsException e) {
 						e.printStackTrace();
@@ -519,10 +529,12 @@ public class Parser {
 		OSQP.LOG.info(String.format("Read MPS in %.2fsec.",(System.currentTimeMillis()-tme)/1000.));
 		Acsc = CSCMatrix.triplet_to_csc(rows.size(), cols.size(), Arcv.nnz, Arcv.rows, Arcv.cols, Arcv.vals, null);
 		Pcsc = CSCMatrix.triplet_to_csc(cols.size(), cols.size(), Prcv.nnz, Prcv.rows, Prcv.cols, Prcv.vals, null);
+		if (offset.size() == 0)
+			offset.add(0.0);
 		return new Parser(Utils.toDoubleArray(q),
 				Pcsc.Ax, Pcsc.Ap, Pcsc.Ai,
 				Acsc.Ax, Acsc.Ap, Acsc.Ai,
-				Utils.toDoubleArray(l), Utils.toDoubleArray(u));
+				Utils.toDoubleArray(l), Utils.toDoubleArray(u), offset.get(0));
 	}
 
 	public static void main(String... args) {
@@ -549,15 +561,15 @@ public class Parser {
 		//String qpsFileDir = "src/test/resources/qafiro.qps";
 		//String qpsFileDir = "src/test/resources/qbandm.qps";
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
-		//String qpsFileDir = "src/test/resources/cvxqp1_l.qps";
+		//String qpsFileDir = "src/test/resources/qe226.qps";
 		//String qpsFileDir = "src/test/resources/boyd1.qps";
-		String qpsFileDir = "src/test/resources/boyd2.qps";
-		//String qpsFileDir;
+		//String qpsFileDir = "src/test/resources/boyd2.qps";
+		String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {
 			OSQP.LOG.info("Usage: java -jar josqp.jar <qps_file_name>");
-			//return;
+			return;
 		}
 		//Parser p = Parser.readMps(mpsFileDir);
 		Parser p = Parser.readQmps(qpsFileDir);

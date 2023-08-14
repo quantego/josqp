@@ -55,7 +55,7 @@ public class NonCvxTestDataGenerator {
         P.Ap[1] = 1;
         P.Ap[2] = 3;
 
-        OSQP.Data data = new OSQP.Data(2,5,P,A,new double[2],new double[5],new double[5]);
+        OSQP.Data data = new OSQP.Data(2,5,P,A,new double[2],new double[5],new double[5], 0);
 
         // Problem vectors
         data.l[0] = -OSQP.OSQP_INFTY;

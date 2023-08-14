@@ -499,7 +499,8 @@ public class Model {
                 _A.build(false),
                 _maximize ? Utils.toDoubleArrayNeg(_q) : Utils.toDoubleArray(_q),
                 Utils.toDoubleArray(_lb),
-                Utils.toDoubleArray(_ub)
+                Utils.toDoubleArray(_ub),
+                0
         );
         _solver = new OSQP(_data,_param);
     }

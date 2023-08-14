@@ -742,7 +742,7 @@ final class PrimalInfeasibilityTestDataGenerator {
         P_p[50] = 55;
         final CSCMatrix P = new CSCMatrix(P_m, P_n, P_nzmax, P_p, P_i, P_x);
 
-        return new OSQP.Data(n, m, P, A, q, l, u);
+        return new OSQP.Data(n, m, P, A, q, l, u, 0);
 
     }
 

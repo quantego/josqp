@@ -220,7 +220,7 @@ public class Parser {
 			case "MI": // inf lower bound
 				l.set(rowIndex, -OSQP.OSQP_INFTY);
 				break;
-			case "PI": // inf upper bound
+			case "PL": // inf upper bound
 				u.set(rowIndex, OSQP.OSQP_INFTY);
 				break;
 			case "FR": // free variable, no upper or lower bound

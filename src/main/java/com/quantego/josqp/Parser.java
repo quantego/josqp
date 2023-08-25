@@ -170,7 +170,7 @@ public class Parser {
 
 	private static void parseRow(int[] shape, Map<String, Integer> rows, List<Double> l, List<Double> u,
 								 List<Integer> rowSense, String[] tokens) {
-		String rowName = tokens[2].replace(".", "!_");
+		String rowName = removeSpecialChars(tokens[2]);
 		int rowN;
 		switch(tokens[1]) {
 			case "L":
@@ -200,7 +200,7 @@ public class Parser {
 	}
 
 	private static void parseBnd(Map<String, Integer> cols, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
-		String colName = tokens[3].replace(".", "!_");
+		String colName = removeSpecialChars(tokens[3]);
 		int rowIndex = rows.get(colName + "_bnd");
 		double bnd;
 		switch(tokens[1]) {
@@ -235,7 +235,7 @@ public class Parser {
 	private static void parseCol(int[] shape, Map<String, Integer> rows, Map<String, Integer> cols,
 								 RcvMat Arcv, List<Double> l, List<Double> u, List<Double> q,
 								 String objName, String[] tokens, double sign) {
-		String colName = tokens[1].replace(".", "!_");
+		String colName = removeSpecialChars(tokens[1]);
 		int colN, rowN;
 		if (!cols.containsKey(colName)) {
 			colN = shape[1]++;
@@ -250,7 +250,7 @@ public class Parser {
 		}
 		int colIndex = cols.get(colName);
 		for (int i=2; i<tokens.length; i+=2) {
-			String rowName = tokens[i].replace(".", "!_");
+			String rowName = removeSpecialChars(tokens[i]);
 			if (!Pattern.matches(rowName, objName)) { // initially there was rowName.matches method, but that was showing a strange behavior in some examples (e.g. qbandm.qps)! It could be a bug in the Java language!
 				Arcv.addEntry(rows.get(rowName), colIndex, Double.parseDouble(tokens[i+1]));
 			} else {
@@ -259,12 +259,18 @@ public class Parser {
 		}
 	}
 
+	private static String removeSpecialChars(String input) {
+		String output = input.replace(".", "!_");
+		output = output.replace("+", "!!");
+		return output;
+	}
+
 	private static void parseRhs(Map<String, Integer> rows, List<Integer> rowSense, List<Double> l, List<Double> u,
 															 String objName, List<Double> offset, String[] tokens) {
 		int rowN;
 		String rowName;
 		for (int i=2; i<tokens.length; i+=2) {
-			rowName = tokens[i].replace(".", "!_");
+			rowName = removeSpecialChars(tokens[i]);
 			if (Pattern.matches(rowName, objName)) {
 				offset.add(0, -Double.parseDouble(tokens[i + 1]));
 				continue;
@@ -291,9 +297,9 @@ public class Parser {
 
 
 	private static void parseRanges(Map<String, Integer> rows, List<Double> l, List<Double>  u, String[] tokens) {
-		if (!rows.containsKey(tokens[2].replace(".", "!_")))
+		if (!rows.containsKey(removeSpecialChars(tokens[2])))
 			throw new IllegalStateException(String.format("Error in reading ranges."));
-		Integer rowNum = rows.get(tokens[2].replace(".", "!_"));
+		Integer rowNum = rows.get(removeSpecialChars(tokens[2]));
 		Double range = Double.parseDouble(tokens[3]);
 		if (u.get(rowNum) == OSQP.OSQP_INFTY)
 			u.set(rowNum, l.get(rowNum) + range);
@@ -310,8 +316,8 @@ public class Parser {
 		int col1, col2;
 		double val;
 		try {
-			col1 = cols.get(tokens[1].replace(".", "!_"));
-			col2 = cols.get(tokens[2].replace(".", "!_"));
+			col1 = cols.get(removeSpecialChars(tokens[1]));
+			col2 = cols.get(removeSpecialChars(tokens[2]));
 			val  = Double.parseDouble(tokens[3]);
 			if (col1 < col2) {
 				Prcv.addEntry(col1, col2, val);
@@ -442,7 +448,7 @@ public class Parser {
 							switch(currentSection) {
 								case ROWS:
 									if (objname==null && tokens[1].matches("N"))
-										objname = tokens[2].replace(".", "!_");
+										objname = removeSpecialChars(tokens[2]);
 									else
 										parseRow(shape, rows, l, u, rowSense, tokens);
 									break;
@@ -563,13 +569,13 @@ public class Parser {
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
 		//String qpsFileDir = "src/test/resources/qe226.qps";
 		//String qpsFileDir = "src/test/resources/boyd1.qps";
-		//String qpsFileDir = "src/test/resources/boyd2.qps";
-		String qpsFileDir;
+		String qpsFileDir = "src/test/resources/qforplan.qps";
+		//String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {
 			OSQP.LOG.info("Usage: java -jar josqp.jar <qps_file_name>");
-			return;
+			//return;
 		}
 		//Parser p = Parser.readMps(mpsFileDir);
 		Parser p = Parser.readQmps(qpsFileDir);

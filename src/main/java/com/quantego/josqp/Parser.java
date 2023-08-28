@@ -200,20 +200,24 @@ public class Parser {
 	}
 
 	private static void parseBnd(Map<String, Integer> cols, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
-		String colName = removeSpecialChars(tokens[3]);
+		int placeColName = 3;
+		if (tokens.length % 2 == 0) {
+			placeColName = 2;
+		}
+		String colName = removeSpecialChars(tokens[placeColName]);
 		int rowIndex = rows.get(colName + "_bnd");
 		double bnd;
 		switch(tokens[1]) {
 			case "LO":
-				bnd = Double.parseDouble(tokens[4]);
+				bnd = Double.parseDouble(tokens[placeColName + 1]);
 				l.set(rowIndex, bnd);
 				break;
 			case "UP":
-				bnd = Double.parseDouble(tokens[4]);
+				bnd = Double.parseDouble(tokens[placeColName + 1]);
 				u.set(rowIndex, bnd);
 				break;
 			case "FX":
-				bnd = Double.parseDouble(tokens[4]);
+				bnd = Double.parseDouble(tokens[placeColName + 1]);
 				l.set(rowIndex, bnd);
 				u.set(rowIndex, bnd);
 				break;
@@ -569,13 +573,13 @@ public class Parser {
 		//String qpsFileDir = "src/test/resources/qsctap1.qps";
 		//String qpsFileDir = "src/test/resources/qe226.qps";
 		//String qpsFileDir = "src/test/resources/boyd1.qps";
-		String qpsFileDir = "src/test/resources/qforplan.qps";
-		//String qpsFileDir;
+		//String qpsFileDir = "src/test/resources/exdata.qps";
+		String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];
 		else {
 			OSQP.LOG.info("Usage: java -jar josqp.jar <qps_file_name>");
-			//return;
+			return;
 		}
 		//Parser p = Parser.readMps(mpsFileDir);
 		Parser p = Parser.readQmps(qpsFileDir);

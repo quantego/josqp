@@ -335,90 +335,6 @@ public class Parser {
 		}
 	}
 
-	private static void extractUpperTriangle(ArrayList<Integer> rcvR, ArrayList<Integer> rcvC, ArrayList<Double> rcvV) {
-		for (int i = 0; i < rcvR.size(); i++) {
-			if (rcvR.get(i) > rcvC.get(i)) {
-				rcvR.remove(i);
-				rcvC.remove(i);
-				rcvV.remove(i);
-			}
-		}
-	}
-
-	private static void convertRcvToCsc(ArrayList<Integer> rcvR, ArrayList<Integer> rcvC, ArrayList<Double> rcvV, int NCol,
-										List<Integer> cscI, List<Integer> cscP, List<Double> cscX) {
-		// convert RCV format to CSC format.
-
-		// sorting the RCV format (first based on the column, then based on the row).
-		int r, c, col;
-		double v;
-		// step 1: sorting based on the column
-		for (int i = 0; i < rcvC.size(); i++) {
-			for (int j = 0; j < i; j++) {
-				if (rcvC.get(i) < rcvC.get(j)) {
-					Collections.swap(rcvR, i, j);
-					Collections.swap(rcvC, i, j);
-					Collections.swap(rcvV, i, j);
-					//r = rcvR.get(i);   c = rcvC.get(i);   v = rcvV.get(i);
-					//rcvR.remove(i);    rcvC.remove(i);    rcvV.remove(i);
-					//rcvR.add(j, r);    rcvC.add(j, c);    rcvV.add(j, v);
-					break;
-				}
-			}
-		}
-		// step 2: sorting each column based on the rows.
-		int idxStart = 0;
-		int idxEnd = 0;
-		for (int colN = 0; colN < Collections.max(rcvC); colN++) {
-			if (rcvC.get(idxStart) > colN)
-				continue;
-			while (rcvC.get(idxEnd + 1) == colN)
-				idxEnd++;
-			for (int i = idxStart; i <= idxEnd; i++) {
-				for (int j = idxStart; j < i; j++) {
-					if (rcvR.get(i) < rcvR.get(j)) {
-						Collections.swap(rcvR, i, j);
-						Collections.swap(rcvC, i, j);
-						Collections.swap(rcvV, i, j);
-						//r = rcvR.get(i);    c = rcvC.get(i);    v = rcvV.get(i);
-						//rcvR.remove(i);     rcvC.remove(i);     v = rcvV.remove(i);
-						//rcvR.add(j, r);     rcvC.add(j, c);     rcvV.add(j, v);
-						break;
-					}
-				}
-			}
-			idxStart = ++idxEnd;
-		}
-
-		// constructing the CSC vectors based on the RCV vectors.
-		for (int i = 0; i < rcvV.size(); i++) {
-			cscX.add(rcvV.get(i));
-			cscI.add(rcvR.get(i));
-		}
-		cscP.add(0);
-		int totNCol = 0, currColParsed = 0;
-		for (c = 0; c < rcvC.size(); c++) {
-			col = rcvC.get(c);
-			while (col > currColParsed) { // This while loop is to handle the empty columns at the beginning.
-				cscP.add(totNCol);
-				currColParsed++;
-			}
-			totNCol++;
-			if (c != rcvC.size() - 1) {
-				if (rcvC.get(c + 1) != col) {
-					cscP.add(totNCol);
-					currColParsed++;
-				}
-			} else {
-				cscP.add(totNCol);
-				while (currColParsed < NCol - 1) { // This while loop is to handle the empty columns at the end.
-					cscP.add(totNCol);
-					currColParsed++;
-				}
-			}
-		}
-	}
-
 
 	public static Parser readQmps(String filename) {
 		OSQP.LOG.info(String.format("Begin parsing file %s.",filename));
@@ -562,18 +478,12 @@ public class Parser {
 		//Parser p = Parser.readMps("src/test/resources/s82_lp.mps"); //Optimal objective -3.457971082e+01
 		//Parser p = Parser.readMps("src/test/resources/qap15.mps"); //Optimal objective  1.040994041e+03
 		//Parser p = Parser.readMps("src/test/resources/irish-electricity.mps"); //Optimal objective  2.546254563e+06
-        //Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
+		//Parser p = Parser.readMps("src/test/resources/supportcase10.mps"); //Optimal objective  3.383923666e+00
 		//Parser p = Parser.readMps("src/test/resources/ex10.mps"); //Optimal objective 100
 		//Parser p = Parser.readMps("src/test/resources/savsched1.mps"); //Optimal objective 2.1740357143e+02
 		//Parser p = Parser.readMps("src/test/resources/sample1.mps");
 		//	String mpsFileDir = "src/test/resources/sample1.mps";
 		//String qpsFileDir = "src/test/resources/sample1.qps";
-		//String qpsFileDir = "src/test/resources/qafiro.qps";
-		//String qpsFileDir = "src/test/resources/qbandm.qps";
-		//String qpsFileDir = "src/test/resources/qsctap1.qps";
-		//String qpsFileDir = "src/test/resources/qe226.qps";
-		//String qpsFileDir = "src/test/resources/boyd1.qps";
-		//String qpsFileDir = "src/test/resources/exdata.qps";
 		String qpsFileDir;
 		if (args.length >= 1)
 			qpsFileDir = args[0];

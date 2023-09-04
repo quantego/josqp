@@ -1,6 +1,6 @@
 # JOSQP
 
-JOSQP is a fork of the solver [OSQP](osqp.org) (Operator Splitting Quadratic Program) that is written entirely in Java. There are no special dependencies for JOSQP and only Java Run Time in the target computer is enough to use this solver.
+JOSQP is a fork of the solver [OSQP](http://osqp.org) (Operator Splitting Quadratic Program) that is written entirely in Java. There are no special dependencies for JOSQP and only Java Run Time in the target computer is enough to use this solver.
 
 JOSQP solves the quadratic programs of the following form:
 $$\min_x \quad \frac{1}{2}x^\mathrm{T}Px + q^\mathrm{T}x + c$$

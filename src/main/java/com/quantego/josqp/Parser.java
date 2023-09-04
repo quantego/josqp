@@ -9,11 +9,19 @@ import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 import java.util.regex.Pattern;
 
+/**
+ * A class to store a matrix in the Row-Column-Value (RCV) format.
+ */
 class RcvMat {
 	public int cap, nnz;
 	public int[] rows, cols;
 	public double[] vals;
 
+	/**
+	 * Constructor of the class RcvMat.
+	 *
+	 * @param  cap  initial capacity of the class
+	 */
 	public RcvMat(int cap) {
 		this.cap = cap;
 		nnz = 0;
@@ -22,6 +30,13 @@ class RcvMat {
 		vals = new double[cap];
 	}
 
+	/**
+	 * Adds a new entry to its corresponding RCV-formatted matrix
+	 *
+	 * @param  r  row number of the new element
+	 * @param  c  column number of the new element
+	 * @param  v  value of the new element
+	 */
 	public void addEntry(int r, int c, double v) {
 		// Check capacity and add space if needed
 		if (nnz >= cap) {
@@ -37,6 +52,11 @@ class RcvMat {
 		nnz++;
 	}
 }
+
+/**
+ * This class is used to parse MPS- and QPS-formatted files and
+ * solve the corresponding QP problems with JOSQP solver
+ */
 public class Parser {
 
 	int nRows;
@@ -56,15 +76,16 @@ public class Parser {
 
 	/**
 	 * Create a new Problem instance based on vector inputs (CSC formatted).
-	 * @param q linear objective coefficients
-	 * @param P_x quadratic objective (coefficients)
-	 * @param P_p quadratic objective (next column starts)
-	 * @param P_i quadratic objective (row indices)
-	 * @param A_x constraints (coefficients)
-	 * @param A_p constraints (next column starts)
-	 * @param A_i constraints (row indices)
-	 * @param l constraint lower bounds
-	 * @param u constraint upper bounds
+	 * @param q       linear objective coefficients
+	 * @param P_x     quadratic objective (coefficients)
+	 * @param P_p     quadratic objective (next column starts)
+	 * @param P_i     quadratic objective (row indices)
+	 * @param A_x     constraints (coefficients)
+	 * @param A_p     constraints (next column starts)
+	 * @param A_i     constraints (row indices)
+	 * @param l       constraint lower bounds
+	 * @param u       constraint upper bounds
+	 * @param offset  offset of the objective function
 	 */
 	public Parser(double[] q, double[] P_x, int[] P_p, int[] P_i, double[] A_x, int[] A_p, int[] A_i, double[] l, double[] u,
 								double offset) {
@@ -83,6 +104,18 @@ public class Parser {
 		Anz = Ax.length;
 		Pnz = Px.length;
 	}
+	/**
+	 * Create a new Problem instance based on vector inputs (CSC formatted).
+	 * @param q       linear objective coefficients
+	 * @param P_x     quadratic objective (coefficients)
+	 * @param P_p     quadratic objective (next column starts)
+	 * @param P_i     quadratic objective (row indices)
+	 * @param A_x     constraints (coefficients)
+	 * @param A_p     constraints (next column starts)
+	 * @param A_i     constraints (row indices)
+	 * @param l       constraint lower bounds
+	 * @param u       constraint upper bounds
+	 */
 	public Parser(double[] q, double[] P_x, int[] P_p, int[] P_i, double[] A_x, int[] A_p, int[] A_i, double[] l, double[] u) {
 		this.q = q;
 		this.Px = P_x;
@@ -140,26 +173,48 @@ public class Parser {
 		System.out.println(String.format("c_int P_nnz=%d;",Pnz));
 	}
 
+	/**
+	 * Get the constraint matrix (A)
+	 *
+	 * @return    The constraint matrix (A) in the CSC format
+	 */
 	public CSCMatrix getA( ) {
 		return new CSCMatrix(nRows, nCols, Anz, Ap, Ai, Ax);
 	}
 
+	/**
+	 * Get the quadratic objective matrix (P)
+	 *
+	 * @return    The quadratic objective matrix (P) in the CSC format
+	 */
 	public CSCMatrix getP() {
 		return new CSCMatrix(nCols, nCols, Pnz, Pp, Pi, Px);
 	}
 
+	/**
+	 * Get the lower-bound vector (l)
+	 */
 	public double[] getl() {
 		return l;
 	}
 
+	/**
+	 * Get the upper-bound vector (u)
+	 */
 	public double[] getu() {
 		return u;
 	}
 
+	/**
+	 * Get the linear objective coefficients vector (q)
+	 */
 	public double[] getq() {
 		return q;
 	}
 
+	/**
+	 * Get a copy of the problem data.
+	 */
 	public OSQP.Data getData() {
 		return new OSQP.Data(nCols, nRows, getP(), getA(), q, l, u, offset);
 	}
@@ -336,6 +391,14 @@ public class Parser {
 	}
 
 
+	/**
+	 * This function reads the content of a QPS file and constructs
+	 * the problem that is described therein.
+	 *
+	 * @param  filename  The absolute path to a QPS-formatted file
+	 * @return      An instance of the Parser class representing the
+	 *              problem described in the input file
+	 */
 	public static Parser readQmps(String filename) {
 		OSQP.LOG.info(String.format("Begin parsing file %s.",filename));
 		double tme = System.currentTimeMillis();
@@ -463,6 +526,15 @@ public class Parser {
 				Utils.toDoubleArray(l), Utils.toDoubleArray(u), offset.get(0));
 	}
 
+	/**
+	 * This serves as the program's entry point. An address for a QPS
+	 * file should be provided as an argument. This function extracts
+	 * the problem described in the given file and solves it using
+	 * the specific algorithm of the JOSQP solver.
+	 *
+	 * @param  args  A String representing the address of the qps file
+	 *               For example: "src/test/resources/sample1.qps"
+	 */
 	public static void main(String... args) {
 
 		try {

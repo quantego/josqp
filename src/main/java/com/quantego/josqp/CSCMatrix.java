@@ -1,5 +1,6 @@
 package com.quantego.josqp;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class CSCMatrix {
@@ -59,26 +60,61 @@ public class CSCMatrix {
 	}
 	
 	public static CSCMatrix triplet_to_csc(int m, int n, int nz, int[] Ti, int[] Tj, double[] Tx, int[] TtoC) {
-		int p, k; 
+		int c, k, i, iChk;
 		CSCMatrix C = new CSCMatrix(m,n,nz,Tx!=null,false);
 		int[] Cp = C.Ap;
 		int[] Ci = C.Ai;
 		double[] Cx = C.Ax;
 		int[] w = new int[n];
-		  for (k = 0; k < nz; k++) w[Tj[k]]++;  /* column counts */
-		  csc_cumsum(Cp, w, n);                 /* column pointers */
+		int ioRCap = 1, iooRcvSize = 0;
+		int[] ioR = new int[ioRCap];
+		int[] ioC = new int[nz];
+		int[] CpAux;
 
-		  for (k = 0; k < nz; k++) {
-		    Ci[p = w[Tj[k]]++] = Ti[k];         /* A(i,j) is the pth entry in C */
+		// determining the column pointers
+		for (k = 0; k < nz; k++) w[Tj[k]]++;  /* column counts */
+		csc_cumsum(Cp, w, n);                 /* column pointers */
 
-		    if (Cx!=null) {
-		      Cx[p] = Tx[k];
-
-		      if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
-		    }
-		  }
-		  C.nz = Cx.length;
-		  return C;     /* success; free w and return C */
+		// sorting (index of order) based on column
+		CpAux = Arrays.copyOf(Cp, n + 1);
+		for (k = 0; k < nz; k++) {
+			ioC[CpAux[Tj[k]]++] = k;
+		}
+		// determining the row indices
+		for (k = 0; k < nz; k++) {
+			if (k == 0 || Tj[ioC[k]] != Tj[ioC[k-1]]) { // if colum number is changed (assuming the RCV data is already sorted based on the column number
+				if (ioRCap < Cp[Tj[ioC[k]] + 1] - Cp[Tj[ioC[k]]]) {
+					ioRCap = 2 * (Cp[Tj[ioC[k]] + 1] - Cp[Tj[ioC[k]]]);
+					ioR = new int[ioRCap];
+				} else {
+					Arrays.fill(ioR, 0);
+				}
+				iooRcvSize = Cp[Tj[ioC[k]] + 1] - Cp[Tj[ioC[k]]];
+				// sorting based on the row number (for each column)
+				for (i = 1; i < iooRcvSize; i++) {
+					iChk = i - 1;
+					while (iChk != -1 && Ti[k + ioR[iChk]] > Ti[k + i]) {
+						ioR[iChk + 1] = ioR[iChk];
+						iChk--;
+					}
+					ioR[iChk + 1] = i;
+				}
+				for (i = 0; i < iooRcvSize; i++) {
+					//Ci[k + i] = Ti[k + ioR[i]];
+					Ci[k + i] = Ti[ioC[k + ioR[i]]];
+					if (Cx != null) {
+						Cx[k + i] = Tx[ioC[k + ioR[i]]];
+					}
+				}
+			}
+			//Ci[p = w[Tj[k]]++] = Ti[k];         /* A(i,j) is the pth entry in C */
+		  //if (Cx!=null) {
+		  //  Cx[p] = Tx[k];
+			//	if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
+			//}
+		}
+		C.nz = Cx.length;
+		return C;     /* success; free w and return C */
 	}
 	
 	public static CSCMatrix triplet_to_csr(CSCMatrix T, int[] TtoC) {

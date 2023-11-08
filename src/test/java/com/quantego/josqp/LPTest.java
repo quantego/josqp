@@ -28,7 +28,7 @@ public class LPTest {
 //		settings.time_limit = 0.01;
 		CSCMatrix A = new CSCMatrix(m,n,A_nnz,A_p,A_i,A_x);
 		CSCMatrix P = new CSCMatrix(n,n,P_nnz,P_p,P_i,P_x);
-		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u,0);
 		OSQP opt = new OSQP(data,settings);
 		opt.solve();
 
@@ -68,7 +68,7 @@ public class LPTest {
 		 
 	    OSQP.Settings settings = new OSQP.Settings();
 	    settings.eps_rel = 0.0001;
-		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u,0);
 		OSQP opt = new OSQP(data,settings);
 		opt.solve();
 	}
@@ -562,7 +562,7 @@ public class LPTest {
 		//settings.polish = true;
 		CSCMatrix A = new CSCMatrix(m,n,Ax.length,Ap,Ai,Ax);
 		CSCMatrix P = new CSCMatrix(n,n,Px.length,Pp,Pi,Px);
-		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u);
+		OSQP.Data data = new OSQP.Data(n,m,P,A,q,l,u,0);
 		
 		OSQP opt = new OSQP(data,settings);
 		

@@ -51,7 +51,7 @@ public class UpdateMatricesTest {
         // Generate first problem data
         final OSQP.Data problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
                 data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
-                data.test_solve_u);
+                data.test_solve_u, 0);
 
         // Define Solver settings as default
         // Problem settings

@@ -29,7 +29,7 @@ final class UnconstrainedTestDataGenerator {
         final int[] P_p = new int[] { 0, 1, 2, 3, 4, 5 };
         final CSCMatrix P = new CSCMatrix(P_m, P_n, P_nzmax, P_p, P_i, P_x);
 
-        return new OSQP.Data(n, m, P, A, q, l, u);
+        return new OSQP.Data(n, m, P, A, q, l, u,0);
     }
 
     static UnconstrainedTestSolsData generateData() {

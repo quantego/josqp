@@ -18,6 +18,11 @@ public class Model {
             return new Variable(_m, _m.addVar());
         }
 
+        /**
+         * Add n variables to the model.
+         * @param n number of variables
+         * @return  array of variables
+         */
         public Variable[] addVariables(int n) {
             Variable[] X = new Variable[n];
             for (int i=0; i<n; i++)
@@ -27,7 +32,7 @@ public class Model {
 
         /**
          * To add the constraint to the model, the functions leq, eq, or geq must be called.
-         * @return
+         * @return constraint builder
          */
         public Constraint addConstraint() {
             return new Constraint(_m);
@@ -35,7 +40,7 @@ public class Model {
 
         /**
          * To set the objective function, the functions maximize or minimize must be called.
-         * @return
+         * @return objective builder
          */
         public Objective setObjective() {
             return new Objective(_m);
@@ -43,7 +48,7 @@ public class Model {
 
         /**
          * Return the built model.
-         * @return
+         * @return model
          */
         public Model build() {
             return _m;
@@ -112,10 +117,18 @@ public class Model {
             return this;
         }
 
+        /**
+         * Returns the index of this variable in the model.
+         * @return  index
+         */
         public int getIndex() {
             return _x;
         }
 
+        /**
+         * Returns the solution value of this variable.
+         * @return solution value
+         */
         public double getSolution() {
             return _m.getSolution(_x);
         }
@@ -158,9 +171,9 @@ public class Model {
 
         /**
          * Add a vector of variables
-         * @param A
-         * @param X
-         * @return
+         * @param A vector of coefficients
+         * @param X vector of variables
+         * @return builder
          */
         public Objective add(double[] A, Variable[] X) {
             for (int i=0; i<X.length; i++)
@@ -170,8 +183,8 @@ public class Model {
 
         /**
          * Add a vector of variables
-         * @param a
-         * @param X
+         * @param a identical coefficient
+         * @param X vector of variables
          * @return
          */
         public Objective add(double a, Variable[] X) {
@@ -180,6 +193,11 @@ public class Model {
             return this;
         }
 
+        /**
+         * Add a constant offset to the objective.
+         * @param c constant
+         * @return  builder
+         */
         public Objective add(double c) {
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
             _c += c;

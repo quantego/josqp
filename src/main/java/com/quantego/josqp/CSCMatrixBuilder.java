@@ -20,7 +20,6 @@ public class CSCMatrixBuilder  {
 	 * Creates a new empty matrix with a given number of columns. The matrix can start empty, but adding non-zero elements
 	 * on a matrix of unknown dimension requires internal resize operation for each additional column added which incurs
 	 * a minor overhead of copying the respective arrays. 
-	 * @param numCols total number of (known) columns (e.g. variables)
 	 */
 	public CSCMatrixBuilder() {
 		_numCols = 0;

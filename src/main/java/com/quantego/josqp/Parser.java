@@ -55,7 +55,9 @@ class RcvMat {
 
 /**
  * This class is used to parse MPS- and QPS-formatted files and
- * solve the corresponding QP problems with JOSQP solver
+ * solve the corresponding QP problems with jOSQP solver
+ *
+ * @author Farid Alavi
  */
 public class Parser {
 

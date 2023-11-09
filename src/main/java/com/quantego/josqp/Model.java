@@ -3,6 +3,15 @@ package com.quantego.josqp;
 import java.util.*;
 import java.util.logging.Handler;
 
+/**
+ * The class Model holds the formulation of a quadratic programming model. A model can be built algebraically by either
+ * calling the static function getBuilder, or by calling the constructor directly. The builder provides an algebraic
+ * way to build a model by adding variables, constraints, and an objective function. Use this object to call the
+ * solver, retrieve its solution, and change model parameters before a resolve.
+ *
+ * @author Nils Loehndorf
+ *
+ */
 public class Model {
 
     /**
@@ -47,7 +56,7 @@ public class Model {
         }
 
         /**
-         * Return the built model.
+         * Returns the constructed model.
          * @return model
          */
         public Model build() {
@@ -57,7 +66,7 @@ public class Model {
     }
 
     /**
-     * Model variables
+     * Decision variables
      */
     public static class Variable {
        Model _m;
@@ -108,7 +117,7 @@ public class Model {
         }
 
         /**
-         * Defines this vaiable as free, -inf <= x <= inf.
+         * Defines this variable as free, -inf <= x <= inf.
          * @return builder
          */
         public Variable free() {
@@ -135,8 +144,7 @@ public class Model {
     }
 
     /**
-     * Model objective function. Once function maximize and minimize, the objects is linked with the model, and parameters
-     * can be changed.
+     * Model objective function.
      */
     public static class Objective {
 
@@ -148,6 +156,11 @@ public class Model {
                 this.x2=x2;
             }
 
+            /**
+             * Pairs are equal if they have the same variables.
+             * @param o
+             * @return
+             */
             @Override
             public boolean equals(Object o) {
                 Pair pair = (Pair) o;
@@ -185,7 +198,7 @@ public class Model {
          * Add a vector of variables
          * @param a identical coefficient
          * @param X vector of variables
-         * @return
+         * @return builder
          */
         public Objective add(double a, Variable[] X) {
             for (Variable x : X)
@@ -196,7 +209,7 @@ public class Model {
         /**
          * Add a constant offset to the objective.
          * @param c constant
-         * @return  builder
+         * @return builder
          */
         public Objective add(double c) {
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
@@ -204,37 +217,72 @@ public class Model {
             return this;
         }
 
+        /**
+         * Add a variable with a coefficient.
+         * @param a coefficient
+         * @param x variable
+         * @return
+         */
         public Objective add(double a, Variable x) {
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
             _a.compute(x,(key,val)->val==null?a:val+a);
             return this;
         }
 
+        /**
+         * Add quadratic term a*x1*x2
+         * @param a coefficient
+         * @param x1 variable
+         * @param x2 variable
+         * @return builder
+         */
         public Objective add(double a, Variable x1, Variable x2) {
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
             _p.compute(new Pair(x1,x2),(key,val)->val==null?a:val+a);
             return this;
         }
 
+        /**
+         * Set the objective term a*x1*x2
+         * @param p coefficient
+         * @param x1 variable
+         * @param x2 variable
+         */
         public void set(double p, Variable x1, Variable x2) {
             if (_a!=null) throw new IllegalStateException("Objective function must first be built by calling maximize or minimize.");
             _m.setQbj(x1._x,x2._x,p);
         }
 
+        /**
+         * Set the objective term q*x
+         * @param q coefficient
+         * @param x variable
+         */
         public void set(double q, Variable x) {
             if (_a!=null) throw new IllegalStateException("Objective function must first be built by calling maximize or minimize.");
             _m.setObj(x._x,q);
         }
 
+        /**
+         * Set the objective term c
+         * @param c constant
+         */
         public void set(double c) {
             _m.setOffset(c);
         }
 
+        /**
+         * Set the objective sense to maximize
+         * @param maximize true if problem is a maximization problem
+         */
         public void setSense(boolean maximize) {
             if (_a!=null) throw new IllegalStateException("Objective function must first be built by calling maximize or minimize.");
             _m.setSense(maximize);
         }
 
+        /**
+         * Build the objective function and add it to the model as a maximization problem.
+         */
         public void maximize() {
             if (_a==null) throw new IllegalStateException("Objective has already been built.");
             addToModel();
@@ -243,6 +291,9 @@ public class Model {
             _a = null; _p=null; _c=null;
         }
 
+        /**
+         * Build the objective function and add it to the model as a minimization problem.
+         */
         public void minimize() {
             if (_a==null) throw new IllegalStateException("Objective has already been built.");
             addToModel();
@@ -260,6 +311,10 @@ public class Model {
             }
         }
 
+        /**
+         * Returns the objective value of the solution.
+         * @return objective value
+         */
         public double getValue() {
             return _m.getObj();
         }
@@ -271,6 +326,13 @@ public class Model {
      */
     public static class Constraint {
 
+        /**
+         * Constraint types
+         * EQ: Ax == b
+         * GEQ: Ax >= b
+         * LEQ: Ax <= b
+         * NEQ: Ax != b
+         */
         public static enum Type {
             EQ, GEQ, LEQ, NEQ
         }
@@ -297,8 +359,8 @@ public class Model {
 
         /**
          * Add a vector of variables
-         * @param a
-         * @param X
+         * @param a identical coefficient
+         * @param X vector of variables
          * @return
          */
         public Constraint add(double a, Variable[] X) {
@@ -307,12 +369,22 @@ public class Model {
             return this;
         }
 
+        /**
+         * Add a constant offset to the constraint.
+         * @param a constant
+         * @param x variable
+         * @return builder
+         */
         public Constraint add(double a, Variable x) {
             if (_y!=null) throw new IllegalStateException("Constraint has already been added to the model by function geq.");
             _a.compute(x,(key,val)->val==null?a:val+a);
             return this;
         }
 
+        /**
+         * Add the constraint to the model as a <= b.
+         * @param b right hand side
+         */
         public void leq(double b) {
             if (_y!=null) throw new IllegalStateException("Constraint has already been added to the model by function leq.");
             _y = _m.addCtr(Constraint.Type.LEQ,b);
@@ -322,6 +394,10 @@ public class Model {
             _a = null;
         }
 
+        /**
+         * Add the constraint to the model as a == b.
+         * @param b right hand side
+         */
         public void eq(double b) {
             if (_y!=null) throw new IllegalStateException("Constraint has already been added to the model by function eq.");
             _y = _m.addCtr(Constraint.Type.EQ,b);
@@ -331,6 +407,10 @@ public class Model {
             _a = null;
         }
 
+        /**
+         * Add the constraint to the model as a >= b.
+         * @param b right hand side
+         */
         public void geq(double b) {
             if (_y!=null) throw new IllegalStateException("Constraint has already been added to the model by function geq.");
             _y = _m.addCtr(Constraint.Type.GEQ,b);
@@ -340,25 +420,46 @@ public class Model {
             _a = null;
         }
 
+        /**
+         * Sets the left-hand side of the constraint for the given variable.
+         * @param x variable
+         * @param a coefficient
+         */
         public void setLhs(Variable x, double a) {
             if (_y==null) throw new IllegalStateException("Constraint has not yet been added to model. Call leq, eq, geq, before calling lhs or rhs.");
             _m.setLhs(_y,x._x,a);
         }
 
+        /**
+         * Sets the right-hand side of the constraint.
+         * @param b right-hand side
+         */
         public void setRhs(double b) {
             if (_y==null) throw new IllegalStateException("Constraint has not yet been added to model. Call leq, eq, geq, before calling lhs or rhs.");
             _m.setRhs(_y,b);
         }
 
+        /**
+         * Sets the type of the constraint.
+         * @param type constraint type
+         */
         public void setType(Constraint.Type type) {
             if (_y==null) throw new IllegalStateException("Constraint has not yet been added to model. Call leq, eq, geq, before calling lhs or rhs.");
             _m.setType(_y,type);
         }
 
+        /**
+         * Returns the index of the constraint in the model.
+         * @return index
+         */
         public int getIndex() {
             return _y;
         }
 
+        /**
+         * Returns the dual solution value associated with this constraint.
+         * @return dual solution value
+         */
         public double getSolution() {
             return _m.getDual(_y);
         }
@@ -404,10 +505,19 @@ public class Model {
         _param = new OSQP.Settings();
     }
 
+    /**
+     * Returns a builder object that can be used to build a model algebraically by adding variables, constraints, and
+     * an objective function.
+     * @return builder
+     */
     public static Model.Builder getBuilder() {
         return new Model.Builder(new Model());
     }
 
+    /**
+     * Add a variable to the model and return its index.
+     * @return index of the variable
+     */
     public int addVar() {
         _q.add(0.);
         int i = addCtr(Constraint.Type.GEQ, 0.0);
@@ -418,12 +528,23 @@ public class Model {
         return _nCols++;
     }
 
+    /**
+     * Set the name of the variable at the given index
+     * @param var index of the variable
+     * @param name name of the variable
+     */
     public void setName(int var, String name) {
         if (_varNames==null)
             _varNames = new HashMap<>();
         _varNames.put(var,name);
     }
 
+    /**
+     * Add a constraint to the model and return its index.
+     * @param type constraint type
+     * @param rhs right-hand side
+     * @return index of the constraint
+     */
     public int addCtr(Constraint.Type type, double rhs) {
         switch (type) {
             case EQ: _lb.add(rhs); _ub.add(rhs); break;
@@ -438,6 +559,11 @@ public class Model {
         return _nRows++;
     }
 
+    /**
+     * Set the type of the constraint at the given index.
+     * @param ctr index of the constraint
+     * @param type constraint type
+     */
     public void setType(int ctr, Constraint.Type type) {
         if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
         if (type==_type.get(ctr)) return;
@@ -452,6 +578,11 @@ public class Model {
         _newL = true; _newU = true;
     }
 
+    /**
+     * Set the right-hand side of the constraint at the given index.
+     * @param ctr index of the constraint
+     * @param value right-hand side
+     */
     public void setRhs(int ctr, double value) {
         if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
         if (value==_rhs.get(ctr)) return;
@@ -464,6 +595,12 @@ public class Model {
         _newL = true; _newU = true;
     }
 
+    /**
+     * Set the left-hand side of the constraint at the given index.
+     * @param ctr index of the constraint
+     * @param var index of the variable
+     * @param value coefficient
+     */
     public void setLhs(int ctr, int var, double value) {
         if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
         if (var>=_nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
@@ -471,12 +608,23 @@ public class Model {
         _newA = true;
     }
 
+    /**
+     * Set the quadratic coefficient of the objective function.
+     * @param var index of the variable
+     * @param value coefficient
+     */
     public void setObj(int var, double value) {
         if (var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         _q.set(var,value);
         _newQ = true;
     }
 
+    /**
+     * Set the quadratic coefficient of the objective function.
+     * @param var1 index of the first variable
+     * @param var2 index of the second variable
+     * @param value coefficient
+     */
     public void setQbj(int var1, int var2, double value) {
         if (var1 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var1));
         if (var2 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var2));
@@ -484,6 +632,11 @@ public class Model {
         _newP = true;
     }
 
+    /**
+     * Set the upper bound of the variable at the given index.
+     * @param var index of the variable
+     * @param value upper bound
+     */
     public void setUb(int var, double value) {
         if (var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         if (value>OSQP.OSQP_INFTY) value=OSQP.OSQP_INFTY;
@@ -491,6 +644,11 @@ public class Model {
         _newU = true;
     }
 
+    /**
+     * Set the lower bound of the variable at the given index.
+     * @param var index of the variable
+     * @param value lower bound
+     */
     public void setLb(int var, double value) {
         if (var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         if (value<-OSQP.OSQP_INFTY) value=-OSQP.OSQP_INFTY;
@@ -498,14 +656,26 @@ public class Model {
         _newL = true;
     }
 
+    /**
+     * Set the offset of the objective function.
+     * @param value offset
+     */
     public void setOffset(double value) {
         _offset = value;
     }
 
+    /**
+     * Set the sense of the objective function.
+     * @param maximize true if problem is a maximization problem
+     */
     public void setSense(boolean maximize) {
         _maximize = maximize;
     }
 
+    /**
+     * Returns the settings of the solver.
+     * @return settings
+     */
     public OSQP.Settings getParam() {
         return _param;
     }
@@ -523,6 +693,10 @@ public class Model {
         _solver = new OSQP(_data,_param);
     }
 
+    /**
+     * Solve the model.
+     * @return status of the solver
+     */
     public OSQP.Status solve() {
         if (_solver==null) {
             init();
@@ -559,21 +733,38 @@ public class Model {
         return _solver.getInfo().status;
     }
 
+    /**
+     * Add another log handler to the solver.
+     * @param h log handler
+     */
     public void addLogHandler(Handler h) {
         OSQP.LOG.addHandler(h);
     }
 
+    /**
+     * Return the solution of the variable at the given index.
+     * @param var index of the variable
+     * @return solution value
+     */
     public double getSolution(int var) {
         if (_x==null) throw new IllegalStateException("Solver does not have a primal solution. Call solve first.");
         return _x[var];
     }
 
-    //TODO: Is this even correct?
+    /**
+     * Return the dual solution of the constraint at the given index.
+     * @param ctr index of the constraint
+     * @return dual solution
+     */
     public double getDual(int ctr) {
         if (_x==null) throw new IllegalStateException("Solver does not have a dual solution. Call solve first.");
         return (_maximize?-1.0:1.0)*_y[ctr];
     }
 
+    /**
+     * Return the objective value of the solution.
+     * @return objective value
+     */
     public double getObj() {
         return (_maximize?-1:1)*_solver.getObjectiveValue()+_offset;
     }
@@ -588,7 +779,11 @@ public class Model {
 			return String.format(" + %.5f %s",d,s);
 		return String.format(" - %.5f %s",-d,s);
 	}
-    
+
+    /**
+     * Returns a string of the full model in .lp format
+     * @return model string
+     */
     @Override
 	public String toString() {
 		StringBuilder modelString = new StringBuilder();
@@ -671,6 +866,11 @@ public class Model {
 		return modelString.toString();
 	}
 
+    /**
+     * Returns the name of the variable at the given index.
+     * @param var index of the variable
+     * @return variable name
+     */
     public String getName(int var) {
         if (_varNames==null || !_varNames.containsKey(var))
             return "x_"+var;

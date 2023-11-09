@@ -1,7 +1,15 @@
 package com.quantego.josqp;
 
-import java.util.Arrays;
-
+/**
+ * Java implementation of the QDLDL factorization routine by Bartolomeo Stellato, Goran Banjac, Paul Goulart, Alberto Bemporad, and
+ * Stephen Boyd. The implementation closely follows the original C code that can be found at https://github.com/osqp/qdldl.
+ *
+ *  @author Paul Goulart
+ *  @author Bartolomeo Stellato
+ *  @author Goran Banjac
+ *  @author Nils Loehndorf
+ *
+ */
 public class QDLDL  {
     final static int QDLDL_UNKNOWN = -1;
     final static boolean QDLDL_USED = true;

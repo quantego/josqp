@@ -27,13 +27,7 @@ public class CSCMatrixBuilder  {
 		_starts = new int[1];
 	};
 	
-	/**
-	 * Set the element of the matrix. If the column index is equal or greater than the predefined number of columns, 
-	 * the matrix will be automatically resized.
-	 * @param row row index
-	 * @param col column index
-	 * @param value real value
-	 */
+
 	/*public CSCMatrixBuilder set(Integer row, int col, Double value) {
 		if (col >= _numCols)
 			resize(col);
@@ -58,6 +52,13 @@ public class CSCMatrixBuilder  {
 		insert(_starts[col+1], col, row, value);
 		return this;
 	}*/
+	/**
+	 * Set the element of the matrix. If the column index is equal or greater than the predefined number of columns,
+	 * the matrix will be automatically resized.
+	 * @param row row index
+	 * @param col column index
+	 * @param value real value
+	 */
 	public CSCMatrixBuilder set(int row, int col, double value) {
 		if (row>=_numRows)
 			_numRows = row+1;

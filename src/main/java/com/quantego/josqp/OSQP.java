@@ -3,6 +3,15 @@ package com.quantego.josqp;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+/**
+ * Java implementation of the OSQP solver by Bartolomeo Stellato, Goran Banjac, Paul Goulart, Alberto Bemporad, and
+ * Stephen Boyd. The implementation closely follows the original C code that can be found at https://github.com/osqp/osqp.
+ *
+ *  @author Bartolomeo Stellato
+ *  @author Goran Banjac
+ *  @author Nils Loehndorf
+ *
+ */
 public class OSQP {
 	
 	static {

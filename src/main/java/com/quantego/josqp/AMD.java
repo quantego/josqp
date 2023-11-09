@@ -1,5 +1,13 @@
 package com.quantego.josqp;
 
+/**
+ * Java implementation of the Approximate Minimum Degree ordering algorithm by Timothy Davis and co-authors. The Java
+ * code closely followed the original C code that is part of SuiteSparce and can be found at
+ * https://github.com/DrTimothyAldenDavis/SuiteSparse.
+ *
+ * @author Timothy Davis
+ * @author Nils Loehndorf
+ */
 class AMD {
 	
 	

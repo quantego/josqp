@@ -4,8 +4,8 @@ jOSQP is a fork of the quadratic programming solver, [OSQP](http://osqp.org) (Op
 
 jOSQP solves quadratic programming problems of the form: 
 $$\begin{align}
-$$ \min_x \ \frac{1}{2}x^\mathrm{T}Px + q^\mathrm{T}x + c \\
-$$ \text{s.t.} \ l \leq Ax \leq u
+&& \min_x \ \frac{1}{2}x^\mathrm{T}Px + q^\mathrm{T}x + c \\
+&& \text{s.t.} \ l \leq Ax \leq u
 \end{align}$$
 where $x\in\mathbb{R}^n$ represents variables, $A$ is an $m \times n$ matrix of constraints with lower bounds $l$ and upper bounds $u$, and $P$ is a positive semi-definite matrix ($P\in S^n_+$).
 

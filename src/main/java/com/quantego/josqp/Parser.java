@@ -13,16 +13,16 @@ import java.util.regex.Pattern;
  * A class to store a matrix in the Row-Column-Value (RCV) format.
  */
 class RcvMat {
-	public int cap, nnz;
-	public int[] rows, cols;
-	public double[] vals;
+	protected int cap, nnz;
+	protected int[] rows, cols;
+	protected double[] vals;
 
 	/**
 	 * Constructor of the class RcvMat.
 	 *
 	 * @param  cap  initial capacity of the class
 	 */
-	public RcvMat(int cap) {
+	protected RcvMat(int cap) {
 		this.cap = cap;
 		nnz = 0;
 		rows = new int[cap];
@@ -37,7 +37,7 @@ class RcvMat {
 	 * @param  c  column number of the new element
 	 * @param  v  value of the new element
 	 */
-	public void addEntry(int r, int c, double v) {
+	protected void addEntry(int r, int c, double v) {
 		// Check capacity and add space if needed
 		if (nnz >= cap) {
 			rows = Arrays.copyOf(rows, 2 * cap);
@@ -141,7 +141,7 @@ public class Parser {
 	 * @param prefix
 	 * @return
 	 */
-	public static Parser readVectors(String prefix, int skipRows, int skipCols) {
+	private static Parser readVectors(String prefix, int skipRows, int skipCols) {
 		Parser p = new Parser(
 				Utils.readDoubleColumn(prefix+ " q", ",", skipRows, skipCols),
 				Utils.readDoubleColumn(prefix+ " P_x", ",", skipRows, skipCols),

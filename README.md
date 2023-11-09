@@ -3,10 +3,12 @@
 jOSQP is a fork of the quadratic programming solver, [OSQP](http://osqp.org) (Operator Splitting Quadratic Program), but written entirely in Java. There are no dependencies other than Java 8 or higher.
 
 jOSQP solves quadratic programming problems of the form: 
-$$\begin{align}
+$$
+\begin{align}
 && \min_x \ \frac{1}{2}x^\mathrm{T}Px + q^\mathrm{T}x + c \\
-&& \text{s.t.} \ l \leq Ax \leq u
-\end{align}$$
+&& \mathrm{s.t.} \ l \leq Ax \leq u
+\end{align}
+$$
 where $x\in\mathbb{R}^n$ represents variables, $A$ is an $m \times n$ matrix of constraints with lower bounds $l$ and upper bounds $u$, and $P$ is a positive semi-definite matrix ($P\in S^n_+$).
 
 The solution algorithm of the OSQP solver is based on the ADMM (Alternating Direction Method of Multipliers) which is described [in this paper](https://arxiv.org/abs/1711.08013).
@@ -22,7 +24,7 @@ jOSQP provides a builder to model variables, constraints, and linear expressions
 $$
 \begin{align}
 &\min\ && 5x + 0.5x^2 + 3y \\
-&s.t.\  && 2x-y \geq 4 \\
+&\mathrm{s.t.}\  && 2x-y \geq 4 \\
 & &&1 \leq  x \leq 3 \\
 & &&y \leq 5
 \end{align}

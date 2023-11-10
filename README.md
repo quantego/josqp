@@ -2,7 +2,7 @@
 
 jOSQP is a fork of the quadratic programming solver, [OSQP](http://osqp.org) (Operator Splitting Quadratic Program), but written entirely in Java. There are no dependencies other than Java 8 or higher.
 
-jOSQP solves quadratic programming problems of the form: 
+The solver can handel quadratic programming problems of the form: 
 
 $$
 \begin{align}
@@ -51,11 +51,11 @@ var p = Parser.readQmps(<qps_file_name>);
 var opt = new OSQP(p.getData(),new OSQP.Settings());
 opt.solve();
 ```
-The solver can also be called from the terminal for benchmarking using
+The solver can also be called from the terminal
 ```
 java -jar josqp.jar <qps_file_name>
 ```
-After solving the problem through the terminal, jOSQP creates a log file,`josqp.log`, that contains a summary of the solution process.
+After solving the problem through the terminal, jOSQP creates a log file,`josqp.log`, that contains a summary of the solution process. The terminal command has been used for benchmarking.
 
 ## Benchmarks
 
@@ -66,7 +66,7 @@ The following table summarizes the results of benchmarks with the Maros-Meszaros
 | Maros-Meszaros  | 1.00   | 1.14  | 1.19  |
 | QPLIB  | 1.02   | 1.20  | 1.00  |
 
-The table shows the [shifted geometric mean](https://plato.asu.edu/ftp/shgeom.html) for each solver across all instances that could be solved by OSQP. Further details can be found [in a companion repository](https://github.com/FaridAlavi/josqp_benchmarks).
+The table reports the [shifted geometric mean](https://plato.asu.edu/ftp/shgeom.html) for each solver across all instances that could be solved by OSQP. Further details can be found [in a companion repository](https://github.com/FaridAlavi/josqp_benchmarks).
 
 For the considered instances, jOSQP performs at par with the original OSQP code. This result is quite astonishing, as it demonstrates that a pure Java implementation of a solver for mathematical optimization is not necessarily slower than the same implementation written in C or C++, as long as such code does not make excessive use of objects and reuses memory as much as possible.
 
@@ -81,7 +81,7 @@ The project is available at the central repository. Simply add the following dep
 </dependency>
 ```
 
-Or you can download the [latest build](https://github.com/loehndorf/josqp/releases/latest) of the jar from the release page and import it in your Java project.
+Another option is to simply download the [latest build](https://github.com/loehndorf/josqp/releases/latest) of the jar from the release page and import it in your Java project.
 
 ## Requirements
 

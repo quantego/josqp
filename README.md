@@ -2,7 +2,7 @@
 
 jOSQP is a fork of the quadratic programming solver, [OSQP](http://osqp.org) (Operator Splitting Quadratic Program), but written entirely in Java. There are no dependencies other than Java 8 or higher.
 
-The solver can handel quadratic programming problems of the form: 
+The solver can handle quadratic programming problems of the form: 
 
 $$
 \begin{align}
@@ -32,15 +32,16 @@ $$
 \end{align}
 $$
 
-can be expressed by only a few lines of Java code.
+can be expressed and solved in only a few lines of Java code.
 
 ```
 var builder = Model.getBuilder();
 var x = builder.addVariable().lb(1).ub(3);
 var y = builder.addVariable().ub(5);
-builder.setObjective().add(5,x).add(0.5,x,x).add(3,y);
-builder.addConstraint().add(2,x).add(-1,y).leq(3);
+builder.setObjective().add(5,x).add(0.5,x,x).add(3,y).minimize();
+builder.addConstraint().add(2,x).add(-1,y).geq(4);
 var model = builder.build();
+model.solve()
 ```
 
 ### MPS/QPS Reader

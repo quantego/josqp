@@ -3,12 +3,14 @@
 jOSQP is a fork of the quadratic programming solver, [OSQP](http://osqp.org) (Operator Splitting Quadratic Program), but written entirely in Java. There are no dependencies other than Java 8 or higher.
 
 jOSQP solves quadratic programming problems of the form: 
+
 $$
 \begin{align}
-&& \min \ && \frac{1}{2}x^\mathrm{T}Px + q^\mathrm{T}x + c \\
-&& \mathrm{s.t.} \ && l \leq Ax \leq u
+&& \min \ & \frac{1}{2}x^\top Px + q^\top x + c \\
+&& \mathrm{s.t.} \ & l \leq Ax \leq u
 \end{align}
 $$
+
 where $x\in\mathbb{R}^n$ represents variables, $A$ is an $m \times n$ matrix of constraints with lower bounds $l$ and upper bounds $u$, and $P$ is a positive semi-definite matrix ($P\in S^n_+$).
 
 The solution algorithm of the OSQP solver is based on the ADMM (Alternating Direction Method of Multipliers) which is described [in this paper](https://arxiv.org/abs/1711.08013).
@@ -19,14 +21,14 @@ While OSQP has been linked with a few Python packages to facilitate model creati
 
 ### Model Builder
 
-jOSQP provides a builder to model variables, constraints, and linear expressions as Java objects. Unfortunately, there is no operator overloading in Java, so that use of mathematical operators is not possible. Nonetheless, decision variables as well as their bounds, constraint, and objective function can be created in a single line. For example, a simple quadratic program such as
+The jOSQP builder class allows creating variables, constraints, and linear expressions as Java objects. Unfortunately, there is no operator overloading in Java, so that use of mathematical operators is not possible. Nonetheless, decision variables as well as their bounds, constraint, and objective function can be created in a single line. For example, a simple quadratic program such as
 
 $$
 \begin{align}
-&&\min\ && 5x + 0.5x^2 + 3y \\
-&&\mathrm{s.t.}\  && 2x-y \geq 4 \\
-&& &&1 \leq  x \leq 3 \\
-&& &&y \leq 5
+&&\min\ & 5x + 0.5x^2 + 3y \\
+&&\mathrm{s.t.}\  & 2x-y \geq 4 \\
+&& &1 \leq  x \leq 3 \\
+&& &y \leq 5
 \end{align}
 $$
 

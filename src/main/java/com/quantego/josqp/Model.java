@@ -680,7 +680,12 @@ public class Model {
         return _param;
     }
 
-    void init() {
+    void init(OSQP.Settings settings) {
+        if (settings != null)
+            _param = settings;
+        else
+            _param = new OSQP.Settings();
+
         _data = new OSQP.Data(_nCols,
                 _nRows,
                 _P.build(_maximize),
@@ -694,16 +699,25 @@ public class Model {
     }
 
     /**
-     * Solve the model.
+     * Solve the model using the default parameter settings.
      * @return status of the solver
      */
     public OSQP.Status solve() {
+        return solve(new OSQP.Settings());
+    }
+
+    /**
+     * Solve the model using customized parameter settings.
+     * @param settings the customized solver settings (or {@code null} for the default settings).
+     * @return status of the solver
+     */
+    public OSQP.Status solve(OSQP.Settings settings) {
         if (_solver==null) {
-            init();
+            init(settings);
         }
         else {
             if (_newCols || _newRows) {
-                init();
+                init(settings);
                 if (_newCols)
                     _x = Arrays.copyOf(_x,_nCols);
                 if (_newRows)

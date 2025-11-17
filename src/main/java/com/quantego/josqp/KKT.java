@@ -91,7 +91,12 @@ class KKT {
 
 	  if (Pdiag_idx != null) {
 	    // Realloc Pdiag_idx so that it contains exactly *Pdiag_n diagonal elements
-		  Pdiag_idx[0] = new int[Pdiag_n[0]];
+		
+		int[] new_pdiag = new int[Pdiag_n[0]];
+		for(int ni=0;ni<Pdiag_n[0];ni++) new_pdiag[ni]=Pdiag_idx[0][ni];
+
+		  //Pdiag_idx[0] = new int[Pdiag_n[0]];
+		  Pdiag_idx[0] = new_pdiag;
 	  }
 
 

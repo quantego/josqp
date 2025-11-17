@@ -49,7 +49,7 @@ public class UpdateMatricesTest {
         final UpdateMatricesTestSolsData data = UpdateMatricesTestDataGenerator.generateData();
 
         // Generate first problem data
-        final OSQP.Data problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
+        OSQP.Data problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
                 data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
                 data.test_solve_u, 0);
 
@@ -99,15 +99,18 @@ public class UpdateMatricesTest {
 
         // Compare primal solutions
         assertEquals("Update matrices: problem with updating P, error in primal solution!",
-                LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_new_x,
+                true,LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_new_x,
                         data.n) < OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
         assertEquals("Update matrices: problem with updating P, error in dual solution!",
-                LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_P_new_y, data.m),
-                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                true,LinAlg.vec_norm_inf_diff(osqp.work.solution.y, data.test_solve_P_new_y, data.m)<
+                OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
+        problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
+                data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
+                data.test_solve_u, 0);
         osqp = new OSQP(problem, settings);
 
         // Update P (all indices)
@@ -123,8 +126,8 @@ public class UpdateMatricesTest {
         // Compare primal solutions
         assertEquals(
                 "Update matrices: problem with updating P (all indices), error in primal solution!",
-                LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_new_x, data.n),
-                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                true,LinAlg.vec_norm_inf_diff(osqp.work.solution.x, data.test_solve_P_new_x, data.n)<
+                OSQPTester.TESTS_TOL);
 
         // Compare dual solutions
         assertEquals(
@@ -133,6 +136,9 @@ public class UpdateMatricesTest {
                 OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
+        problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
+                data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
+                data.test_solve_u, 0);
         osqp = new OSQP(problem, settings);
 
         // Update A
@@ -164,6 +170,9 @@ public class UpdateMatricesTest {
                 OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
+        problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
+                data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
+                data.test_solve_u, 0);
         osqp = new OSQP(problem, settings);
 
         // Update A (all indices)
@@ -189,6 +198,9 @@ public class UpdateMatricesTest {
                 OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
+        problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
+                data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
+                data.test_solve_u, 0);
         osqp = new OSQP(problem, settings);
 
         // Update P and A
@@ -213,6 +225,9 @@ public class UpdateMatricesTest {
                 OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL * OSQPTester.TESTS_TOL);
 
         // Cleanup and setup workspace
+        problem = new OSQP.Data(data.test_solve_Pu.n, data.test_solve_A.m,
+                data.test_solve_Pu, data.test_solve_A, data.test_solve_q, data.test_solve_l,
+                data.test_solve_u, 0);
         osqp = new OSQP(problem, settings);
 
         // Update P and A (all indices)

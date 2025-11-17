@@ -14,7 +14,7 @@ final class UnconstrainedTestDataGenerator {
         final int A_m = 0;
         final int A_n = 5;
         final int A_nzmax = 0;
-        final double[] A_x = null;
+        final double[] A_x = new double[0];
         final int[] A_i = null;
         final int[] A_p = new int[] { 0, 0, 0, 0, 0, 0, 0 };
         final CSCMatrix A = new CSCMatrix(A_m, A_n, A_nzmax, A_p, A_i, A_x);

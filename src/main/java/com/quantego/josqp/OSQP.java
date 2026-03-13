@@ -410,7 +410,7 @@ public class OSQP {
 		if (!work.settings.warm_start) 
 			cold_start(work);  // If not warm start ->
 		                                                      // set x, z, y to zero
-		
+			
 		if (work.settings.verbose) {
 			print_setup_header(work);
 			print_header();
@@ -1102,7 +1102,7 @@ public class OSQP {
 
 		    for (i = 0; i < work.data.m; i++) {
 		      ineq_lhs += work.data.u[i] * Math.max(work.delta_y[i], 0) + 
-		                  work.data.l[i] * Math.max(work.delta_y[i], 0);
+		                  work.data.l[i] * Math.min(work.delta_y[i], 0);
 		    }
 
 		    // Check if the condition is satisfied: ineq_lhs < -eps
@@ -1432,7 +1432,7 @@ public class OSQP {
 			  // Reset solver information
 			  reset_info(work.info);
 			}
-		
+
 		
 		public void update_bounds(double[] l_new, double[] u_new) {
 			int i;

@@ -8,9 +8,9 @@ public class CSCMatrix {
 	public final int m;
 	public int nz;
 	public int nzmax;
-	public final int[] Ap;
-    public final int[] Ai;
-    public final double[] Ax;
+	public int[] Ap;
+    public int[] Ai;
+    public double[] Ax;
 
     
 	public CSCMatrix(int m, int n, int nzmax, int[] ap, int[] ai, double[] ax) {
@@ -31,6 +31,21 @@ public class CSCMatrix {
 		this.Ap = new int[triplet ? nzmax : n+1];
 		this.Ai = new int[nzmax];
 		this.Ax = values ? new double[nzmax] : null;
+	}
+
+	/**
+	 * The new content must fit the existing size of the matrix.
+	 * @param nzmax
+	 * @param ap
+	 * @param ai
+	 * @param ax
+	 */
+	public void replaceContent(int nzmax, int[] ap, int[] ai, double[] ax) {
+		this.nz = ax.length;
+		this.nzmax = nzmax;
+		this.Ap = ap;
+		this.Ai = ai;
+		this.Ax = ax;
 	}
 	
 	public static CSCMatrix triplet_to_csc(CSCMatrix T, int[] TtoC) {

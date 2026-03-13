@@ -547,6 +547,7 @@ public class BasicQPTest {
         // Define Solver settings as default
         final OSQP.Settings settings = new OSQP.Settings();
         settings.check_termination = 1;
+        settings.adaptive_rho = false; // this must be false to test cold start
 
         // Setup workspace
         final OSQP osqp = new OSQP(data, settings);
@@ -557,6 +558,7 @@ public class BasicQPTest {
 
         // Cold start and solve again
         osqp.warm_start(x0, y0);
+        settings.warm_start = false; // we need to set the warm_start to false after clearing variables
         osqp.solve();
 
         // Check if the number of iterations is the same

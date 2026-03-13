@@ -30,8 +30,7 @@ public class UnconstrainedTest {
 
         // Compare primal solutions
         assertEquals("Unconstrained test solve: Error in primal solution!",
-                LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n),
-                OSQPTester.TESTS_TOL);
+                true,LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n)<OSQPTester.TESTS_TOL);
 
         // Compare objective values
         assertEquals("Unconstrained test solve: Error in objective value!",sols_data.obj_value_test, osqp.work.info.obj_val, OSQPTester.TESTS_TOL

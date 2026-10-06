@@ -10,7 +10,8 @@ if __name__=='__main__':
  p.add_argument('--timeout',type=float,default=35);p.add_argument('--profile',choices=['default','strict','normalized'],default='default')
  p.add_argument('--forks',type=int,default=1);p.add_argument('--output')
  p.add_argument('--eps',type=float);p.add_argument('--eps-rel',type=float);p.add_argument('--max-iter',type=int,default=100000)
- p.add_argument('--no-polish',action='store_true');a=p.parse_args()
+ p.add_argument('--no-polish',action='store_true');p.add_argument('--no-gap',action='store_true')
+ p.add_argument('--revision');a=p.parse_args()
  sibling=ROOT.parent/'josqp_benchmarks';out=sibling/'extracted';out.mkdir(exist_ok=True)
  if a.files:names=a.files
  else:
@@ -27,12 +28,13 @@ if __name__=='__main__':
    for m in tar.getmembers():
     if m.isfile() and Path(m.name).name==name:
      with tar.extractfile(m) as src,dst.open('wb') as f:shutil.copyfileobj(src,f)
- base=build('vector',revision=BASE if a.phase=='before' else None)
- source_root=ROOT/'target'/('vector-'+BASE+'-src') if a.phase=='before' else ROOT
+ revision=a.revision or (BASE if a.phase=='before' else None)
+ base=build('vector',revision=revision)
+ source_root=ROOT/'target'/('vector-'+revision+'-src') if revision else ROOT
  source_hashes={str(f.relative_to(source_root)):hashlib.sha256(f.read_bytes()).hexdigest() for folder in ['src/main/java','src/vector/java'] for f in sorted((source_root/folder).rglob('*.java'))}
  source_hashes.update({str(f.relative_to(ROOT)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted((ROOT/'benchmarks/java').rglob('*.java'))})
  result={'phase':a.phase,'arguments':vars(a),'baseline_commit':BASE,'solver_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
-  'measured_solver_commit':subprocess.check_output(['git','rev-parse',BASE if a.phase=='before' else 'HEAD'],cwd=ROOT,text=True).strip(),
+  'measured_solver_commit':subprocess.check_output(['git','rev-parse',revision or 'HEAD'],cwd=ROOT,text=True).strip(),
   'source_sha256':source_hashes,
   'java':subprocess.run([str(JAVA/'bin/java'),'-version'],capture_output=True,text=True).stderr,'heap':'2g','runs':[]}
  output=ROOT/(a.output or ('benchmarks/results/stability-'+a.phase+'-'+a.profile+'.json'))
@@ -48,6 +50,7 @@ if __name__=='__main__':
     if a.eps is not None:props+=['-Daudit.eps='+str(a.eps)]
     if a.eps_rel is not None:props+=['-Daudit.epsRel='+str(a.eps_rel)]
     if a.no_polish:props+=['-Daudit.polish=false']
+    if a.no_gap:props+=['-Daudit.gap=false']
     if a.profile=='normalized':
      # Explicit equivalent objective rescaling; divide duals and cost back in audit.
      props+=['-Daudit.costScale=10000']

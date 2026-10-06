@@ -23,6 +23,11 @@ public final class StabilityBenchmark {
         s.eps_prim_inf = s.eps_dual_inf = Double.parseDouble(System.getProperty("audit.infeasEps", "0.0001"));
         s.polish = Boolean.parseBoolean(System.getProperty("audit.polish", "false"));
         s.scaling = Integer.parseInt(System.getProperty("audit.scaling", "10"));
+        // Reflection keeps the harness compilable against frozen older solvers.
+        try { OSQP.Settings.class.getField("check_dualgap").setBoolean(s,
+                Boolean.parseBoolean(System.getProperty("audit.gap", "true"))); }
+        catch (NoSuchFieldException ignored) { }
+        catch (IllegalAccessException ex) { throw new IllegalStateException(ex); }
         OSQP.Data input = new OSQP.Data(original);
         double costScale = Double.parseDouble(System.getProperty("audit.costScale", "1"));
         for (int i=0;i<input.P.Ap[input.n];i++) input.P.Ax[i] *= costScale;
@@ -61,10 +66,26 @@ public final class StabilityBenchmark {
         boolean finite=Double.isFinite(norm(x)) && Double.isFinite(norm(y));
         double independentObj=0.5*xpx+qx+original.offset;
         double reportedObj=(solver.getObjectiveValue()-original.offset)/costScale+original.offset;
+        String export = System.getProperty("audit.export");
+        if (export != null) exportData(original, export);
         System.out.println("file,n,m,offset,cost_scale,status,status_polish,iterations,rho_updates,setup_ms,solve_ms,objective,independent_objective,primal_violation,stationarity,complementarity,dual_cone_error,gap_expression,finite,x_hash,y_hash");
         System.out.printf("%s,%d,%d,%.17g,%.17g,%s,%d,%d,%d,%.6f,%.6f,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%d,%d%n",
             args[0],original.n,original.m,original.offset,costScale,solver.getInfo().status,solver.getInfo().status_polish,solver.getInfo().iter,
             solver.getInfo().rho_updates,setup,solve,reportedObj,independentObj,pri,dual,comp,cone,xpx+qx+support,finite,
             java.util.Arrays.hashCode(x),java.util.Arrays.hashCode(y));
+    }
+
+    /** Exact original matrices for native solvers, before JOSQP scaling. Big-endian doubles/ints. */
+    static void exportData(OSQP.Data d, String path) {
+        try (java.io.DataOutputStream out = new java.io.DataOutputStream(new java.io.FileOutputStream(path))) {
+            out.writeInt(0x4a515031); out.writeInt(d.n); out.writeInt(d.m); out.writeDouble(d.offset);
+            for (CSCMatrix a : new CSCMatrix[]{d.P,d.A}) {
+                int nz=a.Ap[a.n]; out.writeInt(nz);
+                for (int i=0;i<=a.n;i++) out.writeInt(a.Ap[i]);
+                for (int i=0;i<nz;i++) out.writeInt(a.Ai[i]);
+                for (int i=0;i<nz;i++) out.writeDouble(a.Ax[i]);
+            }
+            for(double[] v : new double[][]{d.q,d.l,d.u}) for(double z:v) out.writeDouble(z);
+        } catch (java.io.IOException ex) { throw new java.io.UncheckedIOException(ex); }
     }
 }

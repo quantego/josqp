@@ -108,6 +108,9 @@ public class OSQP {
 		public int status_polish; ///< polish status: successful (1), unperformed (0), (-1) unsuccessful
 
 		public double obj_val;     ///< primal objective
+		public double dual_obj_val; ///< dual objective expression, excluding constant offset
+		public double duality_gap; ///< signed gap expression in original objective units
+		double scaled_duality_gap, gap_scale;
 		public double pri_res;     ///< norm of primal residual
 		public double dua_res;    ///< norm of dual residual
 
@@ -134,6 +137,7 @@ public class OSQP {
 		double[] z;         ///< optimal z-solution obtained by polish
 		double[] y;         ///< optimal y-solution obtained by polish
 		double obj_val;   ///< objective value at polished solution
+		double dual_obj_val, duality_gap, scaled_duality_gap, gap_scale;
 		double pri_res;   ///< primal residual at polished solution
 		double dua_res;   ///< dual residual at polished solution
 	}
@@ -163,6 +167,7 @@ public class OSQP {
 		public boolean verbose = VERBOSE;                         ///< boolean, write out progress
 
 		public boolean scaled_termination = SCALED_TERMINATION;              ///< boolean, use scaled termination criteria
+		public boolean check_dualgap = true; ///< OSQP 1.0 double-precision termination criterion
 		public int check_termination = CHECK_TERMINATION;               ///< integer, check termination interval; if 0, then termination checking is disabled
 		public boolean warm_start = WARM_START;                      ///< boolean, warm start
 
@@ -1273,6 +1278,44 @@ public class OSQP {
 		  else
 			  work.info.dua_res = compute_dua_res(work, x, y);
 
+		  // compute_dua_res has already formed the full symmetric P*x.
+		  update_duality_gap(work, x, y, polish);
+
+		}
+
+		/** OSQP 1.0's gap expression. It is not a rigorous bound away from stationarity. */
+		static void update_duality_gap(Workspace work, double[] x, double[] y, boolean polish) {
+		    double quad = LinAlg.vec_prod(x, work.Px, work.data.n);
+		    double linear = LinAlg.vec_prod(work.data.q, x, work.data.n);
+		    double support = 0.0;
+		    final double infinity = OSQP_INFTY * MIN_SCALING;
+		    for (int i = 0; i < work.data.m; i++) {
+		        double yi = y[i];
+		        // Project onto the polar recession cone without changing the iterate.
+		        if (Math.abs(yi) <= 1e-15) continue;
+		        if (yi > 0 && work.data.u[i] < infinity) support += yi * work.data.u[i];
+		        else if (yi < 0 && work.data.l[i] > -infinity) support += yi * work.data.l[i];
+		    }
+		    double scale = work.settings.scaling > 0 ? work.scaling.cinv : 1.0;
+		    double gap = quad + linear + support;
+		    double relativeScale = Math.max(Math.abs(quad), Math.max(Math.abs(linear), Math.abs(support)));
+		    if (polish) {
+		        work.pol.dual_obj_val = scale * (-0.5 * quad - support);
+		        work.pol.duality_gap = scale * gap;
+		        work.pol.scaled_duality_gap = gap;
+		        work.pol.gap_scale = relativeScale;
+		    } else {
+		        work.info.dual_obj_val = scale * (-0.5 * quad - support);
+		        work.info.duality_gap = scale * gap;
+		        work.info.scaled_duality_gap = gap;
+		        work.info.gap_scale = relativeScale;
+		    }
+		}
+
+		static double compute_gap_tol(Workspace work, double epsAbs, double epsRel) {
+		    double scale = work.settings.scaling > 0 && !work.settings.scaled_termination
+		            ? work.scaling.cinv : 1.0;
+		    return epsAbs + epsRel * scale * work.info.gap_scale;
 		}
 
 
@@ -1346,7 +1389,10 @@ public class OSQP {
 		  }
 
 		  // Compare checks to determine solver status
-		  if (prim_res_check && dual_res_check) {
+		  double gap = work.settings.scaled_termination ? work.info.scaled_duality_gap : work.info.duality_gap;
+		  boolean gap_check = !work.settings.check_dualgap ||
+		          (Double.isFinite(gap) && Math.abs(gap) < compute_gap_tol(work, eps_abs, eps_rel));
+		  if (prim_res_check && dual_res_check && gap_check) {
 		    // Update final information
 		    if (approximate) {
 		      work.info.status = Status.SOLVED_INACCURATE;

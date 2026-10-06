@@ -274,6 +274,10 @@ class Polish {
 	  if (polish_successful) {
 	    // Update solver information
 	    work.info.obj_val       = work.pol.obj_val;
+	    work.info.dual_obj_val  = work.pol.dual_obj_val;
+	    work.info.duality_gap   = work.pol.duality_gap;
+	    work.info.scaled_duality_gap = work.pol.scaled_duality_gap;
+	    work.info.gap_scale     = work.pol.gap_scale;
 	    work.info.pri_res       = work.pol.pri_res;
 	    work.info.dua_res       = work.pol.dua_res;
 	    work.info.status_polish = 1;

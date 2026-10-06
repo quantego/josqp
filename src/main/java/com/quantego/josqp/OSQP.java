@@ -74,7 +74,22 @@ public class OSQP {
 	public static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
 
 	public static final double TIME_LIMIT = 1e10;
-	
+
+	/** Conjugate-gradient defaults of OSQP 1.0; kept for API parity, the solver is not ported. */
+	public static final int CG_MAX_ITER = 20;
+	public static final double CG_TOL_REDUCTION = 10;
+	public static final double CG_TOL_FRACTION = 0.15;
+
+	/** Linear system solver selection, mirroring {@code osqp_linsys_solver_type}. */
+	public enum LinSysSolver {
+		OSQP_UNKNOWN_SOLVER, OSQP_DIRECT_SOLVER, OSQP_INDIRECT_SOLVER
+	}
+
+	/** Conjugate-gradient preconditioner, mirroring {@code osqp_preconditioner}. */
+	public enum Preconditioner {
+		OSQP_NO_PRECONDITIONER, OSQP_DIAGONAL_PRECONDITIONER
+	}
+
 	public static final int PRINT_INTERVAL = 200;
 	
 	public static class ScaledProblemData {
@@ -122,6 +137,13 @@ public class OSQP {
 		public double dual_obj_val; ///< dual objective expression, excluding constant offset
 		public double duality_gap; ///< signed gap expression in original objective units
 		double scaled_duality_gap, gap_scale;
+		/**
+		 * Running integral of {@code |duality_gap|} over the info updates of this workspace, as in
+		 * OSQP 1.0. Like upstream it accumulates across repeated solves on the same solver.
+		 */
+		public double primdual_int;
+		/** {@code max(pri_res, dua_res, |duality_gap|)} of the last info update, as in OSQP 1.0. */
+		public double rel_kkt_error = OSQP_INFTY;
 		public double pri_res;     ///< norm of primal residual
 		public double dua_res;    ///< norm of dual residual
 
@@ -206,6 +228,47 @@ public class OSQP {
 		public boolean warm_start = WARM_START;                      ///< boolean, warm start
 
 		public double time_limit = TIME_LIMIT;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
+
+		/**
+		 * Device identifier as in OSQP 1.0, where {@code NULL} selects the default CPU device. The
+		 * pure Java solver has no device selection, so the value is accepted but unused; the empty
+		 * string is the default.
+		 */
+		public String device = "";
+		/**
+		 * Linear system solver as in OSQP 1.0. jOSQP implements the direct QDLDL factorisation
+		 * ({@link LinSysSolver#OSQP_DIRECT_SOLVER}); {@link LinSysSolver#OSQP_UNKNOWN_SOLVER} is
+		 * resolved to it as well. {@link LinSysSolver#OSQP_INDIRECT_SOLVER} is rejected, because the
+		 * conjugate-gradient solver is not part of this port.
+		 */
+		public LinSysSolver linsys_solver = LinSysSolver.OSQP_DIRECT_SOLVER;
+		/** OSQP 1.0 parity; the Java API always allocates the solution vectors. */
+		public boolean allocate_solution = true;
+		/** OSQP 1.0 parity; the port does not emit profiler annotations. */
+		public int profiler_level = 0;
+		/**
+		 * Whether rho is a vector, as in OSQP 1.0. jOSQP always derives a per-constraint rho vector
+		 * (loose, equality and inequality rows), which is the {@code true} case; the scalar form is
+		 * not implemented, so {@code false} is rejected.
+		 */
+		public boolean rho_is_vec = true;
+		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
+		public int cg_max_iter = CG_MAX_ITER;
+		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
+		public double cg_tol_reduction = CG_TOL_REDUCTION;
+		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
+		public double cg_tol_fraction = CG_TOL_FRACTION;
+		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
+		public Preconditioner cg_precond = Preconditioner.OSQP_DIAGONAL_PRECONDITIONER;
+
+		/** OSQP 1.0 name for {@link #polish}; the field keeps the 0.6 name for source compatibility. */
+		public boolean isPolishing() { return polish; }
+		/** OSQP 1.0 name for {@link #polish}. */
+		public void setPolishing(boolean value) { this.polish = value; }
+		/** OSQP 1.0 name for {@link #warm_start}. */
+		public boolean isWarmStarting() { return warm_start; }
+		/** OSQP 1.0 name for {@link #warm_start}. */
+		public void setWarmStarting(boolean value) { this.warm_start = value; }
 	}
 	
 	public static class Data {
@@ -401,6 +464,7 @@ public class OSQP {
 		work.Adelta_x = new double[data.m];
 		// Settings
 		work.settings = settings;
+		validateSettings(settings);
 		// Perform scaling
 		if(settings.scaling!=0) {
 			// Allocate scaling structure
@@ -1356,6 +1420,15 @@ public class OSQP {
 		  // compute_dua_res has already formed the full symmetric P*x.
 		  update_duality_gap(work, x, y, polish);
 
+		  // OSQP 1.0's primal-dual integral and relative KKT error. The integral is only advanced
+		  // for the ADMM iterates; the relative KKT error is reported for polishing as well.
+		  final double infoPriRes = polish ? work.pol.pri_res : work.info.pri_res;
+		  final double infoDuaRes = polish ? work.pol.dua_res : work.info.dua_res;
+		  final double infoGap = polish ? work.pol.duality_gap : work.info.duality_gap;
+		  if (!polish)
+			  work.info.primdual_int += Math.abs(infoGap);
+		  work.info.rel_kkt_error = Math.max(Math.max(infoDuaRes, infoPriRes), Math.abs(infoGap));
+
 		}
 
 		/** OSQP 1.0's gap expression. It is not a rigorous bound away from stationarity. */
@@ -1949,6 +2022,20 @@ public class OSQP {
 
 		if (settings.check_termination < 0) {
 			throw new IllegalArgumentException("check_termination must be nonnegative");
+		}
+
+		// OSQP 1.0 names that jOSQP cannot honour are rejected instead of silently ignored, so a
+		// caller never gets a result for a solver configuration that was not actually used.
+		if (settings.linsys_solver == LinSysSolver.OSQP_INDIRECT_SOLVER) {
+			throw new IllegalArgumentException(
+					"The conjugate-gradient solver (OSQP_INDIRECT_SOLVER) is not implemented; "
+					+ "use OSQP_DIRECT_SOLVER for the QDLDL factorisation.");
+		}
+
+		if (!settings.rho_is_vec) {
+			throw new IllegalArgumentException(
+					"jOSQP always derives the per-constraint rho vector; the scalar rho form "
+					+ "(rho_is_vec = false) is not implemented.");
 		}
 
 	}

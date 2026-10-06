@@ -59,6 +59,36 @@ still declares `0.6.6`.
 - `OSQP.Settings#infeasibility_streak` and
   `OSQP.Settings#infeasibility_margin` (see above).
 - `Model#getNumVariables()` and `Model#getNumConstraints()`.
+- **OSQP 1.0 settings parity** ([issue #1](https://github.com/quantego/josqp/issues/1)):
+  `device`, `linsys_solver`, `allocate_solution`, `profiler_level`, `rho_is_vec`,
+  `cg_max_iter`, `cg_tol_reduction`, `cg_tol_fraction` and `cg_precond` now exist
+  with the OSQP 1.0 defaults, so code written against `OSQPSettings` compiles
+  unchanged. `polishing` and `warm_starting` are reachable through
+  `Settings#isPolishing()/setPolishing(boolean)` and
+  `Settings#isWarmStarting()/setWarmStarting(boolean)`; the 0.6 field names
+  `polish` and `warm_start` remain for source compatibility.
+  `Info` carries `primdual_int` (running integral of `|duality_gap|`) and
+  `rel_kkt_error` (`max(pri_res, dua_res, |duality_gap|)` of the last info
+  update), both filled like in OSQP 1.0.
+
+### Changed
+
+- Settings that jOSQP cannot honour are now rejected instead of silently
+  ignored: `linsys_solver = OSQP_INDIRECT_SOLVER` (no conjugate-gradient solver)
+  and `rho_is_vec = false` (scalar rho) throw an `IllegalArgumentException` from
+  the `OSQP` constructor. `device`, `allocate_solution`, `profiler_level` and
+  the four CG parameters are inert for a pure Java solver; the
+  `SettingsConformanceTest` documents them as such.
+- `OSQP` validates its settings in the constructor, as `osqp_setup` does in C,
+  so an invalid configuration fails at construction instead of at the first
+  solve.
+- `QDLDL` keeps values in locals instead of reading and writing the work array
+  repeatedly, and the diagonal scaling is folded into the backward solve.
+- `CSCMatrixBuilder` collects primitive `(row, column, value)` triplets and
+  assembles CSC with a stable counting sort instead of one `TreeMap` per column;
+  `Model` stores `q`, `l`, `u` and `rhs` in primitive lists.
+- `OSQP.Data#takeOwnership` hands freshly built arrays to the solver without a
+  second copy.
 
 ### Fixed
 
@@ -98,16 +128,6 @@ still declares `0.6.6`.
   factor/work arrays are reused across rho updates. For `qplib_8602` this
   reduces the solve time by 13.9 % (31.56 s -> 27.17 s) and the temporary
   allocations from 767 MB to 64 bytes.
-
-### Changed
-
-- `QDLDL` keeps values in locals instead of reading and writing the work array
-  repeatedly, and the diagonal scaling is folded into the backward solve.
-- `CSCMatrixBuilder` collects primitive `(row, column, value)` triplets and
-  assembles CSC with a stable counting sort instead of one `TreeMap` per column;
-  `Model` stores `q`, `l`, `u` and `rhs` in primitive lists.
-- `OSQP.Data#takeOwnership` hands freshly built arrays to the solver without a
-  second copy.
 
 ### Documentation
 

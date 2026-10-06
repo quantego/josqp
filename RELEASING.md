@@ -14,22 +14,18 @@ the GPG keyring and `~/.m2/settings.xml` of your machine.
 
 ### 1. GPG signing key
 
-Central rejects unsigned artifacts. Generate a key once (interactive, the
-passphrase is asked for with hidden input and never ends up in the shell
-history):
+Central rejects unsigned artifacts. Generate a key once:
 
 ```
-gpg --full-generate-key            # RSA 4096, no expiry is fine
-gpg --list-secret-keys --keyid-format=long
-gpg --keyserver keyserver.ubuntu.com --send-keys <KEY-ID>
+gpg --quick-generate-key "jOSQP Release <mail@example.com>" rsa4096 sign never
+KEYID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ { print $5; exit }')
+gpg --keyserver keyserver.ubuntu.com --send-keys "$KEYID"
 ```
 
-Then copy the private key into the repository secret `GPG_PRIVATE_KEY`:
-
-```
-gpg --armor --export-secret-keys <KEY-ID> | pbcopy
-# GitHub -> Settings -> Secrets and variables -> Actions -> New repository secret
-```
+`--quick-generate-key` asks for the passphrase in the normal pinentry dialog and
+never puts it on the command line. The wizard variant `gpg --full-generate-key`
+does the same thing with more questions. Instead of a keyserver the public key
+can also be uploaded in the Central Portal account.
 
 ### 2. Central Portal token
 
@@ -45,6 +41,22 @@ Generate User Token* you get a username and a password.
 | `CENTRAL_PASSWORD` | user-token password |
 | `GPG_PRIVATE_KEY` | ASCII-armoured private key from step 1 |
 | `GPG_PASSPHRASE` | passphrase of that key |
+
+With the GitHub CLI (`gh auth login --scopes repo` once, `KEYID` from step 1):
+
+```
+R=quantego/josqp
+gpg --armor --export-secret-keys "$KEYID" | gh secret set GPG_PRIVATE_KEY --repo "$R"
+printf "GPG-Passphrase: " && read -rs P && echo && printf '%s' "$P" | gh secret set GPG_PASSPHRASE --repo "$R"
+printf "Central-Token Benutzername: " && read -r CU && printf '%s' "$CU" | gh secret set CENTRAL_USERNAME --repo "$R"
+printf "Central-Token Passwort: " && read -rs CP && echo && printf '%s' "$CP" | gh secret set CENTRAL_PASSWORD --repo "$R"
+gh secret list --repo "$R"
+```
+
+Nothing is echoed, stored in a file or written to the shell history. Two zsh
+traps to avoid when pasting these lines: an inline `# comment` after a command
+is read as an *argument* unless `interactive_comments` is set, and an unquoted
+`var?prompt` argument to `read` is treated as a glob pattern.
 
 ## Release
 

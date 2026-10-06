@@ -1,0 +1,19 @@
+# Builder-Benchmark (Build-Phase ohne Solve), JDK 26, -Xmx2g
+# Aufruf: java -Xmx2g -cp target/vector-classes com.quantego.josqp.BuilderBenchmark <n> <rows> <nnzPerRow>
+# vorher: alter map-basierter Builder (Commit d1fb40e)
+# nachher: primitiver Triplet-Builder (aktueller Stand)
+
+--- args: 100000 1000 200
+n=100000 structural_rows=101000 user_rows=1000 user_nnz=200000
+build_ms=90.9
+allocated_bytes_build=85024936
+peak_heap_mb=193.4
+objective=41.975000 status=SOLVED
+
+--- args: 300000 2000 200
+n=300000 structural_rows=302000 user_rows=2000 user_nnz=400000
+build_ms=224.0
+allocated_bytes_build=236054968
+peak_heap_mb=524.0
+objective=41.925000 status=SOLVED
+

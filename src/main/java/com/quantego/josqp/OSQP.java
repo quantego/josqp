@@ -194,14 +194,34 @@ public class OSQP {
 			return m;
 		}
 		public Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u, double offset) {
+			this(n, m, P, A, q, l, u, offset, true);
+		}
+
+		private Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u, double offset, boolean copy) {
 			this.n = n;
 			this.m = m;
-			this.P = CSCMatrix.copy_csc_mat(P);
-			this.A = CSCMatrix.copy_csc_mat(A);
-			this.q = q.clone();
-			this.l = l.clone();
-			this.u = u.clone();
+			if (copy) {
+				this.P = CSCMatrix.copy_csc_mat(P);
+				this.A = CSCMatrix.copy_csc_mat(A);
+				this.q = q.clone();
+				this.l = l.clone();
+				this.u = u.clone();
+			} else {
+				this.P = P;
+				this.A = A;
+				this.q = q;
+				this.l = l;
+				this.u = u;
+			}
 			this.offset = offset;
+		}
+
+		/**
+		 * Wraps already owned CSC matrices and arrays without copying. The caller must not keep or
+		 * modify the passed arrays afterwards; the solver scales the data in place.
+		 */
+		static Data takeOwnership(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u, double offset) {
+			return new Data(n, m, P, A, q, l, u, offset, false);
 		}
 		public Data(Data src) {
 			n = src.n;

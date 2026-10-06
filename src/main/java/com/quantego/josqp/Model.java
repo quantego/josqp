@@ -471,13 +471,13 @@ public class Model {
     OSQP.Data _data;
     CSCMatrixBuilder _A;
     CSCMatrixBuilder _P;
-    List<Integer> _cr;
-    List<Integer> _rr;
-    List<Double> _ub;
-    List<Double> _lb;
-    List<Double> _q;
-    List<Constraint.Type> _type;
-    List<Double> _rhs;
+    IntList _cr;
+    IntList _rr;
+    DoubleList _ub;
+    DoubleList _lb;
+    DoubleList _q;
+    IntList _type;
+    DoubleList _rhs;
     Map<Integer, String> _varNames;
     int _nCols;
     int _nRows;
@@ -495,13 +495,13 @@ public class Model {
     public Model() {
         _A = new CSCMatrixBuilder();
         _P = new CSCMatrixBuilder();
-        _ub = new ArrayList<>();
-        _lb = new ArrayList<>();
-        _q = new ArrayList<>();
-        _cr = new ArrayList<>();
-        _rr = new ArrayList<>();
-        _type = new ArrayList<>();
-        _rhs = new ArrayList<>();
+        _ub = new DoubleList();
+        _lb = new DoubleList();
+        _q = new DoubleList();
+        _cr = new IntList();
+        _rr = new IntList();
+        _type = new IntList();
+        _rhs = new DoubleList();
         _param = new OSQP.Settings();
     }
 
@@ -554,7 +554,7 @@ public class Model {
         }
         _rr.add(_nRows);
         _rhs.add(rhs);
-        _type.add(type);
+        _type.add(type.ordinal());
         _newRows = true;
         return _nRows++;
     }
@@ -566,7 +566,7 @@ public class Model {
      */
     public void setType(int ctr, Constraint.Type type) {
         if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
-        if (type==_type.get(ctr)) return;
+        if (type.ordinal()==_type.get(ctr)) return;
         double rhs = _rhs.get(ctr);
         switch (type) {
             case EQ: _lb.set(ctr,rhs); _ub.set(ctr,rhs); break;
@@ -574,7 +574,7 @@ public class Model {
             case GEQ:  _lb.set(ctr,rhs); _ub.set(ctr,OSQP.OSQP_INFTY);break;
             case NEQ:  _lb.set(ctr,-OSQP.OSQP_INFTY); _ub.set(ctr,OSQP.OSQP_INFTY); break;
         }
-        _type.set(ctr, type);
+        _type.set(ctr, type.ordinal());
         _newL = true; _newU = true;
     }
 
@@ -586,12 +586,13 @@ public class Model {
     public void setRhs(int ctr, double value) {
         if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
         if (value==_rhs.get(ctr)) return;
-        switch (_type.get(ctr)) {
+        switch (Constraint.Type.values()[_type.get(ctr)]) {
             case EQ: _lb.set(ctr,value); _ub.set(ctr,value); _newL = true; _newU = true; break;
             case LEQ:  _lb.set(ctr,-OSQP.OSQP_INFTY); _ub.set(ctr,value); _newU=true; break;
             case GEQ:  _lb.set(ctr,value); _ub.set(ctr,OSQP.OSQP_INFTY); _newL=true; break;
             case NEQ:  _lb.set(ctr,-OSQP.OSQP_INFTY); _ub.set(ctr,OSQP.OSQP_INFTY); break;
         }
+        _rhs.set(ctr, value);
         _newL = true; _newU = true;
     }
 
@@ -680,20 +681,39 @@ public class Model {
         return _param;
     }
 
+    /**
+     * Returns the number of variables in the model.
+     * @return number of variables
+     */
+    public int getNumVariables() {
+        return _nCols;
+    }
+
+    /**
+     * Returns the number of constraints in the model, including the structural bound rows that
+     * every variable contributes.
+     * @return number of constraints
+     */
+    public int getNumConstraints() {
+        return _nRows;
+    }
+
     void init(OSQP.Settings settings) {
         if (settings != null)
             _param = settings;
         else
             _param = new OSQP.Settings();
 
-        _data = new OSQP.Data(_nCols,
+        _data = OSQP.Data.takeOwnership(_nCols,
                 _nRows,
                 _P.build(_maximize),
                 _A.build(false),
-                _maximize ? Utils.toDoubleArrayNeg(_q) : Utils.toDoubleArray(_q),
-                Utils.toDoubleArray(_lb),
-                Utils.toDoubleArray(_ub),
-                0
+                _maximize ? _q.toArrayNegated() : _q.toArray(),
+                _lb.toArray(),
+                _ub.toArray(),
+                // The solver reports objective values including the offset; for maximization the
+                // objective is negated, so the offset must be negated with it.
+                _maximize ? -_offset : _offset
         );
         _solver = new OSQP(_data,_param);
     }
@@ -726,10 +746,10 @@ public class Model {
             }
             else {
                 if (_newQ) {
-                    _solver.update_lin_cost(_maximize ? Utils.toDoubleArrayNeg(_q) : Utils.toDoubleArray(_q));
+                    _solver.update_lin_cost(_maximize ? _q.toArrayNegated() : _q.toArray());
                 }
                 if (_newL || _newU)
-                    _solver.update_bounds(Utils.toDoubleArray(_lb), Utils.toDoubleArray(_ub));
+                    _solver.update_bounds(_lb.toArray(), _ub.toArray());
                 if (_newA) {
                     _A.update(false);
                     _solver.update_A(_A.getElements(), _A.getIndices());
@@ -780,7 +800,7 @@ public class Model {
      * @return objective value
      */
     public double getObj() {
-        return (_maximize?-1:1)*_solver.getObjectiveValue()+_offset;
+        return (_maximize?-1:1)*_solver.getObjectiveValue();
     }
 
     static String termToString(double d, String s) {
@@ -850,7 +870,8 @@ public class Model {
 				constraintStrings.get(row).append(termToString(element,getName(col)));
 			}
 		}
-		for (Integer row : _rr) {
+		for (int r = 0; r < _rr.size(); r++) {
+			int row = _rr.get(r);
 			double lb = _lb.get(row);
 			double ub = _ub.get(row);
 			if (Double.compare(lb,ub)==0)

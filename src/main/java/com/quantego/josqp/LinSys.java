@@ -174,7 +174,7 @@ class LinSys  {
 
 	    // Check if matrix has been created
 
-	    qdldl.factor(KKT_temp);
+	    qdldl.refactor(KKT_temp);
 	    // Factorize the KKT matrix
 
 
@@ -258,7 +258,7 @@ class LinSys  {
 	    // Update KKT matrix with new A
 	    KKT.update_KKT_A(this.kkt, A, this.AtoKKT);
 
-	    qdldl.factor(this.kkt);
+	    qdldl.refactor(this.kkt);
 
 	}
 
@@ -273,7 +273,7 @@ class LinSys  {
 
 	    // Update KKT matrix with new rho_vec
 	    KKT.update_KKT_param2(this.kkt, this.rho_inv_vec, this.rhotoKKT, this.m);
-	    return qdldl.factor(this.kkt);
+	    return qdldl.refactor(this.kkt);
 	}
 	
 

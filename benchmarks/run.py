@@ -15,6 +15,7 @@ JAVA = pathlib.Path(os.environ.get('JOSQP_JAVA_HOME', os.environ.get('JAVA_HOME'
                     '/opt/homebrew/opt/openjdk@26/libexec/openjdk.jdk/Contents/Home')))
 DEPS = os.environ.get('JOSQP_TEST_CLASSPATH', str(WORKSPACE / '.tools/classes'))
 BASELINE = '36f06131eeb8977fa66b31936449802c9401a7cc'
+PRE_WORKSPACE = '9a27a42'
 
 def compile_to(destination, sources, classpath=None, vector=False, release=None):
     if not sources:
@@ -34,10 +35,12 @@ def build(mode):
     base = ROOT / 'target' / (mode + '-classes')
     if base.exists():
         shutil.rmtree(base)
-    if mode in ('baseline', 'baseline-qplib'):
-        archive = subprocess.run(['git', 'archive', BASELINE, 'src/main/java'], cwd=ROOT,
+    if mode in ('baseline', 'baseline-qplib', 'pre-workspace'):
+        archived_commit = PRE_WORKSPACE if mode == 'pre-workspace' else BASELINE
+        archived_paths = ['src/main/java', 'src/vector/java'] if mode == 'pre-workspace' else ['src/main/java']
+        archive = subprocess.run(['git', 'archive', archived_commit] + archived_paths, cwd=ROOT,
                                  capture_output=True, check=True).stdout
-        source_root = ROOT / 'target/baseline-src'
+        source_root = ROOT / 'target' / ('pre-workspace-src' if mode == 'pre-workspace' else 'baseline-src')
         source_root.mkdir(parents=True, exist_ok=True)
         with tarfile.open(fileobj=io.BytesIO(archive)) as source:
             # Restrict extraction to regular files/directories, including on Python < 3.12.
@@ -53,6 +56,8 @@ def build(mode):
                 else:
                     raise ValueError('Unsupported archive entry: ' + member.name)
     main = ROOT / ('target/baseline-src/src/main/java' if mode in ('baseline', 'baseline-qplib') else 'src/main/java')
+    if mode == 'pre-workspace':
+        main = ROOT / 'target/pre-workspace-src/src/main/java'
     if mode == 'baseline-qplib':
         # Original solver; only the BOUNDS token-position fix is shared so the same QPs can be read.
         parser_file = main / 'com/quantego/josqp/Parser.java'
@@ -86,7 +91,8 @@ def build(mode):
         path.write_text(current)
     compile_to(base, sorted(main.rglob('*.java')), release=8)
     if mode not in ('baseline', 'baseline-qplib', 'portable'):
-        compile_to(base, sorted((ROOT / 'src/vector/java').rglob('*.java')), str(base), vector=True)
+        vector_sources = ROOT / ('target/pre-workspace-src/src/vector/java' if mode == 'pre-workspace' else 'src/vector/java')
+        compile_to(base, sorted(vector_sources.rglob('*.java')), str(base), vector=True)
     benchmark_sources = sorted((ROOT / 'benchmarks/java').rglob('*.java'))
     if mode in ('baseline', 'baseline-qplib', 'portable'):
         benchmark_sources = [p for p in benchmark_sources if p.name == 'SolverBenchmark.java']
@@ -100,20 +106,22 @@ def tests(mode):
         sources += sorted((ROOT / 'src/vector-test/java').rglob('*.java'))
     if mode in ('baseline', 'baseline-qplib'):
         # New regression tests intentionally require the new APIs. Run the original suite only.
-        sources = [p for p in sources if p.name not in ('RegressionTest.java', 'VectorKernelsTest.java')]
+        sources = [p for p in sources if p.name not in ('RegressionTest.java', 'VectorKernelsTest.java', 'FactorWorkspaceTest.java')]
+    if mode == 'pre-workspace':
+        sources = [p for p in sources if p.name != 'FactorWorkspaceTest.java']
     cp = os.pathsep.join((str(base), str(DEPS)))
     compile_to(base, sources, cp, vector=mode not in ('baseline', 'baseline-qplib', 'portable'))
     classes = ['com.quantego.josqp.' + p.stem for p in sources if p.stem.endswith('Test')]
     command = [str(JAVA / 'bin/java'), '-cp', cp]
     if mode not in ('baseline', 'baseline-qplib', 'portable'):
         command += ['--add-modules', 'jdk.incubator.vector']
-    if mode == 'vector':
+    if mode in ('vector', 'pre-workspace'):
         command += ['-Djosqp.vector=true']
     subprocess.run(command + ['org.junit.runner.JUnitCore'] + classes, check=True, cwd=ROOT)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['build', 'test'])
-    parser.add_argument('mode', choices=['baseline', 'baseline-qplib', 'portable', 'scalar', 'vector', 'before-hotloops'])
+    parser.add_argument('mode', choices=['baseline', 'baseline-qplib', 'portable', 'scalar', 'vector', 'before-hotloops', 'pre-workspace'])
     args = parser.parse_args()
     tests(args.mode) if args.action == 'test' else build(args.mode)

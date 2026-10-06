@@ -25,7 +25,7 @@ public final class SolverBenchmark {
         long thread = Thread.currentThread().getId();
         long warmupDeadline = System.nanoTime() + (long) (Double.parseDouble(
                 System.getProperty("josqp.bench.warmupSeconds", "0")) * 1e9);
-        System.out.println("sample,file,n,m,nnz,parse_ms,setup_ms,solve_ms,allocated_bytes,status,iterations,objective,primal_residual,dual_residual,x_hash,y_hash");
+        System.out.println("sample,file,n,m,nnz,parse_ms,setup_ms,solve_ms,allocated_bytes,status,iterations,objective,primal_residual,dual_residual,x_hash,y_hash,rho_updates");
         for (int sample = -warmup; sample < samples; sample++) {
             OSQP.Settings settings = new OSQP.Settings();
             settings.verbose = false;
@@ -45,10 +45,10 @@ public final class SolverBenchmark {
             OSQP.Info info = solver.work.info;
             sink = info.obj_val;
             if (sample >= 0) {
-                System.out.printf("%d,%s,%d,%d,%d,%.6f,%.6f,%.6f,%d,%s,%d,%.17g,%.17g,%.17g,%d,%d%n",
+                System.out.printf("%d,%s,%d,%d,%d,%.6f,%.6f,%.6f,%d,%s,%d,%.17g,%.17g,%.17g,%d,%d,%d%n",
                         sample, file, original.n, original.m, original.A.Ap[original.n] + original.P.Ap[original.n],
                         parseMs, setupMs, solveMs, allocated, status, info.iter, info.obj_val, info.pri_res, info.dua_res,
-                        java.util.Arrays.hashCode(solver.work.solution.x), java.util.Arrays.hashCode(solver.work.solution.y));
+                        java.util.Arrays.hashCode(solver.work.solution.x), java.util.Arrays.hashCode(solver.work.solution.y), info.rho_updates);
             }
             String dump = System.getProperty("josqp.bench.solutionFile");
             if (sample == 0 && dump != null) {

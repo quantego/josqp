@@ -1,5 +1,7 @@
 package com.quantego.josqp;
 
+import java.util.Arrays;
+
 /**
  * Java implementation of the QDLDL factorization routine by Bartolomeo Stellato, Goran Banjac, Paul Goulart, Alberto Bemporad, and
  * Stephen Boyd. The implementation closely follows the original C code that can be found at https://github.com/osqp/qdldl.
@@ -28,16 +30,64 @@ public class QDLDL  {
     	
     }
     
+    private Workspace workspace;
+
+    /** A fresh factorization; previously produced factors remain independent. */
     public boolean factor(CSCMatrix A) {
-    	Etree e = computeEtree(A.n,A.Ap,A.Ai);
-    	_ldl = QDLDL.decompose(A, e);
-    	return true;
+        Workspace next = new Workspace(A, computeEtree(A.n, A.Ap, A.Ai));
+        LDL result = decompose(A, next);
+        workspace = next;
+        _ldl = result;
+        return true;
     }
-    
+
+    /** Internal solver path: reuse analysis and arrays when the CSC pattern is unchanged.
+     * A failed in-place numeric factorization invalidates the factor until a successful retry.
+     * QDLDL instances, like their owning LinSys, are not thread-safe.
+     */
+    boolean refactor(CSCMatrix A) {
+        _ldl = null;
+        if (workspace == null || !workspace.matches(A)) return factor(A);
+        _ldl = decompose(A, workspace);
+        return true;
+    }
+
     public double[] solve(double[] b) {
-    	return QDLDL.solve(_ldl, b);
+        if (_ldl == null) throw new IllegalStateException("No valid LDL factorization");
+        return QDLDL.solve(_ldl, b);
     }
-    
+
+    private static final class Workspace {
+        final Etree analysis;
+        final int[] patternAp, patternAi;
+        final CSCMatrix L;
+        final double[] D, Dinv, yVals;
+        final int[] yIdx, elimBuffer, nextSpace;
+        final boolean[] yMarkers;
+
+        Workspace(CSCMatrix A, Etree analysis) {
+            this.analysis = analysis;
+            int n = A.n;
+            patternAp = Arrays.copyOf(A.Ap, n + 1);
+            patternAi = Arrays.copyOf(A.Ai, A.Ap[n]);
+            int[] lp = new int[n + 1];
+            for (int i = 0; i < n; i++) lp[i + 1] = lp[i] + analysis.Lnz[i];
+            L = new CSCMatrix(A.m, n, analysis.sumLnz, lp,
+                    new int[analysis.sumLnz], new double[analysis.sumLnz]);
+            D = new double[n]; Dinv = new double[n]; yVals = new double[n];
+            yIdx = new int[n]; elimBuffer = new int[n]; nextSpace = new int[n];
+            yMarkers = new boolean[n];
+        }
+
+        boolean matches(CSCMatrix A) {
+            if (A.n != L.n || A.m != L.m || A.Ap.length < patternAp.length
+                    || A.Ai.length < patternAi.length || A.Ax.length < patternAi.length) return false;
+            for (int i = 0; i < patternAp.length; i++) if (A.Ap[i] != patternAp[i]) return false;
+            for (int i = 0; i < patternAi.length; i++) if (A.Ai[i] != patternAi[i]) return false;
+            return true;
+        }
+    }
+
     public static Etree computeEtree(int n, int[] Ap, int[] Ai) {
     	final int[] work = new int[n];
     	final int[] Lnz = new int[n];
@@ -94,37 +144,26 @@ public class QDLDL  {
 
     }
     
-    public static LDL decompose (CSCMatrix A, Etree e){
-    	final int[] Lnz = e.Lnz;
-    	final int[] etree = e.etree;
-    	final int n = A.n;
-    	final int m = A.m;
-    	final int[] Ap = A.Ap;
-    	final int[] Ai = A.Ai;
-    	final double[] Ax = A.Ax;
-    	final int[] Lp = new int[n+1];
-    	final int[] Li = new int[e.sumLnz];
-    	final double[] Lx = new double[e.sumLnz]; 
-    	final double[] D = new double[n];
-    	final double[] Dinv = new double[n];
-    	//final boolean[] bwork = new boolean[n];
-    	//final int[] iwork = new int[3*n];
-    	//final double[] fwork = new double[n];
-    	
-    	int i,j,k,nnzY, bidx, cidx, nextIdx, nnzE, tmpIdx;
-    	final int[] yIdx = new int[n]; 
-    	final int[] elimBuffer = new int[n]; 
-    	final int[] LNextSpaceInCol = new int[n];
-    	final double[] yVals = new double[n];
-    	double yVals_cidx;
-    	final boolean[] yMarkers = new boolean[n];
+    public static LDL decompose(CSCMatrix A, Etree e) {
+        return decompose(A, new Workspace(A, e));
+    }
+
+    private static LDL decompose(CSCMatrix A, Workspace w) {
+        final int[] etree = w.analysis.etree;
+        final int n = A.n;
+        final int[] Ap = A.Ap, Ai = A.Ai;
+        final double[] Ax = A.Ax;
+        final int[] Lp = w.L.Ap, Li = w.L.Ai;
+        final double[] Lx = w.L.Ax, D = w.D, Dinv = w.Dinv;
+        int i,j,k,nnzY, bidx, cidx, nextIdx, nnzE, tmpIdx;
+        final int[] yIdx = w.yIdx, elimBuffer = w.elimBuffer, LNextSpaceInCol = w.nextSpace;
+        final double[] yVals = w.yVals;
+        double yVals_cidx;
+        final boolean[] yMarkers = w.yMarkers;
     	int positiveValuesInD = 0;
     	
-    	Lp[0] = 0; //first column starts at index zero
 
     	for(i = 0; i < n; i++){
-	    	//compute L column indices
-	    	Lp[i+1] = Lp[i] + Lnz[i];   //cumsum, total at the end
 	
 	    	// set all Yidx to be 'unused' initially
 	    	//in each column of L, the next available space
@@ -253,7 +292,7 @@ public class QDLDL  {
 	    	Dinv[k]= 1/D[k];
 
     	} //end for k
-    	return new QDLDL.LDL(new CSCMatrix(n,m,Lx.length,Lp,Li,Lx), D, Dinv, positiveValuesInD);
+    	return new QDLDL.LDL(w.L, D, Dinv, positiveValuesInD);
     }
     
     static void Lsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {
@@ -285,6 +324,7 @@ public class QDLDL  {
 
     /** Solve using caller-owned workspace; no per-solve array allocation. */
     public static void solveInPlace(LDL ldl, double[] x) {
+        if (ldl == null) throw new IllegalStateException("No valid LDL factorization");
     	final int n = ldl.L.n;
         if (x.length != n) {
             throw new IllegalArgumentException("Right-hand side length must match factorization");

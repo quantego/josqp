@@ -34,14 +34,35 @@ def build(mode):
     base = ROOT / 'target' / (mode + '-classes')
     if base.exists():
         shutil.rmtree(base)
-    if mode == 'baseline':
+    if mode in ('baseline', 'baseline-qplib'):
         archive = subprocess.run(['git', 'archive', BASELINE, 'src/main/java'], cwd=ROOT,
                                  capture_output=True, check=True).stdout
         source_root = ROOT / 'target/baseline-src'
         source_root.mkdir(parents=True, exist_ok=True)
         with tarfile.open(fileobj=io.BytesIO(archive)) as source:
-            source.extractall(source_root, filter='data')
-    main = ROOT / ('target/baseline-src/src/main/java' if mode == 'baseline' else 'src/main/java')
+            # Restrict extraction to regular files/directories, including on Python < 3.12.
+            for member in source.getmembers():
+                destination = (source_root / member.name).resolve()
+                destination.relative_to(source_root.resolve())
+                if member.isdir():
+                    destination.mkdir(parents=True, exist_ok=True)
+                elif member.isfile():
+                    destination.parent.mkdir(parents=True, exist_ok=True)
+                    with source.extractfile(member) as src, destination.open('wb') as dst:
+                        shutil.copyfileobj(src, dst)
+                else:
+                    raise ValueError('Unsupported archive entry: ' + member.name)
+    main = ROOT / ('target/baseline-src/src/main/java' if mode in ('baseline', 'baseline-qplib') else 'src/main/java')
+    if mode == 'baseline-qplib':
+        # Original solver; only the BOUNDS token-position fix is shared so the same QPs can be read.
+        parser_file = main / 'com/quantego/josqp/Parser.java'
+        original = parser_file.read_text()
+        current = (ROOT / 'src/main/java/com/quantego/josqp/Parser.java').read_text()
+        begin = current.index('\t\tboolean hasValue =')
+        end = current.index('\n\t\tString colName', begin)
+        old_begin = original.index('\t\tint placeColName = 3;')
+        old_end = original.index('\n\t\tString colName', old_begin)
+        parser_file.write_text(original[:old_begin] + current[begin:end] + original[old_end:])
     if mode == 'before-hotloops':
         main = ROOT / 'target/before-hotloops-src'
         if main.exists():
@@ -64,10 +85,10 @@ def build(mode):
             current = current[:start] + original[old_start:old_end] + current[end:]
         path.write_text(current)
     compile_to(base, sorted(main.rglob('*.java')), release=8)
-    if mode not in ('baseline', 'portable'):
+    if mode not in ('baseline', 'baseline-qplib', 'portable'):
         compile_to(base, sorted((ROOT / 'src/vector/java').rglob('*.java')), str(base), vector=True)
     benchmark_sources = sorted((ROOT / 'benchmarks/java').rglob('*.java'))
-    if mode in ('baseline', 'portable'):
+    if mode in ('baseline', 'baseline-qplib', 'portable'):
         benchmark_sources = [p for p in benchmark_sources if p.name == 'SolverBenchmark.java']
     compile_to(base, benchmark_sources, str(base), vector=True)
     return base
@@ -93,6 +114,6 @@ def tests(mode):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('action', choices=['build', 'test'])
-    parser.add_argument('mode', choices=['baseline', 'portable', 'scalar', 'vector', 'before-hotloops'])
+    parser.add_argument('mode', choices=['baseline', 'baseline-qplib', 'portable', 'scalar', 'vector', 'before-hotloops'])
     args = parser.parse_args()
     tests(args.mode) if args.action == 'test' else build(args.mode)

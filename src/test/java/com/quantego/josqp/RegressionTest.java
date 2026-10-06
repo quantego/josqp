@@ -8,6 +8,22 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class RegressionTest {
+    @Test public void boundsWithAndWithoutNamesHandleValuelessTypes() throws Exception {
+        for (String boundName : new String[]{"", "bounds "}) {
+            Path file = Files.createTempFile("josqp-bounds-", ".qps");
+            try {
+                String text = "NAME bounds\nROWS\n N obj\nCOLUMNS\n"
+                        + " x obj 1\n y obj 2\n z obj 3\nBOUNDS\n"
+                        + " PL " + boundName + "x\n MI " + boundName + "y\n"
+                        + " FR " + boundName + "z\n UP " + boundName + "x 7\nENDATA\n";
+                Files.write(file, text.getBytes(StandardCharsets.UTF_8));
+                OSQP.Data d = Parser.readQmps(file.toString()).getData();
+                assertEquals(3, d.n);
+                assertArrayEquals(new double[]{0, -OSQP.OSQP_INFTY, -OSQP.OSQP_INFTY}, d.l, 0);
+                assertArrayEquals(new double[]{7, OSQP.OSQP_INFTY, OSQP.OSQP_INFTY}, d.u, 0);
+            } finally { Files.deleteIfExists(file); }
+        }
+    }
     private OSQP solver() {
         OSQP.Settings s = new OSQP.Settings();
         s.scaling = 0;

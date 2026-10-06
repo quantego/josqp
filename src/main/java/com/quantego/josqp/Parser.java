@@ -256,10 +256,11 @@ public class Parser {
 	}
 
 	private static void parseBnd(Map<String, Integer> cols, Map<String, Integer> rows, List<Double> l, List<Double> u, String[] tokens) {
-		int placeColName = 3;
-		if (tokens.length % 2 == 0) {
-			placeColName = 2;
-		}
+		boolean hasValue = tokens[1].equals("LO") || tokens[1].equals("UP") || tokens[1].equals("FX");
+		int unnamedLength = hasValue ? 4 : 3;
+		if (tokens.length != unnamedLength && tokens.length != unnamedLength + 1)
+			throw new IllegalArgumentException("Invalid BOUNDS entry: " + Arrays.toString(tokens));
+		int placeColName = tokens.length == unnamedLength ? 2 : 3;
 		String colName = removeSpecialChars(tokens[placeColName]);
 		int rowIndex = rows.get(colName + "_bnd");
 		double bnd;

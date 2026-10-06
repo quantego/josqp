@@ -2,6 +2,9 @@ package com.quantego.josqp;
 
 /** Scalar kernels keep the default artifact compatible with Java 8. */
 class NumericKernels {
+    void subtractSegment(double[] target, int row, double[] values, int start, int length, double scale) {
+        for(int i=0;i<length;i++) target[row+i]-=values[start+i]*scale;
+    }
     static final NumericKernels INSTANCE = create();
 
     private static NumericKernels create() {

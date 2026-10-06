@@ -6,6 +6,14 @@ import jdk.incubator.vector.VectorSpecies;
 
 /** Optional SIMD kernels. Keep arithmetic order; deliberately do not use FMA. */
 final class VectorKernels extends NumericKernels {
+    @Override void subtractSegment(double[] target, int row, double[] values, int start, int length, double scale) {
+        int i=0;
+        for(int end=SPECIES.loopBound(length);i<end;i+=SPECIES.length()) {
+            DoubleVector.fromArray(SPECIES,target,row+i)
+                .sub(DoubleVector.fromArray(SPECIES,values,start+i).mul(scale)).intoArray(target,row+i);
+        }
+        for(;i<length;i++) target[row+i]-=values[start+i]*scale;
+    }
     static final VectorSpecies<Double> SPECIES = DoubleVector.SPECIES_PREFERRED;
 
     private static DoubleVector maxIgnoringNaN(DoubleVector max, DoubleVector value) {

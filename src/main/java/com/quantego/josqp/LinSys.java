@@ -78,6 +78,7 @@ class LinSys  {
 	double[] checkedRhs, residual, candidate, denominator;
 	long linearCalls, linearCorrections;
 	double maxBackwardError;
+	double maxScaledResidual;
 
 	void configureRefinement(int iterations, boolean audit) {
 	    if (iterations < 0) throw new IllegalArgumentException("negative refinement count");
@@ -96,12 +97,15 @@ class LinSys  {
 	        double vx=v*x[c]; residual[r]-=vx; denominator[r]+=Math.abs(vx);
 	        if (r!=c) { vx=v*x[r]; residual[c]-=vx; denominator[c]+=Math.abs(vx); }
 	    }
-	    double error=0;
+	    double error=0, residualNorm=0, denominatorNorm=0;
 	    for (int i=0;i<x.length;i++) {
+	        residualNorm=Math.max(residualNorm,Math.abs(residual[i]));
+	        denominatorNorm=Math.max(denominatorNorm,denominator[i]);
 	        double value=denominator[i]==0 ? Math.abs(residual[i]) : Math.abs(residual[i])/denominator[i];
 	        if (!Double.isFinite(value)) return Double.POSITIVE_INFINITY;
 	        error=Math.max(error,value);
 	    }
+	    maxScaledResidual=Math.max(maxScaledResidual,denominatorNorm==0 ? residualNorm : residualNorm/denominatorNorm);
 	    return error;
 	}
 

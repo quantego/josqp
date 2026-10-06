@@ -31,11 +31,13 @@ public class QDLDL  {
     }
     
     private Workspace workspace;
+    boolean useSchedule = Boolean.getBoolean("josqp.factorSchedule");
+    boolean useBlocks = Boolean.getBoolean("josqp.factorBlocks");
 
     /** A fresh factorization; previously produced factors remain independent. */
     public boolean factor(CSCMatrix A) {
         Workspace next = new Workspace(A, computeEtree(A.n, A.Ap, A.Ai));
-        LDL result = decompose(A, next);
+        LDL result = decompose(A, next, useSchedule, useBlocks);
         workspace = next;
         _ldl = result;
         return true;
@@ -48,7 +50,7 @@ public class QDLDL  {
     boolean refactor(CSCMatrix A) {
         _ldl = null;
         if (workspace == null || !workspace.matches(A)) return factor(A);
-        _ldl = decompose(A, workspace);
+        _ldl = decompose(A, workspace, useSchedule, useBlocks);
         return true;
     }
 
@@ -64,6 +66,9 @@ public class QDLDL  {
         final double[] D, Dinv, yVals;
         final int[] yIdx, elimBuffer, nextSpace;
         final boolean[] yMarkers;
+        int[] scheduleColumns, schedulePositions, scheduleRows;
+        Blocks[] blocks;
+        boolean completed;
 
         Workspace(CSCMatrix A, Etree analysis) {
             this.analysis = analysis;
@@ -85,6 +90,33 @@ public class QDLDL  {
             for (int i = 0; i < patternAp.length; i++) if (A.Ap[i] != patternAp[i]) return false;
             for (int i = 0; i < patternAi.length; i++) if (A.Ai[i] != patternAi[i]) return false;
             return true;
+        }
+    }
+
+    /** Long contiguous runs only; short sparse columns retain the indexed loop. */
+    private static final class Blocks {
+        final int[] starts, rows, lengths;
+        Blocks(int[] li, int start, int end, int count) {
+            starts=new int[count]; rows=new int[count]; lengths=new int[count];
+            int b=0;
+            for(int i=start;i<end;) {
+                int j=i+1; while(j<end && li[j]==li[j-1]+1) j++;
+                starts[b]=i; rows[b]=li[i]; lengths[b++]=j-i; i=j;
+            }
+        }
+    }
+
+    private static void buildBlocks(Workspace w) {
+        w.blocks=new Blocks[w.L.n];
+        for(int c=0;c<w.L.n;c++) {
+            int start=w.L.Ap[c], end=w.L.Ap[c+1], count=0;
+            long squares=0;
+            for(int i=start;i<end;) {
+                int j=i+1; while(j<end && w.L.Ai[j]==w.L.Ai[j-1]+1) j++;
+                long len=j-i; squares+=len*len; count++; i=j;
+            }
+            if(end>start && squares/(double)(end-start)>=16)
+                w.blocks[c]=new Blocks(w.L.Ai,start,end,count);
         }
     }
 
@@ -149,6 +181,10 @@ public class QDLDL  {
     }
 
     private static LDL decompose(CSCMatrix A, Workspace w) {
+        return decompose(A,w,false,false);
+    }
+
+    private static LDL decompose(CSCMatrix A, Workspace w, boolean schedule, boolean blocks) {
         final int[] etree = w.analysis.etree;
         final int n = A.n;
         final int[] Ap = A.Ap, Ai = A.Ai;
@@ -160,6 +196,12 @@ public class QDLDL  {
         final double[] yVals = w.yVals;
         double yVals_cidx;
         final boolean[] yMarkers = w.yMarkers;
+        boolean replay = schedule && w.scheduleRows != null;
+        boolean record = schedule && w.completed && !replay;
+        int[] recordedColumns = record ? new int[w.analysis.sumLnz] : null;
+        int[] recordedPositions = record ? new int[w.analysis.sumLnz] : null;
+        int[] recordedRows = record ? new int[n+1] : null;
+        int cursor=0;
     	int positiveValuesInD = 0;
     	
 
@@ -185,6 +227,7 @@ public class QDLDL  {
     	//Start from 1 here. The upper LH corner is trivially 0
     	//in L b/c we are only computing the subdiagonal elements
     	for(k = 1; k < n; k++){
+            if(record) recordedRows[k]=cursor;
 
     	//NB : For each k, we compute a solution to
     	//y = L(0:(k-1),0:k-1))\b, where b is the kth
@@ -214,6 +257,7 @@ public class QDLDL  {
 	    	}
 	
 	    	yVals[bidx] = Ax[i];   // initialise y(bidx) = b(bidx)
+            if(replay) continue;
 	
 	    	// use the forward elimination tree to figure
 	    	// out which elements must be eliminated after
@@ -248,18 +292,29 @@ public class QDLDL  {
 	    	} //end for i
 	
 	    	//This for loop places nonzeros values in the k^th row
-	    	for(i = (nnzY-1); i >=0; i--){
+        int steps = replay ? w.scheduleRows[k+1]-w.scheduleRows[k] : nnzY;
+    	for(i = 0; i < steps; i++){
 	
 		    	//which column are we working on?
-		    	cidx = yIdx[i];
+		    	cidx = replay ? w.scheduleColumns[w.scheduleRows[k]+i] : yIdx[nnzY-1-i];
 		
 		    	// loop along the elements in this
 		    	// column of L and subtract to solve to y
-		    	tmpIdx = LNextSpaceInCol[cidx];
+		    	tmpIdx = replay ? w.schedulePositions[w.scheduleRows[k]+i] : LNextSpaceInCol[cidx];
+                if(record) {
+                    if(Li[tmpIdx]!=k) throw new IllegalStateException("LDL schedule disagrees with factor pattern");
+                    recordedColumns[cursor]=cidx; recordedPositions[cursor++]=tmpIdx;
+                }
 		    	yVals_cidx = yVals[cidx];
-		    	for(j = Lp[cidx]; j < tmpIdx; j++){
-		    	  yVals[Li[j]] -= Lx[j]*yVals_cidx;
-		    	}
+                Blocks runs=blocks && w.blocks!=null ? w.blocks[cidx] : null;
+                if(runs==null) {
+                    for(j=Lp[cidx];j<tmpIdx;j++) yVals[Li[j]]-=Lx[j]*yVals_cidx;
+                } else {
+                    for(int b=0;b<runs.starts.length && runs.starts[b]<tmpIdx;b++) {
+                        int len=Math.min(runs.lengths[b],tmpIdx-runs.starts[b]);
+                        NumericKernels.INSTANCE.subtractSegment(yVals,runs.rows[b],Lx,runs.starts[b],len,yVals_cidx);
+                    }
+                }
 		
 		    	//Now I have the cidx^th element of y = L\b.
 		    	//so compute the corresponding element of
@@ -292,6 +347,13 @@ public class QDLDL  {
 	    	Dinv[k]= 1/D[k];
 
     	} //end for k
+        if(record) {
+            recordedRows[n]=cursor;
+            if(cursor!=w.analysis.sumLnz) throw new IllegalStateException("Incomplete LDL schedule");
+            w.scheduleColumns=recordedColumns; w.schedulePositions=recordedPositions; w.scheduleRows=recordedRows;
+        }
+        if(blocks && w.blocks==null) buildBlocks(w);
+        w.completed=true;
         return new QDLDL.LDL(w.L, D, Dinv, positiveValuesInD);
     }
     

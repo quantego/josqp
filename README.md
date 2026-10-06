@@ -58,6 +58,33 @@ java -jar josqp.jar <qps_file_name>
 ```
 After solving the problem through the terminal, jOSQP creates a log file,`josqp.log`, that contains a summary of the solution process. The terminal command has been used for benchmarking.
 
+### Infeasibility certificates
+
+OSQP decides primal and dual infeasibility from the last dual or primal iterate step: that step is
+accepted as a certificate as soon as its residual passes `eps_prim_inf` / `eps_dual_inf`. On a
+feasible problem a single step can cross that tolerance by numerical accident, and on badly scaled
+problems the residual can plateau just below it for hundreds of checks. At the default tolerances
+this makes both jOSQP and the upstream C solver report feasible instances as infeasible:
+
+| Instance | Upstream verdict | jOSQP with the guards |
+|---|---|---|
+| `hues-mod` | `PRIMAL_INFEASIBLE` after 300 iterations | `SOLVED`, 875 iterations, objective `3.4761704979875020e7` |
+| `huestis` | `PRIMAL_INFEASIBLE` after 100 iterations | `SOLVED`, 6675 iterations, objective `3.4755179890390e11` |
+| `primalc5` | `DUAL_INFEASIBLE` | `MAX_ITER_REACHED` (as native OSQP at `eps_prim_inf = 1e-5`) |
+
+Two settings guard the verdicts, and both have the upstream value available for exact parity:
+
+- `Settings#infeasibility_streak` (default `2`): the certificate has to hold over that many
+  consecutive termination checks, which rejects steps that only cross the tolerance once.
+- `Settings#infeasibility_margin` (default `0.1`): safety factor on the effective certificate
+  tolerance. Genuine certificates drive their residual to machine precision, so tightening the test
+  by an order of magnitude keeps them while rejecting the plateaus. Set both to `1` to reproduce
+  upstream OSQP verdicts exactly.
+
+On all 63 benchmark instances the guards remove exactly the three false infeasibility verdicts above
+and change no other status; the genuine infeasibility problems of the test suite are still detected
+at the same iteration.
+
 ## Benchmarks
 
 The following table summarizes the results of benchmarks with the Maros-Meszaros problem set as well as the QPlib with the original OSQP library written in C as well as the commercial GUROBI solver.

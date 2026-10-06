@@ -13,6 +13,8 @@ if __name__=='__main__':
  p.add_argument('--no-polish',action='store_true');p.add_argument('--no-gap',action='store_true')
  p.add_argument('--revision');p.add_argument('--linear-audit',action='store_true')
  p.add_argument('--refine',type=int,default=0);p.add_argument('--kkt-rho',action='store_true');p.add_argument('--warmup',action='store_true')
+ p.add_argument('--infeas-streak',type=int,default=None,help='override the certificate persistence guard (1 = upstream OSQP)')
+ p.add_argument('--infeas-margin',type=float,default=None,help='override the certificate safety factor (1 = upstream OSQP)')
  p.add_argument('--default-rho-interval',action='store_true',help='leave the solver default instead of forcing 100');a=p.parse_args()
  sibling=ROOT.parent/'josqp_benchmarks';out=sibling/'extracted';out.mkdir(exist_ok=True)
  if a.files:names=a.files
@@ -57,6 +59,8 @@ if __name__=='__main__':
     if a.refine:props+=['-Daudit.refine='+str(a.refine)]
     if a.kkt_rho:props+=['-Daudit.kktRho=true']
     if a.warmup:props+=['-Daudit.warmup=true']
+    if a.infeas_streak is not None:props+=['-Daudit.infeasStreak='+str(a.infeas_streak)]
+    if a.infeas_margin is not None:props+=['-Daudit.infeasMargin='+str(a.infeas_margin)]
     if a.default_rho_interval:props+=['-Daudit.rhoInterval=-1']
     if a.profile=='normalized':
      # Explicit equivalent objective rescaling; divide duals and cost back in audit.

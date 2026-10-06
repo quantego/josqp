@@ -43,6 +43,17 @@ public class OSQP {
 
 	public static final boolean SCALED_TERMINATION = false;
 	public static final int CHECK_TERMINATION = 25;
+	/**
+	 * Consecutive termination checks an infeasibility certificate has to satisfy before the solver
+	 * declares primal or dual infeasibility. Upstream OSQP 1.0 declares on a single check.
+	 */
+	public static final int INFEASIBILITY_STREAK = 2;
+	/**
+	 * Safety factor on the infeasibility certificate tolerance. Genuine certificates drive their
+	 * residual to machine precision, while badly scaled feasible problems only plateau a small
+	 * factor below the tolerance; the factor separates the two.
+	 */
+	public static final double INFEASIBILITY_MARGIN = 0.1;
 	public static final boolean WARM_START = true;
 	public static final int SCALING = 10;
 
@@ -172,6 +183,26 @@ public class OSQP {
 		public boolean check_linear_residual = false; ///< optional KKT solve diagnostic
 		public int linear_refine_iter = 0; ///< opt-in residual-controlled KKT corrections
 		public int check_termination = CHECK_TERMINATION;               ///< integer, check termination interval; if 0, then termination checking is disabled
+		/**
+		 * Number of consecutive termination checks over which a primal or dual infeasibility
+		 * certificate has to hold before the solver declares infeasibility. Upstream OSQP 1.0
+		 * declares as soon as the certificate residual passes a single check; on feasible problems
+		 * the last dual or primal step can cross that tolerance by numerical accident and produce a
+		 * false infeasibility verdict. A value of 2 rejects such transient certificates while
+		 * leaving genuine ones untouched. Set to 1 for exact upstream parity.
+		 */
+		public int infeasibility_streak = INFEASIBILITY_STREAK;
+		/**
+		 * Safety factor on the effective infeasibility certificate tolerance: the certificate
+		 * residual has to stay below {@code infeasibility_margin * eps_prim_inf} (respectively
+		 * {@code eps_dual_inf}) for the certificate to be accepted. Upstream OSQP uses the tolerance
+		 * as-is (factor 1); on badly scaled problems such as Maros-Meszaros {@code huestis} the
+		 * certificate residual plateaus only a small factor below it and the solver then reports a
+		 * feasible problem as infeasible. A factor of 0.1 rejects such plateaus while keeping genuine
+		 * certificates, whose residual drops to machine precision. Set to 1 for exact upstream
+		 * parity; a non-positive value disables infeasibility detection altogether.
+		 */
+		public double infeasibility_margin = INFEASIBILITY_MARGIN;
 		public boolean warm_start = WARM_START;                      ///< boolean, warm start
 
 		public double time_limit = TIME_LIMIT;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
@@ -243,6 +274,11 @@ public class OSQP {
 	
 	public static class Workspace {
 		double last_rho_kkt_error = Double.POSITIVE_INFINITY;
+		/// Consecutive termination checks on which the respective infeasibility certificate held.
+		int prim_inf_streak, dual_inf_streak;
+		/// Iteration of the check that last extended the streak; prevents double counting when the
+		/// final accurate and the fallback approximate check run on the same iterate.
+		int prim_inf_iter = Integer.MIN_VALUE, dual_inf_iter = Integer.MIN_VALUE;
 		/// Problem data to work on (possibly scaled)
 		public Data data;
 
@@ -433,6 +469,10 @@ public class OSQP {
 		int iter = 0;
 		reset_info(work.info);
 		work.last_rho_kkt_error = Double.POSITIVE_INFINITY;
+		work.prim_inf_streak = 0;
+		work.dual_inf_streak = 0;
+		work.prim_inf_iter = Integer.MIN_VALUE;
+		work.dual_inf_iter = Integer.MIN_VALUE;
 		work.info.status_polish = 0;
 		work.info.polish_time = 0.0;
 		work.info.run_time = 0.0;
@@ -1071,6 +1111,10 @@ public class OSQP {
 		  // 2) u'*max(delta_y, 0) + l'*min(delta_y, 0) < -eps * ||delta_y||
 		  //
 
+		  // A certificate that only marginally clears the tolerance cannot be told apart from a
+		  // slowly converging feasible iterate; apply the safety factor before testing.
+		  eps_prim_inf *= Math.max(work.settings.infeasibility_margin, 0.0);
+
 		  int i; // Index for loops
 		  double norm_delta_y;
 		  double ineq_lhs = 0.0;
@@ -1140,6 +1184,7 @@ public class OSQP {
 		  //    . (A * delta_x)_i <  eps * || delta_x ||,    u_i != inf
 		  //
 
+		  eps_dual_inf *= Math.max(work.settings.infeasibility_margin, 0.0);
 
 		  int   i; // Index for loops
 		  double norm_delta_x;
@@ -1418,6 +1463,38 @@ public class OSQP {
 		    dual_inf_check = is_dual_infeasible(work, eps_dual_inf);
 		  }
 
+		  // Infeasibility certificates reuse the last dual or primal step as the certificate
+		  // direction. On a feasible problem that step can satisfy the certificate test on a single
+		  // check by numerical accident, so demand that the certificate survives consecutive checks.
+		  // The fallback approximate check is a last-resort verdict and keeps upstream behaviour.
+		  boolean prim_inf_sustained = false, dual_inf_sustained = false;
+		  if (approximate) {
+		    prim_inf_sustained = prim_inf_check;
+		    dual_inf_sustained = dual_inf_check;
+		  } else {
+		    final int minStreak = Math.max(1, work.settings.infeasibility_streak);
+		    if (prim_inf_check) {
+		      if (work.prim_inf_iter != work.info.iter) {
+		        work.prim_inf_iter = work.info.iter;
+		        work.prim_inf_streak++;
+		      }
+		    } else {
+		      work.prim_inf_streak = 0;
+		      work.prim_inf_iter = Integer.MIN_VALUE;
+		    }
+		    if (dual_inf_check) {
+		      if (work.dual_inf_iter != work.info.iter) {
+		        work.dual_inf_iter = work.info.iter;
+		        work.dual_inf_streak++;
+		      }
+		    } else {
+		      work.dual_inf_streak = 0;
+		      work.dual_inf_iter = Integer.MIN_VALUE;
+		    }
+		    prim_inf_sustained = prim_inf_check && work.prim_inf_streak >= minStreak;
+		    dual_inf_sustained = dual_inf_check && work.dual_inf_streak >= minStreak;
+		  }
+
 		  // Compare checks to determine solver status
 		  double gap = work.settings.scaled_termination ? work.info.scaled_duality_gap : work.info.duality_gap;
 		  boolean gap_check = !work.settings.check_dualgap ||
@@ -1431,7 +1508,7 @@ public class OSQP {
 		    }
 		    exitflag = true;
 		  }
-		  else if (prim_inf_check) {
+		  else if (prim_inf_sustained) {
 		    // Update final information
 		    if (approximate) {
 		      work.info.status = Status.PRIMAL_INFEASIBLE_INACCURATE;
@@ -1446,7 +1523,7 @@ public class OSQP {
 		    work.info.obj_val = OSQP_INFTY;
 		    exitflag            = true;
 		  }
-		  else if (dual_inf_check) {
+		  else if (dual_inf_sustained) {
 		    // Update final information
 		    if (approximate) {
 		      work.info.status = Status.DUAL_INFEASIBLE_INACCURATE;

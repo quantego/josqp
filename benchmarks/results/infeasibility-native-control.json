@@ -1,0 +1,272 @@
+{
+  "java": "/opt/homebrew/opt/openjdk@26/libexec/openjdk.jdk/Contents/Home",
+  "cases": {
+    "hues-mod": {
+      "export_sha256": "4a48f9fd7ab8bec8d7b2dd6dbb28fdb12e609662e28b2aa8c79b5c24fea2e60f",
+      "default_profile": {
+        "native": {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "primal infeasible",
+          "iterations": 300,
+          "objective": 1e+30,
+          "pri_res": 21.47720565510747,
+          "dua_res": 0.01097878270148155,
+          "eps": 0.001,
+          "eps_inf": 0.0001,
+          "rho_interval": 50
+        },
+        "josqp_default": {
+          "solver": "josqp",
+          "infeasibility_streak": 2,
+          "infeasibility_margin": null,
+          "status": "SOLVED",
+          "iterations": 875,
+          "objective": 34761704.97987502,
+          "primal_violation": 0.41447676039172165,
+          "stationarity": 0.0001997379303381448,
+          "solve_ms": 262.158084
+        },
+        "josqp_upstream": {
+          "solver": "josqp",
+          "infeasibility_streak": 1,
+          "infeasibility_margin": 1.0,
+          "status": "PRIMAL_INFEASIBLE",
+          "iterations": 300,
+          "objective": 1e+30,
+          "primal_violation": NaN,
+          "stationarity": NaN,
+          "solve_ms": 168.021209
+        }
+      },
+      "tolerance_sweep": [
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "primal infeasible",
+          "iterations": 25,
+          "objective": 1e+30,
+          "pri_res": 1134.4480488117692,
+          "dua_res": 36.470671005920714,
+          "eps": 0.001,
+          "eps_inf": 0.001,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "primal infeasible",
+          "iterations": 300,
+          "objective": 1e+30,
+          "pri_res": 21.47720565510747,
+          "dua_res": 0.01097878270148155,
+          "eps": 0.001,
+          "eps_inf": 0.0001,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "solved",
+          "iterations": 875,
+          "objective": 34761704.98012916,
+          "pri_res": 0.4144767587961269,
+          "dua_res": 0.00019973792965225054,
+          "eps": 0.001,
+          "eps_inf": 1e-05,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "solved",
+          "iterations": 875,
+          "objective": 34761704.98012916,
+          "pri_res": 0.4144767587961269,
+          "dua_res": 0.00019973792965225054,
+          "eps": 0.001,
+          "eps_inf": 1e-06,
+          "rho_interval": 50
+        }
+      ]
+    },
+    "primalc5": {
+      "export_sha256": "abbd4a478b6ab044ee7a7b78b0768704fb77c8a10f821c7c192acb07e9171511",
+      "default_profile": {
+        "native": {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "dual infeasible",
+          "iterations": 75,
+          "objective": -1e+30,
+          "pri_res": 100.25949776647589,
+          "dua_res": 0.9733233897738557,
+          "eps": 0.001,
+          "eps_inf": 0.0001,
+          "rho_interval": 50
+        },
+        "josqp_default": {
+          "solver": "josqp",
+          "infeasibility_streak": 2,
+          "infeasibility_margin": null,
+          "status": "MAX_ITER_REACHED",
+          "iterations": 100000,
+          "objective": -15780.113810750385,
+          "primal_violation": 165.91636359060487,
+          "stationarity": 0.0007260875162631297,
+          "solve_ms": 730.990625
+        },
+        "josqp_upstream": {
+          "solver": "josqp",
+          "infeasibility_streak": 1,
+          "infeasibility_margin": 1.0,
+          "status": "DUAL_INFEASIBLE",
+          "iterations": 75,
+          "objective": -1e+30,
+          "primal_violation": NaN,
+          "stationarity": NaN,
+          "solve_ms": 16.853042
+        }
+      },
+      "tolerance_sweep": [
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "dual infeasible",
+          "iterations": 75,
+          "objective": -1e+30,
+          "pri_res": 100.25949776647589,
+          "dua_res": 0.9733233897738557,
+          "eps": 0.001,
+          "eps_inf": 0.001,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "dual infeasible",
+          "iterations": 75,
+          "objective": -1e+30,
+          "pri_res": 100.25949776647589,
+          "dua_res": 0.9733233897738557,
+          "eps": 0.001,
+          "eps_inf": 0.0001,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "maximum iterations reached",
+          "iterations": 100000,
+          "objective": -53534.040280759174,
+          "pri_res": 109.96125553494458,
+          "dua_res": 0.0001086672894075047,
+          "eps": 0.001,
+          "eps_inf": 1e-05,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "maximum iterations reached",
+          "iterations": 100000,
+          "objective": -53534.040280759174,
+          "pri_res": 109.96125553494458,
+          "dua_res": 0.0001086672894075047,
+          "eps": 0.001,
+          "eps_inf": 1e-06,
+          "rho_interval": 50
+        }
+      ]
+    },
+    "primalc8": {
+      "export_sha256": "83c4d03589d34f4fe8823fa7aecafb71e782d9d0d57013c1e4720f44d5de005e",
+      "default_profile": {
+        "native": {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "maximum iterations reached",
+          "iterations": 100000,
+          "objective": -2271192.721502508,
+          "pri_res": 10595.762636926032,
+          "dua_res": 0.02538587361875677,
+          "eps": 0.001,
+          "eps_inf": 0.0001,
+          "rho_interval": 50
+        },
+        "josqp_default": {
+          "solver": "josqp",
+          "infeasibility_streak": 2,
+          "infeasibility_margin": null,
+          "status": "MAX_ITER_REACHED",
+          "iterations": 100000,
+          "objective": -9352657.58336779,
+          "primal_violation": 11056.117954560677,
+          "stationarity": 0.01983128559215208,
+          "solve_ms": 1299.107458
+        },
+        "josqp_upstream": {
+          "solver": "josqp",
+          "infeasibility_streak": 1,
+          "infeasibility_margin": 1.0,
+          "status": "MAX_ITER_REACHED",
+          "iterations": 100000,
+          "objective": -9352657.58336779,
+          "primal_violation": 11056.117954560677,
+          "stationarity": 0.01983128559215208,
+          "solve_ms": 1291.105875
+        }
+      },
+      "tolerance_sweep": [
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "dual infeasible",
+          "iterations": 275,
+          "objective": -1e+30,
+          "pri_res": 223696.3999294681,
+          "dua_res": 0.8441549418814627,
+          "eps": 0.001,
+          "eps_inf": 0.001,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "maximum iterations reached",
+          "iterations": 100000,
+          "objective": -2271192.721502508,
+          "pri_res": 10595.762636926032,
+          "dua_res": 0.02538587361875677,
+          "eps": 0.001,
+          "eps_inf": 0.0001,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "maximum iterations reached",
+          "iterations": 100000,
+          "objective": -2271192.721502508,
+          "pri_res": 10595.762636926032,
+          "dua_res": 0.02538587361875677,
+          "eps": 0.001,
+          "eps_inf": 1e-05,
+          "rho_interval": 50
+        },
+        {
+          "solver": "osqp-native",
+          "version": "1.1.3",
+          "status": "maximum iterations reached",
+          "iterations": 100000,
+          "objective": -2271192.721502508,
+          "pri_res": 10595.762636926032,
+          "dua_res": 0.02538587361875677,
+          "eps": 0.001,
+          "eps_inf": 1e-06,
+          "rho_interval": 50
+        }
+      ]
+    }
+  }
+}

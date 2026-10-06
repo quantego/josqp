@@ -35,6 +35,10 @@ public final class StabilityBenchmark {
             OSQP.Settings.class.getField("check_linear_residual").setBoolean(s, Boolean.getBoolean("audit.linear"));
             OSQP.Settings.class.getField("linear_refine_iter").setInt(s, Integer.getInteger("audit.refine",0));
             OSQP.Settings.class.getField("adaptive_rho_kkt").setBoolean(s, Boolean.getBoolean("audit.kktRho"));
+            // 2 and 0.1 are the solver defaults; 1 / 1.0 reproduce upstream OSQP's verdicts exactly.
+            OSQP.Settings.class.getField("infeasibility_streak").setInt(s, Integer.getInteger("audit.infeasStreak",2));
+            OSQP.Settings.class.getField("infeasibility_margin").setDouble(s,
+                    Double.parseDouble(System.getProperty("audit.infeasMargin", "0.1")));
         } catch (NoSuchFieldException ignored) { }
         catch (IllegalAccessException ex) { throw new IllegalStateException(ex); }
         OSQP.Data input = new OSQP.Data(original);

@@ -11,7 +11,8 @@ if __name__=='__main__':
  p.add_argument('--forks',type=int,default=1);p.add_argument('--output')
  p.add_argument('--eps',type=float);p.add_argument('--eps-rel',type=float);p.add_argument('--max-iter',type=int,default=100000)
  p.add_argument('--no-polish',action='store_true');p.add_argument('--no-gap',action='store_true')
- p.add_argument('--revision');a=p.parse_args()
+ p.add_argument('--revision');p.add_argument('--linear-audit',action='store_true')
+ p.add_argument('--refine',type=int,default=0);a=p.parse_args()
  sibling=ROOT.parent/'josqp_benchmarks';out=sibling/'extracted';out.mkdir(exist_ok=True)
  if a.files:names=a.files
  else:
@@ -51,6 +52,8 @@ if __name__=='__main__':
     if a.eps_rel is not None:props+=['-Daudit.epsRel='+str(a.eps_rel)]
     if a.no_polish:props+=['-Daudit.polish=false']
     if a.no_gap:props+=['-Daudit.gap=false']
+    if a.linear_audit:props+=['-Daudit.linear=true']
+    if a.refine:props+=['-Daudit.refine='+str(a.refine)]
     if a.profile=='normalized':
      # Explicit equivalent objective rescaling; divide duals and cost back in audit.
      props+=['-Daudit.costScale=10000']

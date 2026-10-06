@@ -74,6 +74,36 @@ class LinSys  {
 	int[][] Pdiag_idx = new int[1][];
 	int[] Pdiag_n = new int[1];
 	int[] rhotoKKT;
+	int refineIterations;
+	double[] checkedRhs, residual, candidate, denominator;
+	long linearCalls, linearCorrections;
+	double maxBackwardError;
+
+	void configureRefinement(int iterations, boolean audit) {
+	    if (iterations < 0) throw new IllegalArgumentException("negative refinement count");
+	    refineIterations = iterations;
+	    if (audit || iterations > 0) {
+	        checkedRhs = new double[n+m]; residual = new double[n+m];
+	        candidate = new double[n+m]; denominator = new double[n+m];
+	    }
+	}
+
+	/** Componentwise backward error of the actual regularized KKT system. */
+	double backwardError(double[] x) {
+	    for (int i=0;i<x.length;i++) { residual[i]=checkedRhs[i]; denominator[i]=Math.abs(checkedRhs[i]); }
+	    for (int c=0;c<kkt.n;c++) for (int k=kkt.Ap[c];k<kkt.Ap[c+1];k++) {
+	        int r=kkt.Ai[k]; double v=kkt.Ax[k];
+	        double vx=v*x[c]; residual[r]-=vx; denominator[r]+=Math.abs(vx);
+	        if (r!=c) { vx=v*x[r]; residual[c]-=vx; denominator[c]+=Math.abs(vx); }
+	    }
+	    double error=0;
+	    for (int i=0;i<x.length;i++) {
+	        double value=denominator[i]==0 ? Math.abs(residual[i]) : Math.abs(residual[i])/denominator[i];
+	        if (!Double.isFinite(value)) return Double.POSITIVE_INFINITY;
+	        error=Math.max(error,value);
+	    }
+	    return error;
+	}
 
 	// Initialize LDL Factorization structure
 	public LinSys(CSCMatrix P, CSCMatrix A, double sigma, double[] rho_vec, boolean polish){
@@ -178,9 +208,7 @@ class LinSys  {
 	    // Factorize the KKT matrix
 
 
-	    if (!polish){ // If KKT passed, assign it to KKT_temp
-	        this.kkt = KKT_temp;
-	    }
+	    this.kkt = KKT_temp;
 
 
 	    // No error
@@ -204,7 +232,21 @@ class LinSys  {
 	void LDLSolve(double[] x, double[] b, int[] P, double[] bp) {
 	    /* solves P'LDL'P x = b for x */
 	    permute_x(bp.length, bp, b, P);
+	    if (checkedRhs != null) System.arraycopy(bp,0,checkedRhs,0,bp.length);
 	    QDLDL.solveInPlace(qdldl._ldl, bp);
+	    if (checkedRhs != null) {
+	        linearCalls++;
+	        double error=backwardError(bp);
+	        maxBackwardError=Math.max(maxBackwardError,error);
+	        for (int i=0;i<refineIterations && error>1e-12;i++) {
+	            QDLDL.solveInPlace(qdldl._ldl,residual);
+	            for (int j=0;j<bp.length;j++) candidate[j]=bp[j]+residual[j];
+	            double nextError=backwardError(candidate);
+	            if (!(nextError<error)) break; // Preserve the better iterate on stagnation or failure.
+	            System.arraycopy(candidate,0,bp,0,bp.length); linearCorrections++;
+	            error=nextError;
+	        }
+	    }
 	    permutet_x(bp.length, x, bp, P);
 
 	}

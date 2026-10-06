@@ -168,6 +168,8 @@ public class OSQP {
 
 		public boolean scaled_termination = SCALED_TERMINATION;              ///< boolean, use scaled termination criteria
 		public boolean check_dualgap = true; ///< OSQP 1.0 double-precision termination criterion
+		public boolean check_linear_residual = false; ///< optional KKT solve diagnostic
+		public int linear_refine_iter = 0; ///< opt-in residual-controlled KKT corrections
 		public int check_termination = CHECK_TERMINATION;               ///< integer, check termination interval; if 0, then termination checking is disabled
 		public boolean warm_start = WARM_START;                      ///< boolean, warm start
 
@@ -366,6 +368,7 @@ public class OSQP {
 				work.data.P, work.data.A,
                 work.settings.sigma, work.rho_vec, false
                 );
+		work.linsys_solver.configureRefinement(work.settings.linear_refine_iter, work.settings.check_linear_residual);
 		
 		// Initialize active constraints structure
 		work.pol = new OSQP.PolishedData();
@@ -1791,6 +1794,9 @@ public class OSQP {
 
 		if (settings.polish_refine_iter < 0) {
 			throw new IllegalArgumentException("polish_refine_iter must be nonnegative");
+		}
+		if (settings.linear_refine_iter < 0) {
+			throw new IllegalArgumentException("linear_refine_iter must be nonnegative");
 		}
 
 		if (settings.rho <= 0.0) {

@@ -28,6 +28,11 @@ public final class StabilityBenchmark {
                 Boolean.parseBoolean(System.getProperty("audit.gap", "true"))); }
         catch (NoSuchFieldException ignored) { }
         catch (IllegalAccessException ex) { throw new IllegalStateException(ex); }
+        try {
+            OSQP.Settings.class.getField("check_linear_residual").setBoolean(s, Boolean.getBoolean("audit.linear"));
+            OSQP.Settings.class.getField("linear_refine_iter").setInt(s, Integer.getInteger("audit.refine",0));
+        } catch (NoSuchFieldException ignored) { }
+        catch (IllegalAccessException ex) { throw new IllegalStateException(ex); }
         OSQP.Data input = new OSQP.Data(original);
         double costScale = Double.parseDouble(System.getProperty("audit.costScale", "1"));
         for (int i=0;i<input.P.Ap[input.n];i++) input.P.Ax[i] *= costScale;
@@ -68,11 +73,20 @@ public final class StabilityBenchmark {
         double reportedObj=(solver.getObjectiveValue()-original.offset)/costScale+original.offset;
         String export = System.getProperty("audit.export");
         if (export != null) exportData(original, export);
-        System.out.println("file,n,m,offset,cost_scale,status,status_polish,iterations,rho_updates,setup_ms,solve_ms,objective,independent_objective,primal_violation,stationarity,complementarity,dual_cone_error,gap_expression,finite,x_hash,y_hash");
-        System.out.printf("%s,%d,%d,%.17g,%.17g,%s,%d,%d,%d,%.6f,%.6f,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%d,%d%n",
+        System.out.println("file,n,m,offset,cost_scale,status,status_polish,iterations,rho_updates,setup_ms,solve_ms,objective,independent_objective,primal_violation,stationarity,complementarity,dual_cone_error,gap_expression,finite,x_hash,y_hash,linear_calls,linear_backward_error,linear_corrections");
+        System.out.printf("%s,%d,%d,%.17g,%.17g,%s,%d,%d,%d,%.6f,%.6f,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%d,%d,%.0f,%.17g,%.0f%n",
             args[0],original.n,original.m,original.offset,costScale,solver.getInfo().status,solver.getInfo().status_polish,solver.getInfo().iter,
             solver.getInfo().rho_updates,setup,solve,reportedObj,independentObj,pri,dual,comp,cone,xpx+qx+support,finite,
-            java.util.Arrays.hashCode(x),java.util.Arrays.hashCode(y));
+            java.util.Arrays.hashCode(x),java.util.Arrays.hashCode(y),
+            diagnostic(solver,"linearCalls"),diagnostic(solver,"maxBackwardError"),diagnostic(solver,"linearCorrections"));
+    }
+
+    static double diagnostic(OSQP solver, String field) {
+        try {
+            java.lang.reflect.Field f=LinSys.class.getDeclaredField(field); f.setAccessible(true);
+            return ((Number)f.get(solver.work.linsys_solver)).doubleValue();
+        } catch (NoSuchFieldException ex) { return Double.NaN; }
+        catch (IllegalAccessException ex) { throw new IllegalStateException(ex); }
     }
 
     /** Exact original matrices for native solvers, before JOSQP scaling. Big-endian doubles/ints. */

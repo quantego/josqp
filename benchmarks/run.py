@@ -96,16 +96,16 @@ def build(mode):
 def tests(mode):
     base = build(mode)
     sources = sorted((ROOT / 'src/test/java').rglob('*.java'))
-    if mode not in ('baseline', 'portable'):
+    if mode not in ('baseline', 'baseline-qplib', 'portable'):
         sources += sorted((ROOT / 'src/vector-test/java').rglob('*.java'))
-    if mode == 'baseline':
+    if mode in ('baseline', 'baseline-qplib'):
         # New regression tests intentionally require the new APIs. Run the original suite only.
         sources = [p for p in sources if p.name not in ('RegressionTest.java', 'VectorKernelsTest.java')]
     cp = os.pathsep.join((str(base), str(DEPS)))
-    compile_to(base, sources, cp, vector=mode not in ('baseline', 'portable'))
+    compile_to(base, sources, cp, vector=mode not in ('baseline', 'baseline-qplib', 'portable'))
     classes = ['com.quantego.josqp.' + p.stem for p in sources if p.stem.endswith('Test')]
     command = [str(JAVA / 'bin/java'), '-cp', cp]
-    if mode not in ('baseline', 'portable'):
+    if mode not in ('baseline', 'baseline-qplib', 'portable'):
         command += ['--add-modules', 'jdk.incubator.vector']
     if mode == 'vector':
         command += ['-Djosqp.vector=true']

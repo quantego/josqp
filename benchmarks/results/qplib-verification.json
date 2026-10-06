@@ -1,0 +1,22 @@
+{
+  "problems_in_pilot": 19,
+  "compared_problems": 16,
+  "independent_jvms": 144,
+  "measured_solves": 288,
+  "all_solution_hashes_equal": true,
+  "all_solution_values_finite": true,
+  "all_metrics_exactly_equal": true,
+  "solver_reported_solved": 15,
+  "max_iter_reached": 1,
+  "portable_tests": 37,
+  "vector_tests": 40,
+  "upstream_behavior_regressions_reproduced": 12,
+  "eps_abs": 0.001,
+  "eps_rel": 0.001,
+  "adaptive_rho_interval": 100,
+  "max_iter": 100000,
+  "polish": false,
+  "cold_start_each_solve": true,
+  "baseline_parser_patch": "Only BOUNDS variable-position fix shared; original solver otherwise unchanged",
+  "accuracy_note": "SOLVED means the configured stopping criteria were met; historical objective discrepancies are not resolved by this timing study."
+}

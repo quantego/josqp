@@ -33,6 +33,23 @@ public class DualityGapTest {
         assertTrue(OSQP.check_termination(p.work,false));
     }
 
+    /** The OSQP 1.0 info fields follow the gap expression of every info update. */
+    @Test public void infoTracksPrimDualIntegralAndRelKktError() {
+        OSQP optimal = problem(-2,0,1,0);
+        optimal.work.x[0]=1; optimal.work.z[0]=1; optimal.work.y[0]=1;
+        OSQP.update_info(optimal.work,25,true,false);
+        assertEquals(0,optimal.work.info.primdual_int,0);
+        assertEquals(0,optimal.work.info.rel_kkt_error,0);
+
+        OSQP stuck = problem(-1000,0,1,0);
+        stuck.work.x[0]=0; stuck.work.z[0]=0; stuck.work.y[0]=1000;
+        OSQP.update_info(stuck.work,25,true,false);
+        assertEquals(1000,stuck.work.info.primdual_int,0);
+        assertEquals(1000,stuck.work.info.rel_kkt_error,0);
+        OSQP.update_info(stuck.work,50,true,false);
+        assertEquals("the integral accumulates over the info updates",2000,stuck.work.info.primdual_int,0);
+    }
+
     @Test public void infiniteBoundsAndTinyMultipliersDoNotCreateNaNs() {
         OSQP p = problem(-2,Double.NEGATIVE_INFINITY,Double.POSITIVE_INFINITY,0);
         p.work.x[0]=2; p.work.z[0]=2; p.work.y[0]=1e-20;

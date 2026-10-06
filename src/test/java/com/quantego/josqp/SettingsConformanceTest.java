@@ -3,19 +3,24 @@ package com.quantego.josqp;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Keeps {@link OSQP.Settings} compatible with the public {@code OSQPSettings} structure of
  * OSQP 1.0.0 (include/public/osqp_api_types.h, tag v1.0.0).
  *
- * <p>Every setting of the C API must either exist here (under the same name or a documented
- * alias) or be listed in {@link #UNSUPPORTED} with the reason. That makes the gap explicit and
- * forces a decision whenever upstream adds a parameter.</p>
+ * <p>Every setting of the C API must exist here, either under its own name, under a documented
+ * alias, or - for the four OSQP 1.0 names that jOSQP keeps as accessor methods - as a bridge to the
+ * 0.6 field name. {@link #INERT} lists the settings that exist for API parity but cannot change the
+ * behaviour of a pure Java solver; settings that would silently produce a different result than
+ * requested are rejected instead ({@link #rejectedSettingsFailLoudly()}).</p>
  */
 public class SettingsConformanceTest {
 
@@ -31,27 +36,25 @@ public class SettingsConformanceTest {
             "delta", "polish_refine_iter"
     };
 
-    /** OSQP 1.0 names that JOSQP deliberately does not implement, with the reason. */
-    private static final Map<String, String> UNSUPPORTED = new LinkedHashMap<>();
-
-    static {
-        UNSUPPORTED.put("device", "pure Java solver without GPU backend");
-        UNSUPPORTED.put("linsys_solver", "only the direct QDLDL solver is implemented");
-        UNSUPPORTED.put("allocate_solution", "solutions are always allocated by the Java API");
-        UNSUPPORTED.put("profiler_level", "no profiler annotations in the Java port");
-        UNSUPPORTED.put("rho_is_vec", "rho is always the internal scalar step size here");
-        UNSUPPORTED.put("cg_max_iter", "conjugate-gradient solver not implemented");
-        UNSUPPORTED.put("cg_tol_reduction", "conjugate-gradient solver not implemented");
-        UNSUPPORTED.put("cg_tol_fraction", "conjugate-gradient solver not implemented");
-        UNSUPPORTED.put("cg_precond", "conjugate-gradient solver not implemented");
-    }
-
-    /** OSQP 1.0 names that JOSQP exposes under the older 0.6 name. */
+    /** OSQP 1.0 names that jOSQP exposes under the older 0.6 field name. */
     private static final Map<String, String> ALIASES = new LinkedHashMap<>();
 
     static {
         ALIASES.put("warm_starting", "warm_start");
         ALIASES.put("polishing", "polish");
+    }
+
+    /** OSQP 1.0 settings that exist for parity but cannot affect a solve here. */
+    private static final Map<String, String> INERT = new LinkedHashMap<>();
+
+    static {
+        INERT.put("device", "pure Java solver without device selection");
+        INERT.put("allocate_solution", "the Java API always allocates the solution vectors");
+        INERT.put("profiler_level", "no profiler annotations in the Java port");
+        INERT.put("cg_max_iter", "conjugate-gradient solver not implemented");
+        INERT.put("cg_tol_reduction", "conjugate-gradient solver not implemented");
+        INERT.put("cg_tol_fraction", "conjugate-gradient solver not implemented");
+        INERT.put("cg_precond", "conjugate-gradient solver not implemented");
     }
 
     private static boolean hasField(String name) {
@@ -62,55 +65,114 @@ public class SettingsConformanceTest {
         return false;
     }
 
-    @Test
-    public void everyOsqpSettingIsSupportedOrDocumented() {
-        for (String name : OSQP_1_0_SETTINGS) {
-            String alias = ALIASES.get(name);
-            boolean present = hasField(name) || (alias != null && hasField(alias));
-            assertTrue("OSQP 1.0 setting '" + name + "' is neither implemented nor listed as unsupported",
-                    present || UNSUPPORTED.containsKey(name));
+    private static boolean hasMethod(String name, Class<?>... parameters) {
+        try {
+            Method method = OSQP.Settings.class.getMethod(name, parameters);
+            return !java.lang.reflect.Modifier.isStatic(method.getModifiers());
+        } catch (NoSuchMethodException ex) {
+            return false;
         }
     }
 
     @Test
-    public void supportedSettingsUseTheOsqpNameOrDefaultValue() throws Exception {
+    public void everyOsqpSettingExistsUnderItsNameOrAlias() {
+        for (String name : OSQP_1_0_SETTINGS) {
+            String alias = ALIASES.get(name);
+            assertTrue("OSQP 1.0 setting '" + name + "' is missing",
+                    hasField(name) || (alias != null && hasField(alias)));
+        }
+    }
+
+    /** The renamed entries are reachable under both names. */
+    @Test
+    public void renamedSettingsProvideAccessorBridges() {
+        assertTrue(hasMethod("isPolishing"));
+        assertTrue(hasMethod("setPolishing", boolean.class));
+        assertTrue(hasMethod("isWarmStarting"));
+        assertTrue(hasMethod("setWarmStarting", boolean.class));
+
         OSQP.Settings settings = new OSQP.Settings();
-        assertTrue("check_dualgap must default to true like OSQP 1.0 doubles",
-                OSQP.Settings.class.getField("check_dualgap").getBoolean(settings));
-        assertFalse("OSQP 1.0 defaults polishing to off",
-                OSQP.Settings.class.getField("polish").getBoolean(settings));
+        settings.setPolishing(true);
+        assertTrue("setPolishing must drive the polish field", settings.polish);
+        assertTrue(settings.isPolishing());
+        settings.polish = false;
+        assertFalse(settings.isPolishing());
+
+        settings.setWarmStarting(false);
+        assertFalse("setWarmStarting must drive the warm_start field", settings.warm_start);
+        assertFalse(settings.isWarmStarting());
+        settings.warm_start = true;
+        assertTrue(settings.isWarmStarting());
+    }
+
+    @Test
+    public void settingsThatCannotBeHonouredAreRejected() {
+        Model.Builder builder = Model.getBuilder();
+        builder.addVariable();
+        Model model = builder.build();
+
+        OSQP.Settings indirect = new OSQP.Settings();
+        indirect.linsys_solver = OSQP.LinSysSolver.OSQP_INDIRECT_SOLVER;
+        try {
+            model.solve(indirect);
+            fail("the conjugate-gradient solver must be rejected");
+        } catch (IllegalArgumentException expected) {
+        }
+
+        OSQP.Settings scalarRho = new OSQP.Settings();
+        scalarRho.rho_is_vec = false;
+        try {
+            model.solve(scalarRho);
+            fail("scalar rho must be rejected");
+        } catch (IllegalArgumentException expected) {
+        }
+    }
+
+    @Test
+    public void inertSettingsArePresentWithTheOsqpDefaults() {
+        OSQP.Settings settings = new OSQP.Settings();
+        for (String name : INERT.keySet())
+            assertTrue("'" + name + "' is listed as inert but does not exist", hasField(name));
+        assertTrue("device must default to the CPU device", settings.device.isEmpty());
+        assertTrue("solutions must be allocated", settings.allocate_solution);
+        assertTrue("no profiler level by default", settings.profiler_level == 0);
+        assertTrue("the CG defaults must match OSQP 1.0", settings.cg_max_iter == OSQP.CG_MAX_ITER);
+        assertTrue(settings.cg_tol_reduction == OSQP.CG_TOL_REDUCTION);
+        assertTrue(settings.cg_tol_fraction == OSQP.CG_TOL_FRACTION);
+        assertTrue(settings.cg_precond == OSQP.Preconditioner.OSQP_DIAGONAL_PRECONDITIONER);
+    }
+
+    @Test
+    public void supportedSettingsUseTheOsqpNameOrDefaultValue() {
+        OSQP.Settings settings = new OSQP.Settings();
+        assertTrue("check_dualgap must default to true like OSQP 1.0 doubles", settings.check_dualgap);
+        assertFalse("OSQP 1.0 defaults polishing to off", settings.polish);
+        assertTrue("linsys_solver must default to the direct QDLDL solver",
+                settings.linsys_solver == OSQP.LinSysSolver.OSQP_DIRECT_SOLVER);
+        assertTrue("rho_is_vec must default to true (the builtin OSQP 1.0 default)",
+                settings.rho_is_vec);
         assertFalse("the optional KKT diagnostics must stay off by default",
-                OSQP.Settings.class.getField("check_linear_residual").getBoolean(settings));
+                settings.check_linear_residual);
         assertFalse("the optional rho progress gate must stay off by default",
-                OSQP.Settings.class.getField("adaptive_rho_kkt").getBoolean(settings));
+                settings.adaptive_rho_kkt);
     }
 
     /** Defaults of the OSQP 1.0 double/CPU build, pinned so a change is always deliberate. */
     @Test
     public void defaultsMatchOsqp100() {
         OSQP.Settings settings = new OSQP.Settings();
-        assertTrue("adaptive_rho_interval must be 50 as in OSQP 1.0",
-                settings.adaptive_rho_interval == 50);
-        assertTrue("rho_eq_over_rho_ineq must be 1e3 as in OSQP 1.0",
-                OSQP.RHO_EQ_OVER_RHO_INEQ == 1e3);
-        assertTrue("time_limit must default to 1e10 as in OSQP 1.0",
-                settings.time_limit == 1e10);
-        assertTrue("adaptive_rho must default to true", settings.adaptive_rho);
-        assertTrue("adaptive_rho_tolerance must default to 5.0",
-                settings.adaptive_rho_tolerance == 5.0);
-        assertTrue("warm_start must default to true", settings.warm_start);
-        assertTrue("check_termination must default to 25", settings.check_termination == 25);
-        assertTrue("max_iter must default to 4000", settings.max_iter == 4000);
-        assertTrue("delta must default to 1e-6", settings.delta == 1e-6);
-        assertTrue("polish_refine_iter must default to 3", settings.polish_refine_iter == 3);
-        assertTrue("eps_abs must default to 1e-3", settings.eps_abs == 1e-3);
-        assertTrue("eps_prim_inf must default to 1e-4", settings.eps_prim_inf == 1e-4);
-        assertTrue("scaling must default to 10", settings.scaling == 10);
-    }
-
-    @Test
-    public void documentedUnsupportedSettingsAreAbsent() {
-        for (String name : UNSUPPORTED.keySet())
-            assertFalse("'" + name + "' is implemented now; remove it from UNSUPPORTED", hasField(name));
+        assertEquals(50, settings.adaptive_rho_interval);
+        assertEquals(1e3, OSQP.RHO_EQ_OVER_RHO_INEQ, 0.0);
+        assertEquals(1e10, settings.time_limit, 0.0);
+        assertTrue(settings.adaptive_rho);
+        assertEquals(5.0, settings.adaptive_rho_tolerance, 0.0);
+        assertTrue(settings.warm_start);
+        assertEquals(25, settings.check_termination);
+        assertEquals(4000, settings.max_iter);
+        assertEquals(1e-6, settings.delta, 0.0);
+        assertEquals(3, settings.polish_refine_iter);
+        assertEquals(1e-3, settings.eps_abs, 0.0);
+        assertEquals(1e-4, settings.eps_prim_inf, 0.0);
+        assertEquals(10, settings.scaling);
     }
 }

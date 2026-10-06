@@ -356,17 +356,21 @@ public class Parser {
 	}
 
 
-	private static void parseRanges(Map<String, Integer> rows, List<Double> l, List<Double>  u, String[] tokens) {
-		if (!rows.containsKey(removeSpecialChars(tokens[2])))
-			throw new IllegalStateException(String.format("Error in reading ranges."));
-		Integer rowNum = rows.get(removeSpecialChars(tokens[2]));
-		Double range = Double.parseDouble(tokens[3]);
-		if (u.get(rowNum) == OSQP.OSQP_INFTY)
-			u.set(rowNum, l.get(rowNum) + range);
-		else if (l.get(rowNum) == -OSQP.OSQP_INFTY)
-			l.set(rowNum, u.get(rowNum) - range);
-		else
-			throw new IllegalStateException(String.format("Error in reading ranges."));
+	private static void parseRanges(Map<String, Integer> rows, List<Integer> rowSense,
+			List<Double> l, List<Double> u, String[] tokens) {
+		if (tokens.length != 4 && tokens.length != 6)
+			throw new IllegalArgumentException("Invalid RANGES entry: " + Arrays.toString(tokens));
+		for (int i = 2; i < tokens.length; i += 2) {
+			Integer row = rows.get(removeSpecialChars(tokens[i]));
+			if (row == null || row >= rowSense.size())
+				throw new IllegalArgumentException("Unknown RANGES row: " + tokens[i]);
+			double range = Double.parseDouble(tokens[i + 1]);
+			if (!Double.isFinite(range)) throw new IllegalArgumentException("Non-finite RANGES value");
+			if (rowSense.get(row) < 0) l.set(row, u.get(row) - Math.abs(range));
+			else if (rowSense.get(row) > 0) u.set(row, l.get(row) + Math.abs(range));
+			else if (range >= 0) u.set(row, l.get(row) + range);
+			else l.set(row, u.get(row) + range);
+		}
 	}
 
 	private static void parseQuadObj(Map<String, Integer> cols, RcvMat Prcv, String[] tokens) {
@@ -405,6 +409,7 @@ public class Parser {
 		double tme = System.currentTimeMillis();
 		String objname = null;
 		boolean maximize = false;
+		String rangeSet = null;
 		int[] shape = new int[2];
 		Map<String, Integer> rows = new HashMap<>();
 		Map<String, Integer> cols = new HashMap<>();
@@ -441,7 +446,8 @@ public class Parser {
 									parseRhs(rows, rowSense, l, u, objname, offset, tokens);
 									break;
 								case RANGES:
-									parseRanges(rows, l, u, tokens);
+									if (rangeSet == null) rangeSet = tokens[1];
+									if (rangeSet.equals(tokens[1])) parseRanges(rows, rowSense, l, u, tokens);
 									break;
 								case BOUNDS:
 									parseBnd(cols, rows, l, u, tokens);

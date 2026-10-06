@@ -1268,7 +1268,10 @@ public class OSQP {
 		  }
 
 		  // Compute dual residual
-		  work.info.dua_res = compute_dua_res(work, x, y);
+		  if (polish)
+			  work.pol.dua_res = compute_dua_res(work, x, y);
+		  else
+			  work.info.dua_res = compute_dua_res(work, x, y);
 
 		}
 

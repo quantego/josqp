@@ -217,7 +217,14 @@ class Polish {
 	  }
 
 	  // Form and factorize reduced KKT
-	  plsh = new LinSys(work.data.P, work.pol.Ared, work.settings.delta, null, true);
+	  try {
+	      plsh = new LinSys(work.data.P, work.pol.Ared, work.settings.delta, null, true);
+	  } catch (IllegalStateException failure) {
+	      // An unusable reduced factor must not discard the valid ADMM solution.
+	      work.info.status_polish = -1;
+	      work.info.polish_time = (System.currentTimeMillis()-work.info.polish_time)/1000.;
+	      return -1;
+	  }
 
 
 

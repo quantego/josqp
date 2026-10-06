@@ -31,16 +31,17 @@ def compile_to(destination, sources, classpath=None, vector=False, release=None)
     command += [str(p) for p in sources]
     subprocess.run(command, check=True)
 
-def build(mode):
-    base = ROOT / 'target' / (mode + '-classes')
+def build(mode, revision=None):
+    suffix = mode + ('-' + revision if revision else '')
+    base = ROOT / 'target' / (suffix + '-classes')
     if base.exists():
         shutil.rmtree(base)
-    if mode in ('baseline', 'baseline-qplib', 'pre-workspace'):
-        archived_commit = PRE_WORKSPACE if mode == 'pre-workspace' else BASELINE
-        archived_paths = ['src/main/java', 'src/vector/java'] if mode == 'pre-workspace' else ['src/main/java']
+    if revision or mode in ('baseline', 'baseline-qplib', 'pre-workspace'):
+        archived_commit = revision or (PRE_WORKSPACE if mode == 'pre-workspace' else BASELINE)
+        archived_paths = ['src/main/java', 'src/vector/java'] if revision or mode == 'pre-workspace' else ['src/main/java']
         archive = subprocess.run(['git', 'archive', archived_commit] + archived_paths, cwd=ROOT,
                                  capture_output=True, check=True).stdout
-        source_root = ROOT / 'target' / ('pre-workspace-src' if mode == 'pre-workspace' else 'baseline-src')
+        source_root = ROOT / 'target' / (suffix + '-src' if revision else ('pre-workspace-src' if mode == 'pre-workspace' else 'baseline-src'))
         source_root.mkdir(parents=True, exist_ok=True)
         with tarfile.open(fileobj=io.BytesIO(archive)) as source:
             # Restrict extraction to regular files/directories, including on Python < 3.12.
@@ -58,6 +59,8 @@ def build(mode):
     main = ROOT / ('target/baseline-src/src/main/java' if mode in ('baseline', 'baseline-qplib') else 'src/main/java')
     if mode == 'pre-workspace':
         main = ROOT / 'target/pre-workspace-src/src/main/java'
+    if revision:
+        main = source_root / 'src/main/java'
     if mode == 'baseline-qplib':
         # Original solver; only the BOUNDS token-position fix is shared so the same QPs can be read.
         parser_file = main / 'com/quantego/josqp/Parser.java'
@@ -92,6 +95,8 @@ def build(mode):
     compile_to(base, sorted(main.rglob('*.java')), release=8)
     if mode not in ('baseline', 'baseline-qplib', 'portable'):
         vector_sources = ROOT / ('target/pre-workspace-src/src/vector/java' if mode == 'pre-workspace' else 'src/vector/java')
+        if revision:
+            vector_sources = source_root / 'src/vector/java'
         compile_to(base, sorted(vector_sources.rglob('*.java')), str(base), vector=True)
     benchmark_sources = sorted((ROOT / 'benchmarks/java').rglob('*.java'))
     if mode in ('baseline', 'baseline-qplib', 'portable'):

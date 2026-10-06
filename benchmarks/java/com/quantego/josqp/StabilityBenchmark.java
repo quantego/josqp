@@ -1,0 +1,70 @@
+package com.quantego.josqp;
+
+import java.util.Locale;
+import java.util.logging.Level;
+
+/** Independent checks on original, unscaled input after a timed cold solve. */
+public final class StabilityBenchmark {
+    static double norm(double[] a) {
+        double n = 0;
+        for (double v : a) { if (!Double.isFinite(v)) return Double.NaN; n = Math.max(n, Math.abs(v)); }
+        return n;
+    }
+    public static void main(String[] args) {
+        Locale.setDefault(Locale.ROOT);
+        OSQP.LOG.setLevel(Level.OFF);
+        OSQP.Data original = Parser.readQmps(args[0]).getData();
+        OSQP.Settings s = new OSQP.Settings();
+        s.verbose = false; s.warm_start = false; s.adaptive_rho_interval = 100;
+        s.max_iter = Integer.parseInt(System.getProperty("audit.maxIter", "100000"));
+        s.time_limit = Double.parseDouble(System.getProperty("audit.seconds", "10"));
+        s.eps_abs = s.eps_rel = Double.parseDouble(System.getProperty("audit.eps", "0.001"));
+        s.eps_rel = Double.parseDouble(System.getProperty("audit.epsRel", Double.toString(s.eps_rel)));
+        s.eps_prim_inf = s.eps_dual_inf = Double.parseDouble(System.getProperty("audit.infeasEps", "0.0001"));
+        s.polish = Boolean.parseBoolean(System.getProperty("audit.polish", "false"));
+        s.scaling = Integer.parseInt(System.getProperty("audit.scaling", "10"));
+        OSQP.Data input = new OSQP.Data(original);
+        double costScale = Double.parseDouble(System.getProperty("audit.costScale", "1"));
+        for (int i=0;i<input.P.Ap[input.n];i++) input.P.Ax[i] *= costScale;
+        for (int i=0;i<input.n;i++) input.q[i] *= costScale;
+        long t = System.nanoTime();
+        OSQP solver = new OSQP(input,s);
+        double setup = (System.nanoTime()-t)/1e6;
+        t=System.nanoTime(); solver.solve(); double solve=(System.nanoTime()-t)/1e6;
+        double[] x=solver.getPrimalSolution(), y=solver.getDualSolution();
+        double[] px=new double[original.n], ax=new double[original.m], aty=new double[original.n];
+        double xpx=0,qx=0,support=0,pri=0,comp=0,cone=0;
+        // Explicit sparse multiplication, independent of LinAlg/NumericKernels.
+        for(int c=0;c<original.n;c++) {
+            qx += original.q[c]*x[c];
+            for(int k=original.P.Ap[c];k<original.P.Ap[c+1];k++) {
+                int r=original.P.Ai[k]; double v=original.P.Ax[k];
+                px[r]+=v*x[c]; if(r!=c) px[c]+=v*x[r];
+            }
+            for(int k=original.A.Ap[c];k<original.A.Ap[c+1];k++) {
+                int r=original.A.Ai[k]; double v=original.A.Ax[k];
+                ax[r]+=v*x[c]; aty[c]+=v*y[r]/costScale;
+            }
+        }
+        for(int i=0;i<original.n;i++) xpx+=x[i]*px[i];
+        for(int i=0;i<original.m;i++) {
+            double yi=y[i]/costScale;
+            if(original.l[i]>-OSQP.OSQP_INFTY) pri=Math.max(pri,original.l[i]-ax[i]);
+            if(original.u[i]<OSQP.OSQP_INFTY) pri=Math.max(pri,ax[i]-original.u[i]);
+            double bound=yi>0?original.u[i]:original.l[i];
+            if(yi!=0 && Math.abs(bound)<OSQP.OSQP_INFTY) {
+                support+=yi*bound; comp=Math.max(comp,Math.abs(yi*(bound-ax[i])));
+            } else if(yi!=0) cone=Math.max(cone,Math.abs(yi));
+        }
+        double dual=0;
+        for(int i=0;i<original.n;i++) dual=Math.max(dual,Math.abs(px[i]+original.q[i]+aty[i]));
+        boolean finite=Double.isFinite(norm(x)) && Double.isFinite(norm(y));
+        double independentObj=0.5*xpx+qx+original.offset;
+        double reportedObj=(solver.getObjectiveValue()-original.offset)/costScale+original.offset;
+        System.out.println("file,n,m,offset,cost_scale,status,status_polish,iterations,rho_updates,setup_ms,solve_ms,objective,independent_objective,primal_violation,stationarity,complementarity,dual_cone_error,gap_expression,finite,x_hash,y_hash");
+        System.out.printf("%s,%d,%d,%.17g,%.17g,%s,%d,%d,%d,%.6f,%.6f,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%s,%d,%d%n",
+            args[0],original.n,original.m,original.offset,costScale,solver.getInfo().status,solver.getInfo().status_polish,solver.getInfo().iter,
+            solver.getInfo().rho_updates,setup,solve,reportedObj,independentObj,pri,dual,comp,cone,xpx+qx+support,finite,
+            java.util.Arrays.hashCode(x),java.util.Arrays.hashCode(y));
+    }
+}

@@ -174,7 +174,7 @@ class LinSys  {
 
 	    // Check if matrix has been created
 
-	    qdldl.refactor(KKT_temp);
+	    factorKKT(KKT_temp);
 	    // Factorize the KKT matrix
 
 
@@ -258,7 +258,7 @@ class LinSys  {
 	    // Update KKT matrix with new A
 	    KKT.update_KKT_A(this.kkt, A, this.AtoKKT);
 
-	    qdldl.refactor(this.kkt);
+	    factorKKT(this.kkt);
 
 	}
 
@@ -273,8 +273,19 @@ class LinSys  {
 
 	    // Update KKT matrix with new rho_vec
 	    KKT.update_KKT_param2(this.kkt, this.rho_inv_vec, this.rhotoKKT, this.m);
-	    return qdldl.refactor(this.kkt);
+	    return factorKKT(this.kkt);
 	}
+
+    private boolean factorKKT(CSCMatrix matrix) {
+        qdldl.refactor(matrix);
+        int positive = qdldl._ldl.positiveValuesInD;
+        if (positive != n) {
+            qdldl._ldl = null;
+            throw new IllegalStateException("Invalid KKT inertia: expected " + n
+                    + " positive pivots, got " + positive + "; problem may be non-convex");
+        }
+        return true;
+    }
 	
 
 

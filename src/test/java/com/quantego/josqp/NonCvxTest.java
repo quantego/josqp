@@ -1,6 +1,7 @@
 package com.quantego.josqp;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 
@@ -31,7 +32,7 @@ public class NonCvxTest {
         //osqp.osqp_set_default_settings(settings);
         settings.verbose = true;
         settings.sigma = 1e-6;
-        OSQP osqp = new OSQP(data,settings);
+        assertThrows(IllegalStateException.class, () -> new OSQP(data,settings));
 
         // Setup should fail due to (P + sigma I) having a negative eigenvalue
         //assertTrue(exitflag == OSQP.Error.valueOf("OSQP_NONCVX_ERROR").ordinal(),"Non Convex test solve: Setup should have failed!");
@@ -42,7 +43,7 @@ public class NonCvxTest {
         settings.sigma = sols_data.sigma_new;
 
         // Setup workspace again
-        osqp = new OSQP(data,settings);
+        OSQP osqp = new OSQP(NonCvxTestDataGenerator.generate_problem_non_cvx(),settings);
         //exitflag = osqp_setup(work, data, settings);
 
         // Setup should work this time because (P + sigma I) is positive definite

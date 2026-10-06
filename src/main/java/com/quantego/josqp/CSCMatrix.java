@@ -108,7 +108,7 @@ public class CSCMatrix {
 				// sorting based on the row number (for each column)
 				for (i = 1; i < iooRcvSize; i++) {
 					iChk = i - 1;
-					while (iChk != -1 && Ti[k + ioR[iChk]] > Ti[k + i]) {
+					while (iChk != -1 && Ti[ioC[k + ioR[iChk]]] > Ti[ioC[k + i]]) {
 						ioR[iChk + 1] = ioR[iChk];
 						iChk--;
 					}
@@ -117,6 +117,7 @@ public class CSCMatrix {
 				for (i = 0; i < iooRcvSize; i++) {
 					//Ci[k + i] = Ti[k + ioR[i]];
 					Ci[k + i] = Ti[ioC[k + ioR[i]]];
+					if (TtoC != null) TtoC[ioC[k + ioR[i]]] = k + i;
 					if (Cx != null) {
 						Cx[k + i] = Tx[ioC[k + ioR[i]]];
 					}
@@ -128,7 +129,7 @@ public class CSCMatrix {
 			//	if (TtoC != null) TtoC[k] = p;  // Assign vector of indices
 			//}
 		}
-		C.nz = Cx.length;
+		C.nz = nz;
 		return C;     /* success; free w and return C */
 	}
 	

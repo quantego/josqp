@@ -47,7 +47,7 @@ public final class SolverBenchmark {
             if (sample >= 0) {
                 System.out.printf("%d,%s,%d,%d,%d,%.6f,%.6f,%.6f,%d,%s,%d,%.17g,%.17g,%.17g,%d,%d,%d%n",
                         sample, file, original.n, original.m, original.A.Ap[original.n] + original.P.Ap[original.n],
-                        parseMs, setupMs, solveMs, allocated, status, info.iter, info.obj_val, info.pri_res, info.dua_res,
+                        parseMs, setupMs, solveMs, allocated, status, info.iter, solver.getObjectiveValue(), info.pri_res, info.dua_res,
                         java.util.Arrays.hashCode(solver.work.solution.x), java.util.Arrays.hashCode(solver.work.solution.y), info.rho_updates);
             }
             String dump = System.getProperty("josqp.bench.solutionFile");

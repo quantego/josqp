@@ -54,7 +54,8 @@ upper triangle of `P`.
 Earlier versions doubled the off-diagonal coefficient, so `add(-1, x, y)` used to mean `-2*x*y` and
 `add(-1, y, x)` raised `quad_form matrix is not upper triangular` ([issue
 #2](https://github.com/quantego/josqp/issues/2)). Models that relied on the halving workaround
-(`add(-0.5, x, y)` for `-x*y`) have to pass the full coefficient now.
+(`add(-0.5, x, y)` for `-x*y`) have to pass the full coefficient now. This is a breaking change;
+[CHANGELOG.md](CHANGELOG.md) lists it together with the other changes since upstream `36f0613`.
 
 ### Updating a model
 

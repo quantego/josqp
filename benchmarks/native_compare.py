@@ -34,7 +34,7 @@ def read_export(path):
                 export_sha256=hashlib.sha256(data).hexdigest())
 
 
-def solve(d,name,eps):
+def solve(d,name,eps,time_limit=15,polish=True):
     import numpy as np
     from scipy import sparse
     upper,a=[sparse.csc_matrix((np.array(ax),np.array(ai),np.array(ap)),shape=(rows,cols))
@@ -46,8 +46,8 @@ def solve(d,name,eps):
         import osqp
         solver=osqp.OSQP();t=time.perf_counter()
         solver.setup(P=upper,q=q,A=a,l=l,u=u,verbose=False,eps_abs=eps,eps_rel=eps,
-                     eps_prim_inf=1e-8,eps_dual_inf=1e-8,polishing=True,
-                     adaptive_rho_interval=100,max_iter=100000,time_limit=15,check_dualgap=True)
+                     eps_prim_inf=1e-8,eps_dual_inf=1e-8,polishing=polish,
+                     adaptive_rho_interval=100,max_iter=100000,time_limit=time_limit,check_dualgap=True)
         setup=time.perf_counter()-t;t=time.perf_counter();r=solver.solve()
         elapsed=time.perf_counter()-t;status=r.info.status;x,y=r.x,r.y
     else:

@@ -38,6 +38,12 @@ public final class StabilityBenchmark {
         double costScale = Double.parseDouble(System.getProperty("audit.costScale", "1"));
         for (int i=0;i<input.P.Ap[input.n];i++) input.P.Ax[i] *= costScale;
         for (int i=0;i<input.n;i++) input.q[i] *= costScale;
+        if (Boolean.getBoolean("audit.warmup")) {
+            // One untimed solve on a throwaway solver so the JIT is warm; the measured
+            // solver below is still built and solved from a fresh state.
+            OSQP warm = new OSQP(new OSQP.Data(original), s);
+            warm.solve();
+        }
         long t = System.nanoTime();
         OSQP solver = new OSQP(input,s);
         double setup = (System.nanoTime()-t)/1e6;

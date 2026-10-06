@@ -1,0 +1,2665 @@
+{
+  "arguments": {
+    "files": null,
+    "solvers": [
+      "osqp"
+    ],
+    "repeats": 2,
+    "eps": 1e-06,
+    "time_limit": 15,
+    "output": "benchmarks/results/upstream-native-bench.json"
+  },
+  "java": "/opt/homebrew/opt/openjdk@26/libexec/openjdk.jdk/Contents/Home",
+  "cases": [
+    {
+      "name": "qbore3d",
+      "file": "target/native-bins/qbore3d.native.bin",
+      "n": 315,
+      "m": 548,
+      "export_sha256": "5cef3af2d719748c1b35339c1ce83ece8b173cfb7f69698f9843eda7ea237fc2",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.3610840067267418,
+              "solve_ms": 737.2199578676373,
+              "objective": 3108.55187474117,
+              "primal_violation": 0.041576451513447375,
+              "stationarity": 0.002881468115452394,
+              "gap_expression": -74.38935224947636
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.33729197457432747,
+              "solve_ms": 738.6241669300944,
+              "objective": 3108.55187474117,
+              "primal_violation": 0.041576451513447375,
+              "stationarity": 0.002881468115452394,
+              "gap_expression": -74.38935224947636
+            }
+          ],
+          "median_solve_ms": 737.9220623988658,
+          "median_setup_ms": 0.34918799065053463,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            3108.55187474117,
+            3108.55187474117
+          ]
+        }
+      }
+    },
+    {
+      "name": "qcapri",
+      "file": "target/native-bins/qcapri.native.bin",
+      "n": 353,
+      "m": 624,
+      "export_sha256": "b3abeae80b48720e2ab4fe494815935cb142a54fec03c686fe32d85480439c26",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.4432089626789093,
+              "solve_ms": 1075.0636248849332,
+              "objective": 65715596.03182603,
+              "primal_violation": 0.6814932150060464,
+              "stationarity": 0.03503314696678594,
+              "gap_expression": -550258.7750478983
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.4900831263512373,
+              "solve_ms": 1077.9508750420064,
+              "objective": 65715596.03182603,
+              "primal_violation": 0.6814932150060464,
+              "stationarity": 0.03503314696678594,
+              "gap_expression": -550258.7750478983
+            }
+          ],
+          "median_solve_ms": 1076.5072499634698,
+          "median_setup_ms": 0.4666460445150733,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            65715596.03182603,
+            65715596.03182603
+          ]
+        }
+      }
+    },
+    {
+      "name": "qfffff80",
+      "file": "target/native-bins/qfffff80.native.bin",
+      "n": 854,
+      "m": 1378,
+      "export_sha256": "fb35def9610a3d5fdbea39b455769197cd37b61a1f4ec05bfc197f65cb56a7d0",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 1.496792072430253,
+              "solve_ms": 4086.24070789665,
+              "objective": 873271.832732793,
+              "primal_violation": 0.14179816762584352,
+              "stationarity": 0.00039988474605934243,
+              "gap_expression": 3488.690560124116
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 1.501666847616434,
+              "solve_ms": 4106.973874848336,
+              "objective": 873271.832732793,
+              "primal_violation": 0.14179816762584352,
+              "stationarity": 0.00039988474605934243,
+              "gap_expression": 3488.690560124116
+            }
+          ],
+          "median_solve_ms": 4096.607291372493,
+          "median_setup_ms": 1.4992294600233436,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            873271.832732793,
+            873271.832732793
+          ]
+        }
+      }
+    },
+    {
+      "name": "qsc205",
+      "file": "target/native-bins/qsc205.native.bin",
+      "n": 203,
+      "m": 408,
+      "export_sha256": "05de0c9a2fc3dc83cd21c593aaa5914042ad2724f5c7c88ce3458391f8c5adf5",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.15337509103119373,
+              "solve_ms": 1.0002499911934137,
+              "objective": -0.005814566604963335,
+              "primal_violation": 4.933310952786457e-07,
+              "stationarity": 5.745058528905389e-08,
+              "gap_expression": -5.757181450946613e-07
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.14200014993548393,
+              "solve_ms": 0.9988329838961363,
+              "objective": -0.005814566604963335,
+              "primal_violation": 4.933310952786457e-07,
+              "stationarity": 5.745058528905389e-08,
+              "gap_expression": -5.757181450946613e-07
+            }
+          ],
+          "median_solve_ms": 0.999541487544775,
+          "median_setup_ms": 0.14768762048333883,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -0.005814566604963335,
+            -0.005814566604963335
+          ]
+        }
+      }
+    },
+    {
+      "name": "qscfxm1",
+      "file": "target/native-bins/qscfxm1.native.bin",
+      "n": 457,
+      "m": 787,
+      "export_sha256": "2c301d7b376b31610dfec693b8c4388eb51a55ccc16b60df7802809fa4b30010",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.5543341394513845,
+              "solve_ms": 1185.2250827942044,
+              "objective": 16882643.55435635,
+              "primal_violation": 0.013846776178983994,
+              "stationarity": 0.023151201301051815,
+              "gap_expression": 18.838645711541176
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.5641249008476734,
+              "solve_ms": 1174.291166011244,
+              "objective": 16882643.55435635,
+              "primal_violation": 0.013846776178983994,
+              "stationarity": 0.023151201301051815,
+              "gap_expression": 18.838645711541176
+            }
+          ],
+          "median_solve_ms": 1179.7581244027242,
+          "median_setup_ms": 0.559229520149529,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            16882643.55435635,
+            16882643.55435635
+          ]
+        }
+      }
+    },
+    {
+      "name": "qscfxm2",
+      "file": "target/native-bins/qscfxm2.native.bin",
+      "n": 914,
+      "m": 1574,
+      "export_sha256": "b4ccdc36ee00069e38400a021193d146c766dad4568992122d3b93833dcde31d",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.9364578872919083,
+              "solve_ms": 2686.2842498812824,
+              "objective": 27776246.250276815,
+              "primal_violation": 0.010153969072950669,
+              "stationarity": 0.024187495696408202,
+              "gap_expression": -28.528952352702618
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.9360830299556255,
+              "solve_ms": 2687.519749859348,
+              "objective": 27776246.250276815,
+              "primal_violation": 0.010153969072950669,
+              "stationarity": 0.024187495696408202,
+              "gap_expression": -28.528952352702618
+            }
+          ],
+          "median_solve_ms": 2686.901999870315,
+          "median_setup_ms": 0.9362704586237669,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            27776246.250276815,
+            27776246.250276815
+          ]
+        }
+      }
+    },
+    {
+      "name": "qscfxm3",
+      "file": "target/native-bins/qscfxm3.native.bin",
+      "n": 1371,
+      "m": 2361,
+      "export_sha256": "48040a8733d1438722d40bbb0067eb8e554c05c0dcab4379e1d15f320d850414",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 1.2522919569164515,
+              "solve_ms": 4255.397500004619,
+              "objective": 30816541.941238422,
+              "primal_violation": 0.1271401070794127,
+              "stationarity": 0.05428209605975722,
+              "gap_expression": 160.82008504122496
+            },
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 1.2632501311600208,
+              "solve_ms": 4259.904083097354,
+              "objective": 30816541.941238422,
+              "primal_violation": 0.1271401070794127,
+              "stationarity": 0.05428209605975722,
+              "gap_expression": 160.82008504122496
+            }
+          ],
+          "median_solve_ms": 4257.6507915509865,
+          "median_setup_ms": 1.2577710440382361,
+          "statuses": [
+            "solved inaccurate"
+          ],
+          "objectives": [
+            30816541.941238422,
+            30816541.941238422
+          ]
+        }
+      }
+    },
+    {
+      "name": "qseba",
+      "file": "target/native-bins/qseba.native.bin",
+      "n": 1028,
+      "m": 1543,
+      "export_sha256": "bd60fbf91d2010ae5b69573da4898d4b9cebe50be84bd3e897f8c0e008dd390f",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.7638749666512012,
+              "solve_ms": 1805.3557081148028,
+              "objective": 81477603.8667329,
+              "primal_violation": 0.0011817394578930163,
+              "stationarity": 0.0010001645736779229,
+              "gap_expression": -4203.905182868242
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.7515409961342812,
+              "solve_ms": 1795.4823749605566,
+              "objective": 81477603.8667329,
+              "primal_violation": 0.0011817394578930163,
+              "stationarity": 0.0010001645736779229,
+              "gap_expression": -4203.905182868242
+            }
+          ],
+          "median_solve_ms": 1800.4190415376797,
+          "median_setup_ms": 0.7577079813927412,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            81477603.8667329,
+            81477603.8667329
+          ]
+        }
+      }
+    },
+    {
+      "name": "qstandat",
+      "file": "target/native-bins/qstandat.native.bin",
+      "n": 1075,
+      "m": 1434,
+      "export_sha256": "2bb89e4ba78d1c2f2af487b2eaa25d14556de6dd08020037589ec0beaf30def3",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.5344168748706579,
+              "solve_ms": 161.25749982893467,
+              "objective": 6411.847474569174,
+              "primal_violation": 2.3021721051847728e-05,
+              "stationarity": 2.3870088236011e-06,
+              "gap_expression": 0.01149777938007901
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.5147501360625029,
+              "solve_ms": 160.2158339228481,
+              "objective": 6411.847474569174,
+              "primal_violation": 2.3021721051847728e-05,
+              "stationarity": 2.3870088236011e-06,
+              "gap_expression": 0.01149777938007901
+            }
+          ],
+          "median_solve_ms": 160.7366668758914,
+          "median_setup_ms": 0.5245835054665804,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            6411.847474569174,
+            6411.847474569174
+          ]
+        }
+      }
+    },
+    {
+      "name": "hues-mod",
+      "file": "target/native-bins/hues-mod.native.bin",
+      "n": 10000,
+      "m": 10002,
+      "export_sha256": "4a48f9fd7ab8bec8d7b2dd6dbb28fdb12e609662e28b2aa8c79b5c24fea2e60f",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.441416960209608,
+              "solve_ms": 323.1217910069972,
+              "objective": 34824463.87320027,
+              "primal_violation": 9.512177712167613e-10,
+              "stationarity": 2.928305644842033e-11,
+              "gap_expression": 0.00025556981563568115
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.413666108623147,
+              "solve_ms": 326.1411658022553,
+              "objective": 34824463.87320027,
+              "primal_violation": 9.512177712167613e-10,
+              "stationarity": 2.928305644842033e-11,
+              "gap_expression": 0.00025556981563568115
+            }
+          ],
+          "median_solve_ms": 324.63147840462625,
+          "median_setup_ms": 2.4275415344163775,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            34824463.87320027,
+            34824463.87320027
+          ]
+        }
+      }
+    },
+    {
+      "name": "qpcblend",
+      "file": "target/native-bins/qpcblend.native.bin",
+      "n": 83,
+      "m": 157,
+      "export_sha256": "560528bdefd902d3119cc96f7ab1eba81c03b3bd49472469ed2485531acc098d",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.12254202738404274,
+              "solve_ms": 2.47945892624557,
+              "objective": -0.007843150747149323,
+              "primal_violation": 4.77034842152702e-08,
+              "stationarity": 5.757097611969186e-06,
+              "gap_expression": -2.3638502926956462e-07
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.11395895853638649,
+              "solve_ms": 2.4512081872671843,
+              "objective": -0.007843150747149323,
+              "primal_violation": 4.77034842152702e-08,
+              "stationarity": 5.757097611969186e-06,
+              "gap_expression": -2.3638502926956462e-07
+            }
+          ],
+          "median_solve_ms": 2.465333556756377,
+          "median_setup_ms": 0.11825049296021461,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -0.007843150747149323,
+            -0.007843150747149323
+          ]
+        }
+      }
+    },
+    {
+      "name": "aug3dc",
+      "file": "target/native-bins/aug3dc.native.bin",
+      "n": 3873,
+      "m": 4873,
+      "export_sha256": "ead32e8056f5192f96378da6011f9f2b2a697520cb4bb347f1a58a52d97223ed",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.007874893024564,
+              "solve_ms": 6.126167019829154,
+              "objective": 771.2624386889593,
+              "primal_violation": 1.7763568394002505e-15,
+              "stationarity": 3.4416913763379853e-15,
+              "gap_expression": -4.547473508864641e-13
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 1.9785829354077578,
+              "solve_ms": 5.880041979253292,
+              "objective": 771.2624386889593,
+              "primal_violation": 1.7763568394002505e-15,
+              "stationarity": 3.4416913763379853e-15,
+              "gap_expression": -4.547473508864641e-13
+            }
+          ],
+          "median_solve_ms": 6.003104499541223,
+          "median_setup_ms": 1.9932289142161608,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            771.2624386889593,
+            771.2624386889593
+          ]
+        }
+      }
+    },
+    {
+      "name": "yao",
+      "file": "target/native-bins/yao.native.bin",
+      "n": 2002,
+      "m": 4002,
+      "export_sha256": "add2271a17b7cae2705d4319a51e8e064b3191026566a26d4ee6f01272782890",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.7558749057352543,
+              "solve_ms": 4868.4412920847535,
+              "objective": 12.950949745851517,
+              "primal_violation": 6.36583264179702e-05,
+              "stationarity": 0.00015401219151733197,
+              "gap_expression": -6.236072189338673
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.7067499682307243,
+              "solve_ms": 4871.992041822523,
+              "objective": 12.950949745851517,
+              "primal_violation": 6.36583264179702e-05,
+              "stationarity": 0.00015401219151733197,
+              "gap_expression": -6.236072189338673
+            }
+          ],
+          "median_solve_ms": 4870.216666953638,
+          "median_setup_ms": 0.7313124369829893,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            12.950949745851517,
+            12.950949745851517
+          ]
+        }
+      }
+    },
+    {
+      "name": "primalc8",
+      "file": "target/native-bins/primalc8.native.bin",
+      "n": 520,
+      "m": 528,
+      "export_sha256": "83c4d03589d34f4fe8823fa7aecafb71e782d9d0d57013c1e4720f44d5de005e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.32129185274243355,
+              "solve_ms": 1428.4117089118809,
+              "objective": -553612.988214844,
+              "primal_violation": 12785.6567647329,
+              "stationarity": 0.0067541868106331115,
+              "gap_expression": -524614.7088755638
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.32970798201859,
+              "solve_ms": 1418.3434159494936,
+              "objective": -553612.988214844,
+              "primal_violation": 12785.6567647329,
+              "stationarity": 0.0067541868106331115,
+              "gap_expression": -524614.7088755638
+            }
+          ],
+          "median_solve_ms": 1423.3775624306872,
+          "median_setup_ms": 0.32549991738051176,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -553612.988214844,
+            -553612.988214844
+          ]
+        }
+      }
+    },
+    {
+      "name": "aug3d",
+      "file": "target/native-bins/aug3d.native.bin",
+      "n": 3873,
+      "m": 4873,
+      "export_sha256": "3ac3fd69a8d40395c545c8b2e12f16e11ae2ab26389c9ab079c6577f8b58d8a0",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 1.9705411978065968,
+              "solve_ms": 6.094583077356219,
+              "objective": 554.0677257925281,
+              "primal_violation": 1.7763568394002505e-15,
+              "stationarity": 2.6645352591003757e-15,
+              "gap_expression": 4.547473508864641e-13
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 1.959583954885602,
+              "solve_ms": 6.096834084019065,
+              "objective": 554.0677257925281,
+              "primal_violation": 1.7763568394002505e-15,
+              "stationarity": 2.6645352591003757e-15,
+              "gap_expression": 4.547473508864641e-13
+            }
+          ],
+          "median_solve_ms": 6.095708580687642,
+          "median_setup_ms": 1.9650625763460994,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            554.0677257925281,
+            554.0677257925281
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet8",
+      "file": "target/native-bins/liswet8.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "c3b13641bcf122241451bb70351e360a58e8a8096e41df62bba97cbbbb8e1a29",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.2062919344753027,
+              "solve_ms": 12984.98245794326,
+              "objective": 25.002269580129905,
+              "primal_violation": 1.9996221320359164e-06,
+              "stationarity": 1.2228121334945108e-07,
+              "gap_expression": -0.00042067035974469036
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1798749696463346,
+              "solve_ms": 12981.687834020704,
+              "objective": 25.002269580129905,
+              "primal_violation": 1.9996221320359164e-06,
+              "stationarity": 1.2228121334945108e-07,
+              "gap_expression": -0.00042067035974469036
+            }
+          ],
+          "median_solve_ms": 12983.335145981982,
+          "median_setup_ms": 3.1930834520608187,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            25.002269580129905,
+            25.002269580129905
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs35mod",
+      "file": "target/native-bins/hs35mod.native.bin",
+      "n": 3,
+      "m": 4,
+      "export_sha256": "c17889dc435db665de756a5038fa81405901f6fd646ec84332abba04ba13da6e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.06912508979439735,
+              "solve_ms": 0.013584038242697716,
+              "objective": 0.25,
+              "primal_violation": 0.0,
+              "stationarity": 2.220446049250313e-16,
+              "gap_expression": 1.1102230246251565e-16
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.06841705180704594,
+              "solve_ms": 0.0139591284096241,
+              "objective": 0.25,
+              "primal_violation": 0.0,
+              "stationarity": 2.220446049250313e-16,
+              "gap_expression": 1.1102230246251565e-16
+            }
+          ],
+          "median_solve_ms": 0.013771583326160908,
+          "median_setup_ms": 0.06877107080072165,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            0.25,
+            0.25
+          ]
+        }
+      }
+    },
+    {
+      "name": "s268",
+      "file": "target/native-bins/s268.native.bin",
+      "n": 5,
+      "m": 10,
+      "export_sha256": "83f2904376d55dcfb1bd00fa5bc01d170dabf7c1706bea7ddc755edf6a0eaafd",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.06874999962747097,
+              "solve_ms": 0.050582922995090485,
+              "objective": 8.674757555127144e-05,
+              "primal_violation": 0.0,
+              "stationarity": 0.0030331282105181016,
+              "gap_expression": -0.017547181465488483
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07183407433331013,
+              "solve_ms": 0.05408399738371372,
+              "objective": 8.674757555127144e-05,
+              "primal_violation": 0.0,
+              "stationarity": 0.0030331282105181016,
+              "gap_expression": -0.017547181465488483
+            }
+          ],
+          "median_solve_ms": 0.0523334601894021,
+          "median_setup_ms": 0.07029203698039055,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            8.674757555127144e-05,
+            8.674757555127144e-05
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet9",
+      "file": "target/native-bins/liswet9.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "c4968f68dcb5de89510c3fd86ce43f8a1297c2881d9027ccda7530d088a868f3",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.2020830549299717,
+              "solve_ms": 13652.620000066236,
+              "objective": 25.00183075919722,
+              "primal_violation": 1.9997204849658834e-06,
+              "stationarity": 1.1699251886709838e-07,
+              "gap_expression": -0.002386664560617646
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1209171283990145,
+              "solve_ms": 13637.141790939495,
+              "objective": 25.00183075919722,
+              "primal_violation": 1.9997204849658834e-06,
+              "stationarity": 1.1699251886709838e-07,
+              "gap_expression": -0.002386664560617646
+            }
+          ],
+          "median_solve_ms": 13644.880895502865,
+          "median_setup_ms": 3.161500091664493,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            25.00183075919722,
+            25.00183075919722
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet4",
+      "file": "target/native-bins/liswet4.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "d63ca95106b990de52864ffbf6ef5cd4ee78199f7d65c4a9eb779ec8549738ca",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.218499943614006,
+              "solve_ms": 11681.758458027616,
+              "objective": 24.99966417541168,
+              "primal_violation": 1.9948159948931405e-06,
+              "stationarity": 1.513085021997984e-07,
+              "gap_expression": -0.00018336068069402245
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.2359168399125338,
+              "solve_ms": 11666.44737496972,
+              "objective": 24.99966417541168,
+              "primal_violation": 1.9948159948931405e-06,
+              "stationarity": 1.513085021997984e-07,
+              "gap_expression": -0.00018336068069402245
+            }
+          ],
+          "median_solve_ms": 11674.102916498668,
+          "median_setup_ms": 3.22720839176327,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            24.99966417541168,
+            24.99966417541168
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs51",
+      "file": "target/native-bins/hs51.native.bin",
+      "n": 5,
+      "m": 8,
+      "export_sha256": "d552470a37d56600ce9650d91ac9f616f0b5eb50b4cf51d1e08e4bfc90f58eaa",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07037492468953133,
+              "solve_ms": 0.016249949112534523,
+              "objective": -8.881784197001252e-16,
+              "primal_violation": 2.220446049250313e-16,
+              "stationarity": 1.2011848020993494e-15,
+              "gap_expression": -1.7763568394002505e-15
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07091579027473927,
+              "solve_ms": 0.016417121514678,
+              "objective": -8.881784197001252e-16,
+              "primal_violation": 2.220446049250313e-16,
+              "stationarity": 1.2011848020993494e-15,
+              "gap_expression": -1.7763568394002505e-15
+            }
+          ],
+          "median_solve_ms": 0.016333535313606262,
+          "median_setup_ms": 0.0706453574821353,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -8.881784197001252e-16,
+            -8.881784197001252e-16
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs268",
+      "file": "target/native-bins/hs268.native.bin",
+      "n": 5,
+      "m": 10,
+      "export_sha256": "83f2904376d55dcfb1bd00fa5bc01d170dabf7c1706bea7ddc755edf6a0eaafd",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.08141621947288513,
+              "solve_ms": 0.05512498319149017,
+              "objective": 8.674757555127144e-05,
+              "primal_violation": 0.0,
+              "stationarity": 0.0030331282105181016,
+              "gap_expression": -0.017547181465488483
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07383408956229687,
+              "solve_ms": 0.05466700531542301,
+              "objective": 8.674757555127144e-05,
+              "primal_violation": 0.0,
+              "stationarity": 0.0030331282105181016,
+              "gap_expression": -0.017547181465488483
+            }
+          ],
+          "median_solve_ms": 0.05489599425345659,
+          "median_setup_ms": 0.077625154517591,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            8.674757555127144e-05,
+            8.674757555127144e-05
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet5",
+      "file": "target/native-bins/liswet5.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "1ae48f9dc18c848c535f55b88983cc64d4fcd11eadff992d09e22f48e69de1c3",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1504170037806034,
+              "solve_ms": 3035.492124967277,
+              "objective": 25.033671373023026,
+              "primal_violation": 3.7103752257294786e-06,
+              "stationarity": 1.6243302757568134e-06,
+              "gap_expression": -0.00023116981174098328
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.169124945998192,
+              "solve_ms": 3022.9069169145077,
+              "objective": 25.033671373023026,
+              "primal_violation": 3.7103752257294786e-06,
+              "stationarity": 1.6243302757568134e-06,
+              "gap_expression": -0.00023116981174098328
+            }
+          ],
+          "median_solve_ms": 3029.1995209408924,
+          "median_setup_ms": 3.1597709748893976,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            25.033671373023026,
+            25.033671373023026
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet7",
+      "file": "target/native-bins/liswet7.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "6e0880a1a17e9ce2627acbac8a2c844456e09045e56cb863cfb506daefa4709c",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.2441250514239073,
+              "solve_ms": 13048.543292097747,
+              "objective": 25.002314708630365,
+              "primal_violation": 1.9994446503676655e-06,
+              "stationarity": 1.2146788726241642e-07,
+              "gap_expression": -0.0002663876348378835
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.2073750626295805,
+              "solve_ms": 13103.272458072752,
+              "objective": 25.002314708630365,
+              "primal_violation": 1.9994446503676655e-06,
+              "stationarity": 1.2146788726241642e-07,
+              "gap_expression": -0.0002663876348378835
+            }
+          ],
+          "median_solve_ms": 13075.90787508525,
+          "median_setup_ms": 3.225750057026744,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            25.002314708630365,
+            25.002314708630365
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs52",
+      "file": "target/native-bins/hs52.native.bin",
+      "n": 5,
+      "m": 8,
+      "export_sha256": "ea4e8157eb990cc94f44e5d27085868f3fd742bcf3d0b3b8742cb1379828321c",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07158308289945126,
+              "solve_ms": 0.015832949429750443,
+              "objective": 5.326647564469914,
+              "primal_violation": 4.163336342344337e-17,
+              "stationarity": 2.4424906541753444e-15,
+              "gap_expression": 0.0
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07087481208145618,
+              "solve_ms": 0.016541918739676476,
+              "objective": 5.326647564469914,
+              "primal_violation": 4.163336342344337e-17,
+              "stationarity": 2.4424906541753444e-15,
+              "gap_expression": 0.0
+            }
+          ],
+          "median_solve_ms": 0.01618743408471346,
+          "median_setup_ms": 0.07122894749045372,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            5.326647564469914,
+            5.326647564469914
+          ]
+        }
+      }
+    },
+    {
+      "name": "powell20",
+      "file": "target/native-bins/powell20.native.bin",
+      "n": 10000,
+      "m": 20000,
+      "export_sha256": "9b953afc3827933cebcecaa527eace5dde09e5a13ab420dc27e8287cf4445974",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 3.1178330536931753,
+              "solve_ms": 14997.592208907008,
+              "objective": 48179422809.98819,
+              "primal_violation": 0.3414787612418877,
+              "stationarity": 1.1949297103271874,
+              "gap_expression": -2685604173.3835754
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 3.100167028605938,
+              "solve_ms": 14997.775084106252,
+              "objective": 48167831250.393486,
+              "primal_violation": 0.34172370032365507,
+              "stationarity": 1.2494740411837029,
+              "gap_expression": -2681946813.804016
+            }
+          ],
+          "median_solve_ms": 14997.68364650663,
+          "median_setup_ms": 3.1090000411495566,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            48179422809.98819,
+            48167831250.393486
+          ]
+        }
+      }
+    },
+    {
+      "name": "primalc5",
+      "file": "target/native-bins/primalc5.native.bin",
+      "n": 287,
+      "m": 295,
+      "export_sha256": "abbd4a478b6ab044ee7a7b78b0768704fb77c8a10f821c7c192acb07e9171511",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.22916612215340137,
+              "solve_ms": 784.289832925424,
+              "objective": -158009.5045396879,
+              "primal_violation": 322.6261389455153,
+              "stationarity": 9.696007168757959e-05,
+              "gap_expression": -156031.5683671261
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.21637487225234509,
+              "solve_ms": 786.6531249601394,
+              "objective": -158009.5045396879,
+              "primal_violation": 322.6261389455153,
+              "stationarity": 9.696007168757959e-05,
+              "gap_expression": -156031.5683671261
+            }
+          ],
+          "median_solve_ms": 785.4714789427817,
+          "median_setup_ms": 0.22277049720287323,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -158009.5045396879,
+            -158009.5045396879
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs53",
+      "file": "target/native-bins/hs53.native.bin",
+      "n": 5,
+      "m": 8,
+      "export_sha256": "135f86fdce582bdf8045642443a6fe7d3d187295efef952c36aad4acceb61643",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.0710831955075264,
+              "solve_ms": 0.0139591284096241,
+              "objective": 4.093023255813954,
+              "primal_violation": 1.1102230246251565e-16,
+              "stationarity": 1.7763568394002505e-15,
+              "gap_expression": 4.440892098500626e-16
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.06929179653525352,
+              "solve_ms": 0.012999866157770157,
+              "objective": 4.093023255813954,
+              "primal_violation": 1.1102230246251565e-16,
+              "stationarity": 1.7763568394002505e-15,
+              "gap_expression": 4.440892098500626e-16
+            }
+          ],
+          "median_solve_ms": 0.013479497283697128,
+          "median_setup_ms": 0.07018749602138996,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            4.093023255813954,
+            4.093023255813954
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet6",
+      "file": "target/native-bins/liswet6.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "97b8ee2a4e51c8aa0d011a4304fcb579551d3681433d3da0aad169773e43189b",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.166874870657921,
+              "solve_ms": 8994.860332924873,
+              "objective": 24.995255647797876,
+              "primal_violation": 2.0972529292673237e-06,
+              "stationarity": 2.4672090868926855e-07,
+              "gap_expression": -0.00018829068358172663
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1320000998675823,
+              "solve_ms": 8988.834667019546,
+              "objective": 24.995255647797876,
+              "primal_violation": 2.0972529292673237e-06,
+              "stationarity": 2.4672090868926855e-07,
+              "gap_expression": -0.00018829068358172663
+            }
+          ],
+          "median_solve_ms": 8991.84749997221,
+          "median_setup_ms": 3.1494374852627516,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            24.995255647797876,
+            24.995255647797876
+          ]
+        }
+      }
+    },
+    {
+      "name": "qforplan",
+      "file": "target/native-bins/qforplan.native.bin",
+      "n": 421,
+      "m": 582,
+      "export_sha256": "f711134472cf45b9e1543364ee245752261dc15ff766612a6be28780117af807",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.9688339196145535,
+              "solve_ms": 1277.7867920231074,
+              "objective": 7456270528.691333,
+              "primal_violation": 0.005903738141284707,
+              "stationarity": 0.06057067253383921,
+              "gap_expression": -361709.2920150757
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.9901248849928379,
+              "solve_ms": 1282.542291795835,
+              "objective": 7456270528.691333,
+              "primal_violation": 0.005903738141284707,
+              "stationarity": 0.06057067253383921,
+              "gap_expression": -361709.2920150757
+            }
+          ],
+          "median_solve_ms": 1280.1645419094712,
+          "median_setup_ms": 0.9794794023036957,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            7456270528.691333,
+            7456270528.691333
+          ]
+        }
+      }
+    },
+    {
+      "name": "selfqmin",
+      "file": "target/native-bins/selfqmin.native.bin",
+      "n": 21920,
+      "m": 22880,
+      "export_sha256": "42acb7a025b564d235855b5adf1c730af715c7826d821ca11cae27e4b26c7c77",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 559.1161670163274,
+              "solve_ms": 14453.850290970877,
+              "objective": -0.15626202166449332,
+              "primal_violation": 6.515730766492127e-08,
+              "stationarity": 5.3232150585514635,
+              "gap_expression": -0.039764451362058806
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 565.550124971196,
+              "solve_ms": 14458.49954104051,
+              "objective": -0.15616401038888553,
+              "primal_violation": 6.515730766492127e-08,
+              "stationarity": 5.274867009542582,
+              "gap_expression": -0.04038884638997439
+            }
+          ],
+          "median_solve_ms": 14456.174916005693,
+          "median_setup_ms": 562.3331459937617,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            -0.15626202166449332,
+            -0.15616401038888553
+          ]
+        }
+      }
+    },
+    {
+      "name": "stadat3",
+      "file": "target/native-bins/stadat3.native.bin",
+      "n": 4001,
+      "m": 12000,
+      "export_sha256": "9fec6d73f75efe7f41da42220709397d8caa821ed0e76a6873aa32d745b95b31",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 1.8438331317156553,
+              "solve_ms": 14132.260708138347,
+              "objective": -38.5707130451745,
+              "primal_violation": 0.6746884707550933,
+              "stationarity": 4.034538675333488e-07,
+              "gap_expression": -0.41506937560416723
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 1.899499911814928,
+              "solve_ms": 13990.593916969374,
+              "objective": -38.5707130451745,
+              "primal_violation": 0.6746884707550933,
+              "stationarity": 4.034538675333488e-07,
+              "gap_expression": -0.41506937560416723
+            }
+          ],
+          "median_solve_ms": 14061.42731255386,
+          "median_setup_ms": 1.8716665217652917,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -38.5707130451745,
+            -38.5707130451745
+          ]
+        }
+      }
+    },
+    {
+      "name": "values",
+      "file": "target/native-bins/values.native.bin",
+      "n": 202,
+      "m": 203,
+      "export_sha256": "94b40da6fe51f0f73a0073e0be49de6dc385708b7fa89470ffbacc316efaf7d8",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.2716248854994774,
+              "solve_ms": 5.844209110364318,
+              "objective": -1.396621144714058,
+              "primal_violation": 4.857249076847549e-17,
+              "stationarity": 3.7929457751689766e-16,
+              "gap_expression": 0.0
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.2591249067336321,
+              "solve_ms": 5.792041076347232,
+              "objective": -1.396621144714058,
+              "primal_violation": 4.857249076847549e-17,
+              "stationarity": 3.7929457751689766e-16,
+              "gap_expression": 0.0
+            }
+          ],
+          "median_solve_ms": 5.818125093355775,
+          "median_setup_ms": 0.26537489611655474,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -1.396621144714058,
+            -1.396621144714058
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet2",
+      "file": "target/native-bins/liswet2.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "4f78496ab5c911971a64e60eded0e7c54b91e0595164b65081fc7ec2f8e9d757",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1787080224603415,
+              "solve_ms": 11855.344583978876,
+              "objective": 24.99750013070434,
+              "primal_violation": 1.9951764644865477e-06,
+              "stationarity": 1.484464071943581e-07,
+              "gap_expression": -0.00018576151023808052
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1630408484488726,
+              "solve_ms": 11857.013291912153,
+              "objective": 24.99750013070434,
+              "primal_violation": 1.9951764644865477e-06,
+              "stationarity": 1.484464071943581e-07,
+              "gap_expression": -0.00018576151023808052
+            }
+          ],
+          "median_solve_ms": 11856.178937945515,
+          "median_setup_ms": 3.170874435454607,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            24.99750013070434,
+            24.99750013070434
+          ]
+        }
+      }
+    },
+    {
+      "name": "primalc1",
+      "file": "target/native-bins/primalc1.native.bin",
+      "n": 230,
+      "m": 239,
+      "export_sha256": "a0f75a1e4ac33a90afdb6b40fb4b0697fc645a94fdf24346d2793377bddb64a3",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.2246249932795763,
+              "solve_ms": 664.5120831672102,
+              "objective": -1349624.3390538804,
+              "primal_violation": 2057.631973257053,
+              "stationarity": 0.003748265389692529,
+              "gap_expression": -1338695.624450585
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.21558301523327827,
+              "solve_ms": 657.285625115037,
+              "objective": -1349624.3390538804,
+              "primal_violation": 2057.631973257053,
+              "stationarity": 0.003748265389692529,
+              "gap_expression": -1338695.624450585
+            }
+          ],
+          "median_solve_ms": 660.8988541411236,
+          "median_setup_ms": 0.2201040042564273,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -1349624.3390538804,
+            -1349624.3390538804
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet3",
+      "file": "target/native-bins/liswet3.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "609f47b4a7340dabfc8ed1289a32b6e1a4c06df0a3849908af2ccb792647a047",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.2245840411633253,
+              "solve_ms": 11736.945666838437,
+              "objective": 25.000780038088124,
+              "primal_violation": 1.9945906436502625e-06,
+              "stationarity": 1.4980653144369693e-07,
+              "gap_expression": -0.00018413335396871844
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1651670578867197,
+              "solve_ms": 11705.179166980088,
+              "objective": 25.000780038088124,
+              "primal_violation": 1.9945906436502625e-06,
+              "stationarity": 1.4980653144369693e-07,
+              "gap_expression": -0.00018413335396871844
+            }
+          ],
+          "median_solve_ms": 11721.062416909263,
+          "median_setup_ms": 3.1948755495250225,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            25.000780038088124,
+            25.000780038088124
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet1",
+      "file": "target/native-bins/liswet1.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "147822ba88690f412763b93ad74f347cbd97bee068b16232c354f47d6de1a692",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 3.291750093922019,
+              "solve_ms": 14997.204540995881,
+              "objective": 25.002839431899247,
+              "primal_violation": 6.871055760054867e-06,
+              "stationarity": 3.7199656842401563e-07,
+              "gap_expression": -0.0013452243538267794
+            },
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 3.1946669332683086,
+              "solve_ms": 14997.59354093112,
+              "objective": 25.00284159371313,
+              "primal_violation": 6.867201067822792e-06,
+              "stationarity": 3.7257878282570545e-07,
+              "gap_expression": -0.0013466570853779558
+            }
+          ],
+          "median_solve_ms": 14997.3990409635,
+          "median_setup_ms": 3.243208513595164,
+          "statuses": [
+            "solved inaccurate"
+          ],
+          "objectives": [
+            25.002839431899247,
+            25.00284159371313
+          ]
+        }
+      }
+    },
+    {
+      "name": "primalc2",
+      "file": "target/native-bins/primalc2.native.bin",
+      "n": 231,
+      "m": 238,
+      "export_sha256": "fcce25f4d5aadd6565361028b7750230e39305a7adfca884b10b91c8003cb7ea",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.19508297555148602,
+              "solve_ms": 605.4700000677258,
+              "objective": -319423.6591927021,
+              "primal_violation": 852.66738574149,
+              "stationarity": 0.004127131776659354,
+              "gap_expression": -310490.15689927153
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.21695904433727264,
+              "solve_ms": 605.9522079303861,
+              "objective": -319423.6591927021,
+              "primal_violation": 852.66738574149,
+              "stationarity": 0.004127131776659354,
+              "gap_expression": -310490.15689927153
+            }
+          ],
+          "median_solve_ms": 605.7111039990559,
+          "median_setup_ms": 0.20602100994437933,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -319423.6591927021,
+            -319423.6591927021
+          ]
+        }
+      }
+    },
+    {
+      "name": "dtoc3",
+      "file": "target/native-bins/dtoc3.native.bin",
+      "n": 14999,
+      "m": 24997,
+      "export_sha256": "cfaedb386cefd12b5090d683c7c93bb8daeacfddc82a79d931ee916da8bca742",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 4.068833077326417,
+              "solve_ms": 107.41483303718269,
+              "objective": 235.26248107837063,
+              "primal_violation": 6.590283874174929e-13,
+              "stationarity": 3.6836419331498504e-13,
+              "gap_expression": 6.383362460837816e-08
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 4.039832856506109,
+              "solve_ms": 105.67704099230468,
+              "objective": 235.26248107837063,
+              "primal_violation": 6.590283874174929e-13,
+              "stationarity": 3.6836419331498504e-13,
+              "gap_expression": 6.383362460837816e-08
+            }
+          ],
+          "median_solve_ms": 106.54593701474369,
+          "median_setup_ms": 4.054332966916263,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            235.26248107837063,
+            235.26248107837063
+          ]
+        }
+      }
+    },
+    {
+      "name": "aug3dqp",
+      "file": "target/native-bins/aug3dqp.native.bin",
+      "n": 3873,
+      "m": 4873,
+      "export_sha256": "b6d24988a8f093f8f0e4bdb6b90af8b4d43127053b88fb506cb94c0b6f5ff1e0",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 1.9876249134540558,
+              "solve_ms": 16.259208088740706,
+              "objective": 675.2376712749237,
+              "primal_violation": 1.5543122344752192e-15,
+              "stationarity": 2.9976021664879227e-15,
+              "gap_expression": -2.2737367544323206e-13
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.131375018507242,
+              "solve_ms": 17.410708125680685,
+              "objective": 675.2376712749237,
+              "primal_violation": 1.5543122344752192e-15,
+              "stationarity": 2.9976021664879227e-15,
+              "gap_expression": -2.2737367544323206e-13
+            }
+          ],
+          "median_solve_ms": 16.834958107210696,
+          "median_setup_ms": 2.059499965980649,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            675.2376712749237,
+            675.2376712749237
+          ]
+        }
+      }
+    },
+    {
+      "name": "qpcboei2",
+      "file": "target/native-bins/qpcboei2.native.bin",
+      "n": 143,
+      "m": 309,
+      "export_sha256": "d9c536b8af22558f3c1d50ffafa035e7bc9c9e9fd281483319089aab16d53e0f",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.2965419553220272,
+              "solve_ms": 455.52554191090167,
+              "objective": 7370182.65507506,
+              "primal_violation": 0.052104280544813975,
+              "stationarity": 0.06830806747784379,
+              "gap_expression": -290058.379107181
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.3291249740868807,
+              "solve_ms": 457.6730001717806,
+              "objective": 7370182.65507506,
+              "primal_violation": 0.052104280544813975,
+              "stationarity": 0.06830806747784379,
+              "gap_expression": -290058.379107181
+            }
+          ],
+          "median_solve_ms": 456.5992710413411,
+          "median_setup_ms": 0.31283346470445395,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            7370182.65507506,
+            7370182.65507506
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet12",
+      "file": "target/native-bins/liswet12.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "ea774f55e2f7149f7c24175341e3c2b3ebb8ae02a56b0614737ec0e92fee7db0",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 3.2357091549783945,
+              "solve_ms": 14997.466583969072,
+              "objective": 24.998854805639894,
+              "primal_violation": 2.80050582757152e-06,
+              "stationarity": 1.9815156787617028e-07,
+              "gap_expression": -0.003289583497462445
+            },
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 3.1680001411587,
+              "solve_ms": 14997.452292125672,
+              "objective": 24.998854466142802,
+              "primal_violation": 2.8028604958096892e-06,
+              "stationarity": 1.9801495439175643e-07,
+              "gap_expression": -0.0032890752590901684
+            }
+          ],
+          "median_solve_ms": 14997.459438047372,
+          "median_setup_ms": 3.2018546480685472,
+          "statuses": [
+            "solved inaccurate"
+          ],
+          "objectives": [
+            24.998854805639894,
+            24.998854466142802
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs35",
+      "file": "target/native-bins/hs35.native.bin",
+      "n": 3,
+      "m": 4,
+      "export_sha256": "f875d1c4819558559c5881dcc4d84feaa566cdc49808b12d3158cbddcfd40b62",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07120799273252487,
+              "solve_ms": 0.014791963621973991,
+              "objective": 0.11111111111111072,
+              "primal_violation": 0.0,
+              "stationarity": 1.7208456881689926e-15,
+              "gap_expression": -3.3306690738754696e-15
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07075001485645771,
+              "solve_ms": 0.013707904145121574,
+              "objective": 0.11111111111111072,
+              "primal_violation": 0.0,
+              "stationarity": 1.7208456881689926e-15,
+              "gap_expression": -3.3306690738754696e-15
+            }
+          ],
+          "median_solve_ms": 0.014249933883547783,
+          "median_setup_ms": 0.07097900379449129,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            0.11111111111111072,
+            0.11111111111111072
+          ]
+        }
+      }
+    },
+    {
+      "name": "hs21",
+      "file": "target/native-bins/hs21.native.bin",
+      "n": 2,
+      "m": 3,
+      "export_sha256": "2f9aa6d81431373f02e7f2033d9e2afd2d67d2754ad291f29b95007f705913d9",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.07020891644060612,
+              "solve_ms": 0.015709083527326584,
+              "objective": -99.96,
+              "primal_violation": 4.440892098500626e-16,
+              "stationarity": 1.0408340855860843e-16,
+              "gap_expression": -2.220446049250313e-16
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.06975000724196434,
+              "solve_ms": 0.013415934517979622,
+              "objective": -99.96,
+              "primal_violation": 4.440892098500626e-16,
+              "stationarity": 1.0408340855860843e-16,
+              "gap_expression": -2.220446049250313e-16
+            }
+          ],
+          "median_solve_ms": 0.014562509022653103,
+          "median_setup_ms": 0.06997946184128523,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -99.96,
+            -99.96
+          ]
+        }
+      }
+    },
+    {
+      "name": "huestis",
+      "file": "target/native-bins/huestis.native.bin",
+      "n": 10000,
+      "m": 10002,
+      "export_sha256": "8da0d40e7e1bd8f2886896d096101b3dc43bfd0d34b4a074cd76cdc2dd770056",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.538499888032675,
+              "solve_ms": 2215.3410410974175,
+              "objective": 348243956062.8471,
+              "primal_violation": 0.00045048843628592294,
+              "stationarity": 9.429502594215933e-05,
+              "gap_expression": -683958.3663330078
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.4869588669389486,
+              "solve_ms": 2222.3055409267545,
+              "objective": 348243956062.8471,
+              "primal_violation": 0.00045048843628592294,
+              "stationarity": 9.429502594215933e-05,
+              "gap_expression": -683958.3663330078
+            }
+          ],
+          "median_solve_ms": 2218.823291012086,
+          "median_setup_ms": 2.5127293774858117,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            348243956062.8471,
+            348243956062.8471
+          ]
+        }
+      }
+    },
+    {
+      "name": "ubh1",
+      "file": "target/native-bins/ubh1.native.bin",
+      "n": 18009,
+      "m": 30009,
+      "export_sha256": "24ba774ef920d313e5ddec424651d5494b25da93a93ebb87ca8a178d29e1b0ab",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 5.162958987057209,
+              "solve_ms": 11340.693625155836,
+              "objective": 1.1160008159262524,
+              "primal_violation": 3.064982934120053e-09,
+              "stationarity": 1.5392884449710875e-12,
+              "gap_expression": -3.215914840204448e-06
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 5.106208845973015,
+              "solve_ms": 11321.796542033553,
+              "objective": 1.1160008159262524,
+              "primal_violation": 3.064982934120053e-09,
+              "stationarity": 1.5392884449710875e-12,
+              "gap_expression": -3.215914840204448e-06
+            }
+          ],
+          "median_solve_ms": 11331.245083594695,
+          "median_setup_ms": 5.134583916515112,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            1.1160008159262524,
+            1.1160008159262524
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet11",
+      "file": "target/native-bins/liswet11.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "7b3bf82e40eb0e5facffe847f851928b322efdbbfdbadeaed6969b790750c2b7",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1945419032126665,
+              "solve_ms": 10979.205125011504,
+              "objective": 24.999381848872417,
+              "primal_violation": 2.097396702205323e-06,
+              "stationarity": 2.109591498433705e-07,
+              "gap_expression": -0.0004499663818933186
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.248458029702306,
+              "solve_ms": 10952.212875010446,
+              "objective": 24.999381848872417,
+              "primal_violation": 2.097396702205323e-06,
+              "stationarity": 2.109591498433705e-07,
+              "gap_expression": -0.0004499663818933186
+            }
+          ],
+          "median_solve_ms": 10965.709000010975,
+          "median_setup_ms": 3.221499966457486,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            24.999381848872417,
+            24.999381848872417
+          ]
+        }
+      }
+    },
+    {
+      "name": "liswet10",
+      "file": "target/native-bins/liswet10.native.bin",
+      "n": 10002,
+      "m": 20002,
+      "export_sha256": "ddb8c430c9c8d7ac811d866fbdabaed93b8a902fb120bf0db9db059c53d10b7d",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.219375154003501,
+              "solve_ms": 9318.49516602233,
+              "objective": 25.001950670715814,
+              "primal_violation": 2.0974713988985982e-06,
+              "stationarity": 2.410287117948773e-07,
+              "gap_expression": -0.00022510404232889414
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 3.1799999997019768,
+              "solve_ms": 9321.176915895194,
+              "objective": 25.001950670715814,
+              "primal_violation": 2.0974713988985982e-06,
+              "stationarity": 2.410287117948773e-07,
+              "gap_expression": -0.00022510404232889414
+            }
+          ],
+          "median_solve_ms": 9319.836040958762,
+          "median_setup_ms": 3.199687576852739,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            25.001950670715814,
+            25.001950670715814
+          ]
+        }
+      }
+    },
+    {
+      "name": "gouldqp3",
+      "file": "target/native-bins/gouldqp3.native.bin",
+      "n": 699,
+      "m": 1048,
+      "export_sha256": "70bfd501bb2f4025d2b329545182409d5b8d04599939eda5a3412290627479d5",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.2908329479396343,
+              "solve_ms": 0.8897080551832914,
+              "objective": 2.062783971465251,
+              "primal_violation": 6.661338147750939e-15,
+              "stationarity": 3.522182545623309e-13,
+              "gap_expression": 1.5845103007450234e-12
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.2815830521285534,
+              "solve_ms": 0.8887909352779388,
+              "objective": 2.062783971465251,
+              "primal_violation": 6.661338147750939e-15,
+              "stationarity": 3.522182545623309e-13,
+              "gap_expression": 1.5845103007450234e-12
+            }
+          ],
+          "median_solve_ms": 0.8892494952306151,
+          "median_setup_ms": 0.28620800003409386,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            2.062783971465251,
+            2.062783971465251
+          ]
+        }
+      }
+    },
+    {
+      "name": "aug3dcqp",
+      "file": "target/native-bins/aug3dcqp.native.bin",
+      "n": 3873,
+      "m": 4873,
+      "export_sha256": "5cccd4a967a38a4896d29bff5d85d8790bd2c3ad4497566b00572706c7d49962",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.0929169841110706,
+              "solve_ms": 16.470666974782944,
+              "objective": 993.3621465251063,
+              "primal_violation": 2.220446049250313e-15,
+              "stationarity": 3.1086244689504383e-15,
+              "gap_expression": 9.094947017729282e-13
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 2.024749992415309,
+              "solve_ms": 16.44762489013374,
+              "objective": 993.3621465251063,
+              "primal_violation": 2.220446049250313e-15,
+              "stationarity": 3.1086244689504383e-15,
+              "gap_expression": 9.094947017729282e-13
+            }
+          ],
+          "median_solve_ms": 16.45914593245834,
+          "median_setup_ms": 2.05883348826319,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            993.3621465251063,
+            993.3621465251063
+          ]
+        }
+      }
+    },
+    {
+      "name": "dualc2",
+      "file": "target/native-bins/dualc2.native.bin",
+      "n": 7,
+      "m": 236,
+      "export_sha256": "354380ac5b4a725a9ae0d29fe646824d68b300487d18a336d44b095afa3a5a36",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.12370804324746132,
+              "solve_ms": 0.5615411791950464,
+              "objective": 3551.3076926706426,
+              "primal_violation": 1.1102230246251565e-16,
+              "stationarity": 2.2391759557649493e-09,
+              "gap_expression": -1.7780621419660747e-09
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 0.11699995957314968,
+              "solve_ms": 0.5587921477854252,
+              "objective": 3551.3076926706426,
+              "primal_violation": 1.1102230246251565e-16,
+              "stationarity": 2.2391759557649493e-09,
+              "gap_expression": -1.7780621419660747e-09
+            }
+          ],
+          "median_solve_ms": 0.5601666634902358,
+          "median_setup_ms": 0.1203540014103055,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            3551.3076926706426,
+            3551.3076926706426
+          ]
+        }
+      }
+    },
+    {
+      "name": "boyd1",
+      "file": "target/native-bins/boyd1.native.bin",
+      "n": 93261,
+      "m": 93279,
+      "export_sha256": "bdecfc8841085df822a1de4af7161a94692cef3276ee320a6d16f36f2606cdea",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 43.468958931043744,
+              "solve_ms": 14961.258250055835,
+              "objective": -61733833.563284546,
+              "primal_violation": 0.3046875,
+              "stationarity": 136.7447689313569,
+              "gap_expression": -3064.9304952323437
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 43.71337499469519,
+              "solve_ms": 14960.316332988441,
+              "objective": -61733831.12545434,
+              "primal_violation": 0.20361328125,
+              "stationarity": 136.59289166978368,
+              "gap_expression": -3073.380816757679
+            }
+          ],
+          "median_solve_ms": 14960.787291522138,
+          "median_setup_ms": 43.591166962869465,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            -61733833.563284546,
+            -61733831.12545434
+          ]
+        }
+      }
+    },
+    {
+      "name": "boyd2",
+      "file": "target/native-bins/boyd2.native.bin",
+      "n": 93263,
+      "m": 279794,
+      "export_sha256": "8601db98c9214a17cacfc345157209e9eea56c67eb2f8aba917b495166002e10",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 48.61383396200836,
+              "solve_ms": 14959.073290927336,
+              "objective": 1392149.5114914076,
+              "primal_violation": 0.04772542218447612,
+              "stationarity": 1.2532795285828797,
+              "gap_expression": 2765341.4546492985
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 51.85270821675658,
+              "solve_ms": 14957.319292007014,
+              "objective": 1388021.240601176,
+              "primal_violation": 0.04751536775461829,
+              "stationarity": 1.2554056851913629,
+              "gap_expression": 2775916.707686372
+            }
+          ],
+          "median_solve_ms": 14958.196291467175,
+          "median_setup_ms": 50.23327108938247,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            1392149.5114914076,
+            1388021.240601176
+          ]
+        }
+      }
+    },
+    {
+      "name": "cont-101",
+      "file": "target/native-bins/cont-101.native.bin",
+      "n": 10197,
+      "m": 20295,
+      "export_sha256": "915269b1ab5092b6eb2dce60312f743da7ea4cea9959250422e0db2c37461cf7",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 27.894334169104695,
+              "solve_ms": 13990.22979196161,
+              "objective": 0.19552761034568178,
+              "primal_violation": 1.063112584076542e-09,
+              "stationarity": 8.420080080309006e-08,
+              "gap_expression": -9.989463539594734e-05
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 27.09095785394311,
+              "solve_ms": 13886.910458095372,
+              "objective": 0.19552761034568178,
+              "primal_violation": 1.063112584076542e-09,
+              "stationarity": 8.420080080309006e-08,
+              "gap_expression": -9.989463539594734e-05
+            }
+          ],
+          "median_solve_ms": 13938.570125028491,
+          "median_setup_ms": 27.492646011523902,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            0.19552761034568178,
+            0.19552761034568178
+          ]
+        }
+      }
+    },
+    {
+      "name": "cont-201",
+      "file": "target/native-bins/cont-201.native.bin",
+      "n": 40397,
+      "m": 80595,
+      "export_sha256": "3c8b2288355259126c22c02c7288bb524e22fd9d2c0b69ff7eea921309f881ee",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 244.86479093320668,
+              "solve_ms": 14756.924791960046,
+              "objective": 2.999056491130795,
+              "primal_violation": 0.02342964709484613,
+              "stationarity": 9.72869410728015e-05,
+              "gap_expression": 24.506420974692627
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 244.48404205031693,
+              "solve_ms": 14755.680833011866,
+              "objective": 3.0105561243455865,
+              "primal_violation": 0.02286923545522631,
+              "stationarity": 9.72869410728015e-05,
+              "gap_expression": 24.587946919313918
+            }
+          ],
+          "median_solve_ms": 14756.302812485956,
+          "median_setup_ms": 244.6744164917618,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            2.999056491130795,
+            3.0105561243455865
+          ]
+        }
+      }
+    },
+    {
+      "name": "cont-300",
+      "file": "target/native-bins/cont-300.native.bin",
+      "n": 90597,
+      "m": 180895,
+      "export_sha256": "c2230e64a17d890837f88dffbe5a1c6992c37997901e1fffc7a1e78b726fede1",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 864.9089999962598,
+              "solve_ms": 14139.187082881108,
+              "objective": 8.606668713337367,
+              "primal_violation": 0.019541273999954183,
+              "stationarity": 0.00012568288109537869,
+              "gap_expression": 86.7422376158468
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 880.9490001294762,
+              "solve_ms": 14139.143083011732,
+              "objective": 8.614075759072557,
+              "primal_violation": 0.02155125294030391,
+              "stationarity": 0.0001235474413410541,
+              "gap_expression": 86.86372720081478
+            }
+          ],
+          "median_solve_ms": 14139.16508294642,
+          "median_setup_ms": 872.929000062868,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            8.606668713337367,
+            8.614075759072557
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_10038",
+      "file": "target/native-bins/qplib_10038.native.bin",
+      "n": 160800,
+      "m": 321200,
+      "export_sha256": "f9a3a3c2251e6111356ac3dac43b7bb37eaca8890e0634d3135787c3cfc1ea35",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 938.3924589492381,
+              "solve_ms": 14031.941874884069,
+              "objective": -0.05162028674084546,
+              "primal_violation": 0.2580630017811405,
+              "stationarity": 0.00011756836540888217,
+              "gap_expression": -0.005410988834172566
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 939.8545001167804,
+              "solve_ms": 14074.009916977957,
+              "objective": -0.05162028674084546,
+              "primal_violation": 0.24844460544546498,
+              "stationarity": 0.00011756836540888217,
+              "gap_expression": -0.006623596399196487
+            }
+          ],
+          "median_solve_ms": 14052.975895931013,
+          "median_setup_ms": 939.1234795330092,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            -0.05162028674084546,
+            -0.05162028674084546
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_10034",
+      "file": "target/native-bins/qplib_10034.native.bin",
+      "n": 40400,
+      "m": 80600,
+      "export_sha256": "a832105a42b9605be0aa588b169fcb57995d6050dc7e430d371a9d682a94b13c",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 112.42120899260044,
+              "solve_ms": 14890.764749841765,
+              "objective": -0.061395105930536,
+              "primal_violation": 0.09286022071505262,
+              "stationarity": 2.5726433315789233e-05,
+              "gap_expression": -0.009766939431752459
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 109.59875001572073,
+              "solve_ms": 14892.62441592291,
+              "objective": -0.06140205511278396,
+              "primal_violation": 0.08500493695622582,
+              "stationarity": 2.4843160272888662e-05,
+              "gap_expression": -0.009796103045682928
+            }
+          ],
+          "median_solve_ms": 14891.694582882337,
+          "median_setup_ms": 111.00997950416058,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            -0.061395105930536,
+            -0.06140205511278396
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_9002",
+      "file": "target/native-bins/qplib_9002.native.bin",
+      "n": 2890,
+      "m": 4539,
+      "export_sha256": "1e698d849c12d29ae110fc49078ce72c48961b5c4a7520d92f6191ef5b44ef5d",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 6.821291986852884,
+              "solve_ms": 10321.63745793514,
+              "objective": 5698097499.181314,
+              "primal_violation": 0.0003757709637284279,
+              "stationarity": 5.338130868448587e-07,
+              "gap_expression": 11370.263240814209
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 6.6752079874277115,
+              "solve_ms": 10297.14879207313,
+              "objective": 5698097499.181314,
+              "primal_violation": 0.0003757709637284279,
+              "stationarity": 5.338130868448587e-07,
+              "gap_expression": 11370.263240814209
+            }
+          ],
+          "median_solve_ms": 10309.393125004135,
+          "median_setup_ms": 6.748249987140298,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            5698097499.181314,
+            5698097499.181314
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8991",
+      "file": "target/native-bins/qplib_8991.native.bin",
+      "n": 14400,
+      "m": 14400,
+      "export_sha256": "5486f497aa599f77b893d073ab2217f75b131770e7f51e4f914a3e80fe27e80e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 12.662915978580713,
+              "solve_ms": 221.28333314321935,
+              "objective": -1.2044834380665315,
+              "primal_violation": 0.0,
+              "stationarity": 3.408731630294426e-16,
+              "gap_expression": -2.7755575615628914e-14
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 9.55899991095066,
+              "solve_ms": 218.8634998165071,
+              "objective": -1.2044834380665315,
+              "primal_violation": 0.0,
+              "stationarity": 3.408731630294426e-16,
+              "gap_expression": -2.7755575615628914e-14
+            }
+          ],
+          "median_solve_ms": 220.07341647986323,
+          "median_setup_ms": 11.110957944765687,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -1.2044834380665315,
+            -1.2044834380665315
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8938",
+      "file": "target/native-bins/qplib_8938.native.bin",
+      "n": 4001,
+      "m": 16000,
+      "export_sha256": "1d61cd1356ad520967cec9973a916da6ca192b9186afc2f7c5e95ed993a87a8c",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 2.2726671304553747,
+              "solve_ms": 14986.868749838322,
+              "objective": -38.78682071465161,
+              "primal_violation": 0.812628742553585,
+              "stationarity": 1.4678784399091427e-07,
+              "gap_expression": -0.37170994011966485
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 2.299959072843194,
+              "solve_ms": 14976.804625010118,
+              "objective": -38.78682071465161,
+              "primal_violation": 0.812628742553585,
+              "stationarity": 1.4678784399091427e-07,
+              "gap_expression": -0.37170994011966485
+            }
+          ],
+          "median_solve_ms": 14981.83668742422,
+          "median_setup_ms": 2.2863131016492844,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -38.78682071465161,
+            -38.78682071465161
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8790",
+      "file": "target/native-bins/qplib_8790.native.bin",
+      "n": 39204,
+      "m": 39204,
+      "export_sha256": "179b8b47c2fa773f26f0d91694602529dfda238e6b888f5d345ea96ae36ebb5e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 33.43608300201595,
+              "solve_ms": 527.0216250792146,
+              "objective": -0.43466877002627324,
+              "primal_violation": 2.7755575615628914e-15,
+              "stationarity": 1.9568973720109073e-13,
+              "gap_expression": -5.269429059762132e-10
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 32.423665979877114,
+              "solve_ms": 522.758792154491,
+              "objective": -0.43466877002627324,
+              "primal_violation": 2.7755575615628914e-15,
+              "stationarity": 1.9568973720109073e-13,
+              "gap_expression": -5.269429059762132e-10
+            }
+          ],
+          "median_solve_ms": 524.8902086168528,
+          "median_setup_ms": 32.92987449094653,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -0.43466877002627324,
+            -0.43466877002627324
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8515",
+      "file": "target/native-bins/qplib_8515.native.bin",
+      "n": 16002,
+      "m": 24004,
+      "export_sha256": "59020ce14fcef2a9b8b3b87fd4c223024cdb062c4e89d444bc787b405ff888ad",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 4.737416980788112,
+              "solve_ms": 14996.04329187423,
+              "objective": -516.4674421539423,
+              "primal_violation": 0.18383914154515346,
+              "stationarity": 3.6472428261661145e-08,
+              "gap_expression": -542.3494111348348
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 4.781709052622318,
+              "solve_ms": 14996.08666705899,
+              "objective": -516.7534842397835,
+              "primal_violation": 0.18362104089323217,
+              "stationarity": 3.648516579177858e-08,
+              "gap_expression": -543.0705530238718
+            }
+          ],
+          "median_solve_ms": 14996.06497946661,
+          "median_setup_ms": 4.759563016705215,
+          "statuses": [
+            "run time limit reached"
+          ],
+          "objectives": [
+            -516.4674421539423,
+            -516.7534842397835
+          ]
+        }
+      }
+    }
+  ],
+  "missing_inputs": [
+    "xdata"
+  ],
+  "export_failures": []
+}

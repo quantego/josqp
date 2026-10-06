@@ -292,7 +292,7 @@ public class QDLDL  {
 	    	Dinv[k]= 1/D[k];
 
     	} //end for k
-    	return new QDLDL.LDL(w.L, D, Dinv, positiveValuesInD);
+        return new QDLDL.LDL(w.L, D, Dinv, positiveValuesInD);
     }
     
     static void Lsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {

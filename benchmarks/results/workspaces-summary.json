@@ -1,0 +1,500 @@
+{
+  "baseline_commit": "9a27a42",
+  "solver_commit": "de9ebe1a67e2bc4097d49b4511c4b25e9e5a80d5",
+  "cases": [
+    {
+      "file": "qap15.mps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 2685.052167,
+          "solve_ms": 2150.385521,
+          "allocated_bytes": 0.0,
+          "rho_updates": 0.0,
+          "total_ms": 4835.437688,
+          "fork_solve_ms": [
+            2150.385521,
+            2141.3067709999996,
+            2153.442521
+          ],
+          "allocated_bytes_range": [
+            0,
+            0
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 2469.0529795,
+          "solve_ms": 2159.9670834999997,
+          "allocated_bytes": 0.0,
+          "rho_updates": 0.0,
+          "total_ms": 4626.1833965,
+          "fork_solve_ms": [
+            2159.9670834999997,
+            2167.768604,
+            2152.415604
+          ],
+          "allocated_bytes_range": [
+            0,
+            0
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 0.9955640238348107,
+      "total_speedup": 1.04523259749242,
+      "solve_time_reduction_percent": -0.44557417292987456
+    },
+    {
+      "file": "qplib_8495.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 106.5311875,
+          "solve_ms": 392.1772085,
+          "allocated_bytes": 14621776.0,
+          "rho_updates": 1.0,
+          "total_ms": 499.3595835,
+          "fork_solve_ms": [
+            388.5209165,
+            392.1772085,
+            398.4520205
+          ],
+          "allocated_bytes_range": [
+            14621776,
+            14621776
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 92.17224949999999,
+          "solve_ms": 372.905667,
+          "allocated_bytes": 32.0,
+          "rho_updates": 1.0,
+          "total_ms": 465.0779165,
+          "fork_solve_ms": [
+            371.52868750000005,
+            372.905667,
+            377.67122900000004
+          ],
+          "allocated_bytes_range": [
+            32,
+            32
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.0516794009998245,
+      "total_speedup": 1.0737116637530133,
+      "solve_time_reduction_percent": 4.9139881365645515
+    },
+    {
+      "file": "qplib_8559.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 1013.1306875,
+          "solve_ms": 3915.3554169999998,
+          "allocated_bytes": 88839888.0,
+          "rho_updates": 2.0,
+          "total_ms": 4928.4861045,
+          "fork_solve_ms": [
+            3839.4603535,
+            4030.3141045,
+            3915.3554169999998
+          ],
+          "allocated_bytes_range": [
+            88839888,
+            88839888
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 907.7613545,
+          "solve_ms": 3581.777646,
+          "allocated_bytes": 64.0,
+          "rho_updates": 2.0,
+          "total_ms": 4489.5390005,
+          "fork_solve_ms": [
+            3581.777646,
+            3595.93275,
+            3484.981396
+          ],
+          "allocated_bytes_range": [
+            64,
+            64
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.093131903755256,
+      "total_speedup": 1.0977710860627592,
+      "solve_time_reduction_percent": 8.519731556211873
+    },
+    {
+      "file": "qplib_8567.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 1126.343417,
+          "solve_ms": 2084.1488335,
+          "allocated_bytes": 70186520.0,
+          "rho_updates": 1.0,
+          "total_ms": 3212.9594374999997,
+          "fork_solve_ms": [
+            2092.459708,
+            2075.085104,
+            2084.1488335
+          ],
+          "allocated_bytes_range": [
+            52051184,
+            88321856
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 1085.3325205,
+          "solve_ms": 1885.5412505,
+          "allocated_bytes": 18135368.0,
+          "rho_updates": 1.0,
+          "total_ms": 2970.8737709999996,
+          "fork_solve_ms": [
+            1885.5412505,
+            1769.7646665,
+            2014.88975
+          ],
+          "allocated_bytes_range": [
+            32,
+            36270704
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.1053318684740172,
+      "total_speedup": 1.0814863522183622,
+      "solve_time_reduction_percent": 9.529433781678144
+    },
+    {
+      "file": "qplib_8602.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 11408.323646,
+          "solve_ms": 31563.9452915,
+          "allocated_bytes": 767314192.0,
+          "rho_updates": 2.0,
+          "total_ms": 42910.110208,
+          "fork_solve_ms": [
+            31367.637917,
+            31702.961542,
+            31563.9452915
+          ],
+          "allocated_bytes_range": [
+            767314192,
+            767314192
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 9256.938375,
+          "solve_ms": 27174.871583,
+          "allocated_bytes": 64.0,
+          "rho_updates": 2.0,
+          "total_ms": 36431.809958,
+          "fork_solve_ms": [
+            24499.481896,
+            27174.871583,
+            27175.402292
+          ],
+          "allocated_bytes_range": [
+            64,
+            64
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.1615122152498305,
+      "total_speedup": 1.1778198848058452,
+      "solve_time_reduction_percent": 13.905339360989055
+    },
+    {
+      "file": "qplib_8616.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 10.122771,
+          "solve_ms": 51.725916999999995,
+          "allocated_bytes": 3678736.0,
+          "rho_updates": 1.0,
+          "total_ms": 61.80625,
+          "fork_solve_ms": [
+            51.8280205,
+            51.683479,
+            51.725916999999995
+          ],
+          "allocated_bytes_range": [
+            3678736,
+            3678736
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 9.680625,
+          "solve_ms": 51.164604,
+          "allocated_bytes": 32.0,
+          "rho_updates": 1.0,
+          "total_ms": 60.9018535,
+          "fork_solve_ms": [
+            50.778896,
+            52.312187,
+            51.164604
+          ],
+          "allocated_bytes_range": [
+            32,
+            32
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.0109707289046936,
+      "total_speedup": 1.0148500652775698,
+      "solve_time_reduction_percent": 1.0851678086248318
+    },
+    {
+      "file": "qplib_8785.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 491.77887450000003,
+          "solve_ms": 1638.8246669999999,
+          "allocated_bytes": 77768720.0,
+          "rho_updates": 2.0,
+          "total_ms": 2130.6035415,
+          "fork_solve_ms": [
+            1638.8246669999999,
+            1653.9761455,
+            1637.8523335
+          ],
+          "allocated_bytes_range": [
+            77768720,
+            77768720
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 415.40331249999997,
+          "solve_ms": 1466.9898125,
+          "allocated_bytes": 64.0,
+          "rho_updates": 2.0,
+          "total_ms": 1874.9685209999998,
+          "fork_solve_ms": [
+            1468.2411875,
+            1466.9898125,
+            1457.423917
+          ],
+          "allocated_bytes_range": [
+            64,
+            64
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.117134320249412,
+      "total_speedup": 1.1363409666012203,
+      "solve_time_reduction_percent": 10.48524945713426
+    },
+    {
+      "file": "qplib_8792.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 15.523938000000001,
+          "solve_ms": 48.6596665,
+          "allocated_bytes": 0.0,
+          "rho_updates": 0.0,
+          "total_ms": 64.20262500000001,
+          "fork_solve_ms": [
+            52.130458000000004,
+            48.6596665,
+            48.548479
+          ],
+          "allocated_bytes_range": [
+            0,
+            0
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 14.419083,
+          "solve_ms": 48.456417,
+          "allocated_bytes": 0.0,
+          "rho_updates": 0.0,
+          "total_ms": 62.8755,
+          "fork_solve_ms": [
+            48.456417,
+            48.451688000000004,
+            48.458313000000004
+          ],
+          "allocated_bytes_range": [
+            0,
+            0
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.0041944805782894,
+      "total_speedup": 1.0211071880144096,
+      "solve_time_reduction_percent": 0.41769603990196025
+    },
+    {
+      "file": "qplib_8845.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 10.8936665,
+          "solve_ms": 79.152708,
+          "allocated_bytes": 0.0,
+          "rho_updates": 0.0,
+          "total_ms": 90.11250000000001,
+          "fork_solve_ms": [
+            78.367479,
+            79.152708,
+            79.82320849999999
+          ],
+          "allocated_bytes_range": [
+            0,
+            0
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 10.7441455,
+          "solve_ms": 78.633479,
+          "allocated_bytes": 0.0,
+          "rho_updates": 0.0,
+          "total_ms": 89.3776245,
+          "fork_solve_ms": [
+            78.633479,
+            79.18983349999999,
+            78.62295850000001
+          ],
+          "allocated_bytes_range": [
+            0,
+            0
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.006603154363805,
+      "total_speedup": 1.0082221417733028,
+      "solve_time_reduction_percent": 0.6559838736029167
+    },
+    {
+      "file": "qplib_8906.qps",
+      "complete": true,
+      "metrics_exactly_equal": true,
+      "solution_bits_equal": true,
+      "solution_finite": true,
+      "status": [
+        "SOLVED"
+      ],
+      "modes": {
+        "pre-workspace": {
+          "setup_ms": 17.8882915,
+          "solve_ms": 55.3674795,
+          "allocated_bytes": 3633744.0,
+          "rho_updates": 1.0,
+          "total_ms": 73.25577100000001,
+          "fork_solve_ms": [
+            55.3674795,
+            56.4889165,
+            55.2885
+          ],
+          "allocated_bytes_range": [
+            3633744,
+            3633744
+          ],
+          "forks": 3
+        },
+        "vector": {
+          "setup_ms": 17.1003125,
+          "solve_ms": 53.1280625,
+          "allocated_bytes": 32.0,
+          "rho_updates": 1.0,
+          "total_ms": 70.228375,
+          "fork_solve_ms": [
+            53.1110205,
+            53.3474995,
+            53.1280625
+          ],
+          "allocated_bytes_range": [
+            32,
+            32
+          ],
+          "forks": 3
+        }
+      },
+      "solve_speedup": 1.0421513018661277,
+      "total_speedup": 1.0431078748440357,
+      "solve_time_reduction_percent": 4.044643209738319
+    }
+  ],
+  "failures": [],
+  "eligible_qplib_count": 9,
+  "qplib_geometric_mean_solve_speedup": 1.0645578166544514,
+  "qplib_geometric_mean_total_speedup": 1.071345711672208
+}

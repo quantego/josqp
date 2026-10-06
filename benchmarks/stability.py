@@ -28,8 +28,12 @@ if __name__=='__main__':
     if m.isfile() and Path(m.name).name==name:
      with tar.extractfile(m) as src,dst.open('wb') as f:shutil.copyfileobj(src,f)
  base=build('vector',revision=BASE if a.phase=='before' else None)
+ source_root=ROOT/'target'/('vector-'+BASE+'-src') if a.phase=='before' else ROOT
+ source_hashes={str(f.relative_to(source_root)):hashlib.sha256(f.read_bytes()).hexdigest() for folder in ['src/main/java','src/vector/java'] for f in sorted((source_root/folder).rglob('*.java'))}
+ source_hashes.update({str(f.relative_to(ROOT)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted((ROOT/'benchmarks/java').rglob('*.java'))})
  result={'phase':a.phase,'arguments':vars(a),'baseline_commit':BASE,'solver_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
-  'source_sha256':{str(f.relative_to(ROOT)):hashlib.sha256(f.read_bytes()).hexdigest() for folder in ['src/main/java','src/vector/java','benchmarks/java'] for f in sorted((ROOT/folder).rglob('*.java'))},
+  'measured_solver_commit':subprocess.check_output(['git','rev-parse',BASE if a.phase=='before' else 'HEAD'],cwd=ROOT,text=True).strip(),
+  'source_sha256':source_hashes,
   'java':subprocess.run([str(JAVA/'bin/java'),'-version'],capture_output=True,text=True).stderr,'heap':'2g','runs':[]}
  output=ROOT/(a.output or ('benchmarks/results/stability-'+a.phase+'-'+a.profile+'.json'))
  for name in names:

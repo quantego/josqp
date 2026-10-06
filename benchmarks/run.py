@@ -39,9 +39,15 @@ def build(mode, revision=None):
     if revision or mode in ('baseline', 'baseline-qplib', 'pre-workspace'):
         archived_commit = revision or (PRE_WORKSPACE if mode == 'pre-workspace' else BASELINE)
         archived_paths = ['src/main/java', 'src/vector/java'] if revision or mode == 'pre-workspace' else ['src/main/java']
+        if not revision:
+            archived_paths += ['src/test/java']
+            if mode == 'pre-workspace':
+                archived_paths += ['src/vector-test/java']
         archive = subprocess.run(['git', 'archive', archived_commit] + archived_paths, cwd=ROOT,
                                  capture_output=True, check=True).stdout
         source_root = ROOT / 'target' / (suffix + '-src' if revision else ('pre-workspace-src' if mode == 'pre-workspace' else 'baseline-src'))
+        if source_root.exists():
+            shutil.rmtree(source_root)
         source_root.mkdir(parents=True, exist_ok=True)
         with tarfile.open(fileobj=io.BytesIO(archive)) as source:
             # Restrict extraction to regular files/directories, including on Python < 3.12.
@@ -106,14 +112,19 @@ def build(mode, revision=None):
 
 def tests(mode):
     base = build(mode)
-    sources = sorted((ROOT / 'src/test/java').rglob('*.java'))
-    if mode not in ('baseline', 'baseline-qplib', 'portable'):
-        sources += sorted((ROOT / 'src/vector-test/java').rglob('*.java'))
+    test_root = ROOT
     if mode in ('baseline', 'baseline-qplib'):
-        # New regression tests intentionally require the new APIs. Run the original suite only.
-        sources = [p for p in sources if p.name not in ('RegressionTest.java', 'VectorKernelsTest.java', 'FactorWorkspaceTest.java')]
-    if mode == 'pre-workspace':
-        sources = [p for p in sources if p.name != 'FactorWorkspaceTest.java']
+        test_root = ROOT / 'target/baseline-src'
+        # Original assertions, adapted to the genuine JUnit 4 / Hamcrest 1.3 APIs.
+        # The original suite mixed Jupiter assertions/annotations with JUnit 4.
+        for name in ('PrimalDualInfeasibilityTest.java', 'SolveLinSysTest.java'):
+            shutil.copyfile(ROOT / 'src/test/java/com/quantego/josqp' / name,
+                            test_root / 'src/test/java/com/quantego/josqp' / name)
+    elif mode == 'pre-workspace':
+        test_root = ROOT / 'target/pre-workspace-src'
+    sources = sorted((test_root / 'src/test/java').rglob('*.java'))
+    if mode not in ('baseline', 'baseline-qplib', 'portable'):
+        sources += sorted((test_root / 'src/vector-test/java').rglob('*.java'))
     cp = os.pathsep.join((str(base), str(DEPS)))
     compile_to(base, sources, cp, vector=mode not in ('baseline', 'baseline-qplib', 'portable'))
     classes = ['com.quantego.josqp.' + p.stem for p in sources if p.stem.endswith('Test')]

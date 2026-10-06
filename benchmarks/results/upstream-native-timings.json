@@ -1,0 +1,573 @@
+{
+  "arguments": {
+    "files": [
+      "target/ubh1.native.bin",
+      "target/qplib_8991.native.bin",
+      "target/primalc5.native.bin",
+      "target/primalc8.native.bin",
+      "target/qplib_10034.native.bin",
+      "target/qplib_10038.native.bin"
+    ],
+    "repeats": 3,
+    "eps": 1e-06,
+    "solvers": [
+      "osqp",
+      "piqp"
+    ],
+    "output": "benchmarks/results/upstream-native-timings.json"
+  },
+  "cases": [
+    {
+      "file": "target/ubh1.native.bin",
+      "n": 18009,
+      "m": 30009,
+      "export_sha256": "24ba774ef920d313e5ddec424651d5494b25da93a93ebb87ca8a178d29e1b0ab",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 8.165458915755153,
+              "solve_ms": 10786.481291987002,
+              "objective": 1.1160008159262524,
+              "primal_violation": 3.064982934120053e-09,
+              "stationarity": 1.5392884449710875e-12,
+              "gap_expression": -3.215914840204448e-06
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 5.294374888762832,
+              "solve_ms": 10592.847584048286,
+              "objective": 1.1160008159262524,
+              "primal_violation": 3.064982934120053e-09,
+              "stationarity": 1.5392884449710875e-12,
+              "gap_expression": -3.215914840204448e-06
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 4.978292156010866,
+              "solve_ms": 10643.579707946628,
+              "objective": 1.1160008159262524,
+              "primal_violation": 3.064982934120053e-09,
+              "stationarity": 1.5392884449710875e-12,
+              "gap_expression": -3.215914840204448e-06
+            }
+          ],
+          "median_setup_ms": 5.294374888762832,
+          "median_solve_ms": 10643.579707946628,
+          "median_total_ms": 10648.55800010264,
+          "min_solve_ms": 10592.847584048286,
+          "max_solve_ms": 10786.481291987002,
+          "statuses": [
+            "solved"
+          ]
+        },
+        "piqp": {
+          "runs": [
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 3.132082987576723,
+              "solve_ms": 23.329040966928005,
+              "objective": 1.1160008156948154,
+              "primal_violation": 4.4564352208453784e-13,
+              "stationarity": 1.1995070735293378e-15,
+              "gap_expression": -2.5063142672365757e-09
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 2.7159161400049925,
+              "solve_ms": 22.797832963988185,
+              "objective": 1.1160008156948154,
+              "primal_violation": 4.4564352208453784e-13,
+              "stationarity": 1.1995070735293378e-15,
+              "gap_expression": -2.5063142672365757e-09
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 2.5535409804433584,
+              "solve_ms": 23.0526658706367,
+              "objective": 1.1160008156948154,
+              "primal_violation": 4.4564352208453784e-13,
+              "stationarity": 1.1995070735293378e-15,
+              "gap_expression": -2.5063142672365757e-09
+            }
+          ],
+          "median_setup_ms": 2.7159161400049925,
+          "median_solve_ms": 23.0526658706367,
+          "median_total_ms": 25.60620685108006,
+          "min_solve_ms": 22.797832963988185,
+          "max_solve_ms": 23.329040966928005,
+          "statuses": [
+            "Status.PIQP_SOLVED"
+          ]
+        }
+      }
+    },
+    {
+      "file": "target/qplib_8991.native.bin",
+      "n": 14400,
+      "m": 14400,
+      "export_sha256": "5486f497aa599f77b893d073ab2217f75b131770e7f51e4f914a3e80fe27e80e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 9.589625056833029,
+              "solve_ms": 207.1749169845134,
+              "objective": -1.2044834380665315,
+              "primal_violation": 0.0,
+              "stationarity": 3.408731630294426e-16,
+              "gap_expression": -2.7755575615628914e-14
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 10.515041183680296,
+              "solve_ms": 205.31758316792548,
+              "objective": -1.2044834380665315,
+              "primal_violation": 0.0,
+              "stationarity": 3.408731630294426e-16,
+              "gap_expression": -2.7755575615628914e-14
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 10.847625089809299,
+              "solve_ms": 205.54725010879338,
+              "objective": -1.2044834380665315,
+              "primal_violation": 0.0,
+              "stationarity": 3.408731630294426e-16,
+              "gap_expression": -2.7755575615628914e-14
+            }
+          ],
+          "median_setup_ms": 10.515041183680296,
+          "median_solve_ms": 205.54725010879338,
+          "median_total_ms": 216.39487519860268,
+          "min_solve_ms": 205.31758316792548,
+          "max_solve_ms": 207.1749169845134,
+          "statuses": [
+            "solved"
+          ]
+        },
+        "piqp": {
+          "runs": [
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 4.5097090769559145,
+              "solve_ms": 84.60574992932379,
+              "objective": -1.2044834380404983,
+              "primal_violation": 0.0,
+              "stationarity": 6.5577941107030426e-09,
+              "gap_expression": -4.605138492763672e-10
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 4.4682498555630445,
+              "solve_ms": 83.70516705326736,
+              "objective": -1.2044834380404983,
+              "primal_violation": 0.0,
+              "stationarity": 6.5577941107030426e-09,
+              "gap_expression": -4.605138492763672e-10
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 4.388417117297649,
+              "solve_ms": 83.8548329193145,
+              "objective": -1.2044834380404983,
+              "primal_violation": 0.0,
+              "stationarity": 6.5577941107030426e-09,
+              "gap_expression": -4.605138492763672e-10
+            }
+          ],
+          "median_setup_ms": 4.4682498555630445,
+          "median_solve_ms": 83.8548329193145,
+          "median_total_ms": 88.24325003661215,
+          "min_solve_ms": 83.70516705326736,
+          "max_solve_ms": 84.60574992932379,
+          "statuses": [
+            "Status.PIQP_SOLVED"
+          ]
+        }
+      }
+    },
+    {
+      "file": "target/primalc5.native.bin",
+      "n": 287,
+      "m": 295,
+      "export_sha256": "abbd4a478b6ab044ee7a7b78b0768704fb77c8a10f821c7c192acb07e9171511",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.2627498470246792,
+              "solve_ms": 726.0498329997063,
+              "objective": -158009.5045396879,
+              "primal_violation": 322.6261389455153,
+              "stationarity": 9.696007168757959e-05,
+              "gap_expression": -156031.5683671261
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.21083280444145203,
+              "solve_ms": 729.2032921686769,
+              "objective": -158009.5045396879,
+              "primal_violation": 322.6261389455153,
+              "stationarity": 9.696007168757959e-05,
+              "gap_expression": -156031.5683671261
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.21783402189612389,
+              "solve_ms": 738.1152079906315,
+              "objective": -158009.5045396879,
+              "primal_violation": 322.6261389455153,
+              "stationarity": 9.696007168757959e-05,
+              "gap_expression": -156031.5683671261
+            }
+          ],
+          "median_setup_ms": 0.21783402189612389,
+          "median_solve_ms": 729.2032921686769,
+          "median_total_ms": 729.4141249731183,
+          "min_solve_ms": 726.0498329997063,
+          "max_solve_ms": 738.1152079906315,
+          "statuses": [
+            "maximum iterations reached"
+          ]
+        },
+        "piqp": {
+          "runs": [
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 0.24445890448987484,
+              "solve_ms": 0.4237499088048935,
+              "objective": -427.2323267730865,
+              "primal_violation": 0.0,
+              "stationarity": 3.6801281955339764e-10,
+              "gap_expression": 6.312859568424756e-09
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 0.18212501890957355,
+              "solve_ms": 0.4141668323427439,
+              "objective": -427.2323267730865,
+              "primal_violation": 0.0,
+              "stationarity": 3.6801281955339764e-10,
+              "gap_expression": 6.312859568424756e-09
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 0.18091686069965363,
+              "solve_ms": 0.4032501019537449,
+              "objective": -427.2323267730865,
+              "primal_violation": 0.0,
+              "stationarity": 3.6801281955339764e-10,
+              "gap_expression": 6.312859568424756e-09
+            }
+          ],
+          "median_setup_ms": 0.18212501890957355,
+          "median_solve_ms": 0.4141668323427439,
+          "median_total_ms": 0.5962918512523174,
+          "min_solve_ms": 0.4032501019537449,
+          "max_solve_ms": 0.4237499088048935,
+          "statuses": [
+            "Status.PIQP_SOLVED"
+          ]
+        }
+      }
+    },
+    {
+      "file": "target/primalc8.native.bin",
+      "n": 520,
+      "m": 528,
+      "export_sha256": "83c4d03589d34f4fe8823fa7aecafb71e782d9d0d57013c1e4720f44d5de005e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.32916711643338203,
+              "solve_ms": 1337.8726250957698,
+              "objective": -553612.988214844,
+              "primal_violation": 12785.6567647329,
+              "stationarity": 0.0067541868106331115,
+              "gap_expression": -524614.7088755638
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.2997501287609339,
+              "solve_ms": 1341.168874874711,
+              "objective": -553612.988214844,
+              "primal_violation": 12785.6567647329,
+              "stationarity": 0.0067541868106331115,
+              "gap_expression": -524614.7088755638
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 0.30595785938203335,
+              "solve_ms": 1339.9614999070764,
+              "objective": -553612.988214844,
+              "primal_violation": 12785.6567647329,
+              "stationarity": 0.0067541868106331115,
+              "gap_expression": -524614.7088755638
+            }
+          ],
+          "median_setup_ms": 0.30595785938203335,
+          "median_solve_ms": 1339.9614999070764,
+          "median_total_ms": 1340.2674577664584,
+          "min_solve_ms": 1337.8726250957698,
+          "max_solve_ms": 1341.168874874711,
+          "statuses": [
+            "maximum iterations reached"
+          ]
+        },
+        "piqp": {
+          "runs": [
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 0.3463330212980509,
+              "solve_ms": 1.1633329559117556,
+              "objective": -18309.429787690595,
+              "primal_violation": 0.0,
+              "stationarity": 8.462848427141343e-09,
+              "gap_expression": 1.6318035704898648e-06
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 0.3052919637411833,
+              "solve_ms": 1.1232078541070223,
+              "objective": -18309.429787690595,
+              "primal_violation": 0.0,
+              "stationarity": 8.462848427141343e-09,
+              "gap_expression": 1.6318035704898648e-06
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 0.3065001219511032,
+              "solve_ms": 1.1410419829189777,
+              "objective": -18309.429787690595,
+              "primal_violation": 0.0,
+              "stationarity": 8.462848427141343e-09,
+              "gap_expression": 1.6318035704898648e-06
+            }
+          ],
+          "median_setup_ms": 0.3065001219511032,
+          "median_solve_ms": 1.1410419829189777,
+          "median_total_ms": 1.447542104870081,
+          "min_solve_ms": 1.1232078541070223,
+          "max_solve_ms": 1.1633329559117556,
+          "statuses": [
+            "Status.PIQP_SOLVED"
+          ]
+        }
+      }
+    },
+    {
+      "file": "target/qplib_10034.native.bin",
+      "n": 40400,
+      "m": 80600,
+      "export_sha256": "a832105a42b9605be0aa588b169fcb57995d6050dc7e430d371a9d682a94b13c",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 109.0383748523891,
+              "solve_ms": 14894.822125090286,
+              "objective": -0.06171484320864209,
+              "primal_violation": 0.10586652457873047,
+              "stationarity": 1.842369667993699e-05,
+              "gap_expression": -0.008605900996158114
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 109.07791601493955,
+              "solve_ms": 14896.665208041668,
+              "objective": -0.061685512505150614,
+              "primal_violation": 0.08382316946632051,
+              "stationarity": 1.6474036098250466e-05,
+              "gap_expression": -0.008738033487942042
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 109.75900012999773,
+              "solve_ms": 14892.688499996439,
+              "objective": -0.06167343987247988,
+              "primal_violation": 0.08484836136880625,
+              "stationarity": 1.7289412299072518e-05,
+              "gap_expression": -0.008784696128474738
+            }
+          ],
+          "median_setup_ms": 109.07791601493955,
+          "median_solve_ms": 14894.822125090286,
+          "median_total_ms": 15003.860499942675,
+          "min_solve_ms": 14892.688499996439,
+          "max_solve_ms": 14896.665208041668,
+          "statuses": [
+            "run time limit reached"
+          ]
+        },
+        "piqp": {
+          "runs": [
+            {
+              "status": "Status.PIQP_MAX_ITER_REACHED",
+              "finite": true,
+              "setup_ms": 25.191749911755323,
+              "solve_ms": 27062.74416600354,
+              "objective": -0.06600842584348499,
+              "primal_violation": 5.314531060103948e-06,
+              "stationarity": 2.495068583910244e-08,
+              "gap_expression": 0.0006531462072375946
+            },
+            {
+              "status": "Status.PIQP_MAX_ITER_REACHED",
+              "finite": true,
+              "setup_ms": 26.5455839689821,
+              "solve_ms": 27092.69354213029,
+              "objective": -0.06600842584348499,
+              "primal_violation": 5.314531060103948e-06,
+              "stationarity": 2.495068583910244e-08,
+              "gap_expression": 0.0006531462072375946
+            },
+            {
+              "status": "Status.PIQP_MAX_ITER_REACHED",
+              "finite": true,
+              "setup_ms": 24.998333072289824,
+              "solve_ms": 27062.29587481357,
+              "objective": -0.06600842584348499,
+              "primal_violation": 5.314531060103948e-06,
+              "stationarity": 2.495068583910244e-08,
+              "gap_expression": 0.0006531462072375946
+            }
+          ],
+          "median_setup_ms": 25.191749911755323,
+          "median_solve_ms": 27062.74416600354,
+          "median_total_ms": 27087.935915915295,
+          "min_solve_ms": 27062.29587481357,
+          "max_solve_ms": 27092.69354213029,
+          "statuses": [
+            "Status.PIQP_MAX_ITER_REACHED"
+          ]
+        }
+      }
+    },
+    {
+      "file": "target/qplib_10038.native.bin",
+      "n": 160800,
+      "m": 321200,
+      "export_sha256": "f9a3a3c2251e6111356ac3dac43b7bb37eaca8890e0634d3135787c3cfc1ea35",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 984.2928750440478,
+              "solve_ms": 14036.561500048265,
+              "objective": -0.053034795877334284,
+              "primal_violation": 0.32553391164553114,
+              "stationarity": 0.00012314010239857903,
+              "gap_expression": -0.012595180122861316
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 966.4723328314722,
+              "solve_ms": 14062.509417068213,
+              "objective": -0.053034795877334284,
+              "primal_violation": 0.32553391164553114,
+              "stationarity": 0.00012314010239857903,
+              "gap_expression": -0.012595180122861316
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 941.5461251046509,
+              "solve_ms": 14073.157083010301,
+              "objective": -0.053034795877334284,
+              "primal_violation": 0.32553391164553114,
+              "stationarity": 0.00012314010239857903,
+              "gap_expression": -0.012595180122861316
+            }
+          ],
+          "median_setup_ms": 966.4723328314722,
+          "median_solve_ms": 14062.509417068213,
+          "median_total_ms": 15020.854375092313,
+          "min_solve_ms": 14036.561500048265,
+          "max_solve_ms": 14073.157083010301,
+          "statuses": [
+            "run time limit reached"
+          ]
+        },
+        "piqp": {
+          "runs": [
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 108.12279116362333,
+              "solve_ms": 31786.5788328927,
+              "objective": -0.05167742451255982,
+              "primal_violation": 1.3855583347321954e-13,
+              "stationarity": 4.884148623928938e-13,
+              "gap_expression": -7.302207329909147e-09
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 126.6062909271568,
+              "solve_ms": 31805.48774986528,
+              "objective": -0.05167742451255982,
+              "primal_violation": 1.3855583347321954e-13,
+              "stationarity": 4.884148623928938e-13,
+              "gap_expression": -7.302207329909147e-09
+            },
+            {
+              "status": "Status.PIQP_SOLVED",
+              "finite": true,
+              "setup_ms": 110.04095803946257,
+              "solve_ms": 31842.811207985505,
+              "objective": -0.05167742451255982,
+              "primal_violation": 1.3855583347321954e-13,
+              "stationarity": 4.884148623928938e-13,
+              "gap_expression": -7.302207329909147e-09
+            }
+          ],
+          "median_setup_ms": 110.04095803946257,
+          "median_solve_ms": 31805.48774986528,
+          "median_total_ms": 31932.094040792435,
+          "min_solve_ms": 31786.5788328927,
+          "max_solve_ms": 31842.811207985505,
+          "statuses": [
+            "Status.PIQP_SOLVED"
+          ]
+        }
+      }
+    }
+  ]
+}

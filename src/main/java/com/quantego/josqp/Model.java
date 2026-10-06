@@ -56,6 +56,98 @@ public class Model {
         }
 
         /**
+         * Add n variables with optional bounds. This is the index-based bulk path: it creates no
+         * {@link Variable} objects and no boxed collections.
+         *
+         * @param n number of variables
+         * @param lower lower bounds, or null for the default 0
+         * @param upper upper bounds, or null for the default +inf
+         * @return this builder
+         */
+        public Builder addVariables(int n, double[] lower, double[] upper) {
+            _m.addVariables(n, lower, upper);
+            return this;
+        }
+
+        /**
+         * Set linear objective coefficients for the given variable indices.
+         *
+         * @param indices variable indices
+         * @param coefficients cost coefficients, same length
+         * @return this builder
+         */
+        public Builder linearObjective(int[] indices, double[] coefficients) {
+            _m.setLinearCost(indices, coefficients);
+            return this;
+        }
+
+        /**
+         * Set quadratic objective coefficients. The value is the coefficient of the product
+         * {@code x_rows[k] * x_cols[k]}, matching {@link Model#setQbj(int, int, double)}.
+         *
+         * @param rows first variable index of each term
+         * @param cols second variable index of each term
+         * @param values coefficients, same length
+         * @return this builder
+         */
+        public Builder quadraticObjective(int[] rows, int[] cols, double[] values) {
+            _m.setQuadraticCost(rows, cols, values);
+            return this;
+        }
+
+        /**
+         * Add a constraint {@code lower <= A x <= upper} with the given row entries.
+         *
+         * @param indices variable indices of the row
+         * @param coefficients coefficients, same length
+         * @param lower lower bound
+         * @param upper upper bound
+         * @return this builder
+         */
+        public Builder constraint(int[] indices, double[] coefficients, double lower, double upper) {
+            _m.addConstraintRow(indices, coefficients, lower, upper);
+            return this;
+        }
+
+        /**
+         * Set the objective offset.
+         * @param value offset
+         * @return this builder
+         */
+        public Builder offset(double value) {
+            _m.setOffset(value);
+            return this;
+        }
+
+        /**
+         * Set the objective sense.
+         * @param maximize true for a maximization problem
+         * @return this builder
+         */
+        public Builder sense(boolean maximize) {
+            _m.setSense(maximize);
+            return this;
+        }
+
+        /**
+         * Minimize the objective.
+         * @return this builder
+         */
+        public Builder minimize() {
+            _m.setSense(false);
+            return this;
+        }
+
+        /**
+         * Maximize the objective.
+         * @return this builder
+         */
+        public Builder maximize() {
+            _m.setSense(true);
+            return this;
+        }
+
+        /**
          * Returns the constructed model.
          * @return model
          */
@@ -671,6 +763,119 @@ public class Model {
      */
     public void setSense(boolean maximize) {
         _maximize = maximize;
+    }
+
+    /**
+     * Adds n variables with optional bounds and returns the index of the first one. This is the
+     * index-based bulk path for large models: it creates no {@link Variable} objects and no boxed
+     * collections. Every variable still contributes its structural bound row, as in
+     * {@link #addVar()}.
+     *
+     * @param n number of variables
+     * @param lower lower bounds, or null for the default 0
+     * @param upper upper bounds, or null for the default +inf
+     * @return index of the first added variable
+     */
+    public int addVariables(int n, double[] lower, double[] upper) {
+        if (n < 0)
+            throw new IllegalArgumentException("Number of variables must be nonnegative.");
+        if (lower != null && lower.length < n)
+            throw new IllegalArgumentException("Lower bounds shorter than the variable count.");
+        if (upper != null && upper.length < n)
+            throw new IllegalArgumentException("Upper bounds shorter than the variable count.");
+        int first = _nCols;
+        for (int i = 0; i < n; i++) {
+            int var = addVar();
+            if (lower != null) setLb(var, lower[i]);
+            if (upper != null) setUb(var, upper[i]);
+        }
+        return first;
+    }
+
+    /**
+     * Sets the linear objective coefficients q[i] = coefficients[k].
+     *
+     * @param indices variable indices
+     * @param coefficients cost coefficients, same length
+     */
+    public void setLinearCost(int[] indices, double[] coefficients) {
+        checkBulkArguments(indices, coefficients);
+        for (int k = 0; k < indices.length; k++) {
+            _q.set(indices[k], coefficients[k]);
+        }
+        _newQ = true;
+    }
+
+    /**
+     * Sets quadratic objective terms with value as the coefficient of {@code x_rows[k]*x_cols[k]},
+     * matching {@link #setQbj(int, int, double)}. The entry is stored in the upper triangle of P.
+     *
+     * @param rows first variable index of each term
+     * @param cols second variable index of each term
+     * @param values coefficients, same length
+     */
+    public void setQuadraticCost(int[] rows, int[] cols, double[] values) {
+        if (rows == null || cols == null || values == null)
+            throw new IllegalArgumentException("Quadratic terms must not be null.");
+        if (rows.length != cols.length || rows.length != values.length)
+            throw new IllegalArgumentException("Quadratic term arrays must have the same length.");
+        for (int k = 0; k < rows.length; k++) {
+            if (rows[k] >= _nCols || cols[k] >= _nCols)
+                throw new IllegalArgumentException("Quadratic term refers to an unknown variable.");
+            _P.set(rows[k], cols[k], 2 * values[k]);
+        }
+        _newP = true;
+    }
+
+    /**
+     * Adds one constraint row {@code lower <= A x <= upper} and returns its index. Use
+     * {@link #setConstraintBounds(int, double, double)} to change the bounds later.
+     *
+     * @param indices variable indices of the row entries
+     * @param coefficients coefficients, same length
+     * @param lower lower bound
+     * @param upper upper bound
+     * @return index of the added constraint
+     */
+    public int addConstraintRow(int[] indices, double[] coefficients, double lower, double upper) {
+        checkBulkArguments(indices, coefficients);
+        if (lower > upper)
+            throw new IllegalArgumentException("Lower bound must not exceed the upper bound.");
+        int ctr = addCtr(Constraint.Type.NEQ, 0.0);
+        _lb.set(ctr, lower);
+        _ub.set(ctr, upper);
+        for (int k = 0; k < indices.length; k++) {
+            _A.set(ctr, indices[k], coefficients[k]);
+        }
+        _newA = true; _newL = true; _newU = true;
+        return ctr;
+    }
+
+    /**
+     * Sets both bounds of a constraint row without touching its coefficients.
+     *
+     * @param ctr constraint index
+     * @param lower lower bound
+     * @param upper upper bound
+     */
+    public void setConstraintBounds(int ctr, double lower, double upper) {
+        if (ctr >= _nRows)
+            throw new IllegalArgumentException(String.format("Constraint %d is unknown.", ctr));
+        if (lower > upper)
+            throw new IllegalArgumentException("Lower bound must not exceed the upper bound.");
+        _lb.set(ctr, lower);
+        _ub.set(ctr, upper);
+        _newL = true; _newU = true;
+    }
+
+    private void checkBulkArguments(int[] indices, double[] coefficients) {
+        if (indices == null || coefficients == null)
+            throw new IllegalArgumentException("Indices and coefficients must not be null.");
+        if (indices.length != coefficients.length)
+            throw new IllegalArgumentException("Indices and coefficients must have the same length.");
+        for (int index : indices)
+            if (index < 0 || index >= _nCols)
+                throw new IllegalArgumentException(String.format("Variable %d is unknown.", index));
     }
 
     /**

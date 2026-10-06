@@ -5,10 +5,12 @@ All notable changes to jOSQP are documented here. The format follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 This file starts with the work that followed upstream commit `36f0613`
-("Merge pull request #5"). Everything below is **not yet released**; `pom.xml`
-still declares `0.6.6`.
+("Merge pull request #5"). The first release from this line is **1.0.0**; the
+published predecessor is `com.quantego:josqp:0.6.5`.
 
 ## [Unreleased]
+
+## [1.0.0] - 2026-10-06
 
 ### Changed — breaking
 
@@ -70,6 +72,13 @@ still declares `0.6.6`.
   `Info` carries `primdual_int` (running integral of `|duality_gap|`) and
   `rel_kkt_error` (`max(pri_res, dua_res, |duality_gap|)` of the last info
   update), both filled like in OSQP 1.0.
+- **Maven release profile** for Maven Central: `mvn -Prelease deploy` attaches
+  the sources and javadoc jars, signs all artifacts with GPG and publishes
+  through the Sonatype Central Portal (`autoPublish=false`, so the deployment
+  still has to be released in the Portal). `pom.xml` carries the metadata
+  Central requires (`name`, `description`, `url`, `licenses`, `developers`,
+  `scm`). The published artifact is the plain Java 8 build; the Vector API
+  backend stays behind the `vector` profile.
 
 ### Changed
 
@@ -92,6 +101,13 @@ still declares `0.6.6`.
 
 ### Fixed
 
+- **`mvn test` compiles again.** The pom depended on
+  `org.hamcrest:hamcrest-library:2.2`, which is only a shim without
+  `org.hamcrest.Matchers`; the tests compiled through the project's own
+  `benchmarks/run.py` but never through Maven. The dependency is now
+  `org.hamcrest:hamcrest:2.2` with JUnit's transitive `hamcrest-core:1.3`
+  excluded. Verified with Maven 3.10.0 on JDK 26: 90 tests, plus 93 with
+  `-Pvector`.
 - **Repeated solves after changing matrix values**
   ([issue #4](https://github.com/quantego/josqp/issues/4)).
   `Model#solve` passed CSC *row indices* to `OSQP#update_A`/`update_P`, which

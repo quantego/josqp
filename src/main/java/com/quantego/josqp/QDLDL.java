@@ -293,14 +293,14 @@ public class QDLDL  {
 	
 	    	//This for loop places nonzeros values in the k^th row
         int steps = replay ? w.scheduleRows[k+1]-w.scheduleRows[k] : nnzY;
-    	for(i = 0; i < steps; i++){
+        for(i = 0; i < steps; i++){
 	
 		    	//which column are we working on?
-		    	cidx = replay ? w.scheduleColumns[w.scheduleRows[k]+i] : yIdx[nnzY-1-i];
+                cidx = replay ? w.scheduleColumns[w.scheduleRows[k]+i] : yIdx[nnzY-1-i];
 		
 		    	// loop along the elements in this
 		    	// column of L and subtract to solve to y
-		    	tmpIdx = replay ? w.schedulePositions[w.scheduleRows[k]+i] : LNextSpaceInCol[cidx];
+                tmpIdx = replay ? w.schedulePositions[w.scheduleRows[k]+i] : LNextSpaceInCol[cidx];
                 if(record) {
                     if(Li[tmpIdx]!=k) throw new IllegalStateException("LDL schedule disagrees with factor pattern");
                     recordedColumns[cursor]=cidx; recordedPositions[cursor++]=tmpIdx;

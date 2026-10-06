@@ -148,6 +148,7 @@ public class OSQP {
 		public int scaling = SCALING;                ///< heuristic data scaling iterations; if 0, then disabled.
 
 		public boolean adaptive_rho = ADAPTIVE_RHO;           ///< boolean, is rho step size adaptive?
+		public boolean adaptive_rho_kkt = false; ///< opt-in OSQP 1.0-style progress gate
 		public int   adaptive_rho_interval = ADAPTIVE_RHO_INTERVAL;  ///< number of iterations between rho adaptations; if 0, then it is automatic
 		public double adaptive_rho_tolerance = ADAPTIVE_RHO_TOLERANCE; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
 		public double adaptive_rho_fraction = ADAPTIVE_RHO_FRACTION;  ///< interval for adapting rho (fraction of the setup time)
@@ -221,6 +222,7 @@ public class OSQP {
 	
 	
 	public static class Workspace {
+		double last_rho_kkt_error = Double.POSITIVE_INFINITY;
 		/// Problem data to work on (possibly scaled)
 		public Data data;
 
@@ -410,6 +412,7 @@ public class OSQP {
 	public OSQP.Status solve() {
 		int iter = 0;
 		reset_info(work.info);
+		work.last_rho_kkt_error = Double.POSITIVE_INFINITY;
 		work.info.status_polish = 0;
 		work.info.polish_time = 0.0;
 		work.info.run_time = 0.0;
@@ -764,6 +767,9 @@ public class OSQP {
 	}
 	
 	static boolean adapt_rho(Workspace work) {
+		  double error = Math.max(Math.max(work.info.pri_res,work.info.dua_res),Math.abs(work.info.duality_gap));
+		  if (work.settings.adaptive_rho_kkt && !(error <= work.settings.adaptive_rho_fraction * work.last_rho_kkt_error))
+		      return true;
 		  double rho_new = compute_rho_estimate(work);
 		  boolean exitflag = true;
 
@@ -775,6 +781,7 @@ public class OSQP {
 		      (rho_new < work.settings.rho /  work.settings.adaptive_rho_tolerance)) {
 			exitflag = osqp_update_rho(work, rho_new);
 		    work.info.rho_updates ++;
+		    if (exitflag) work.last_rho_kkt_error = error;
 		  }
 		  return exitflag;
 		}
@@ -1797,6 +1804,9 @@ public class OSQP {
 		}
 		if (settings.linear_refine_iter < 0) {
 			throw new IllegalArgumentException("linear_refine_iter must be nonnegative");
+		}
+		if (settings.adaptive_rho_kkt && !(settings.adaptive_rho_fraction > 0 && settings.adaptive_rho_fraction < 1)) {
+			throw new IllegalArgumentException("KKT rho progress fraction must be between zero and one");
 		}
 
 		if (settings.rho <= 0.0) {

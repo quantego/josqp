@@ -31,6 +31,7 @@ public final class StabilityBenchmark {
         try {
             OSQP.Settings.class.getField("check_linear_residual").setBoolean(s, Boolean.getBoolean("audit.linear"));
             OSQP.Settings.class.getField("linear_refine_iter").setInt(s, Integer.getInteger("audit.refine",0));
+            OSQP.Settings.class.getField("adaptive_rho_kkt").setBoolean(s, Boolean.getBoolean("audit.kktRho"));
         } catch (NoSuchFieldException ignored) { }
         catch (IllegalAccessException ex) { throw new IllegalStateException(ex); }
         OSQP.Data input = new OSQP.Data(original);

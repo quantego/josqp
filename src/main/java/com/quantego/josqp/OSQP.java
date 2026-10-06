@@ -32,7 +32,7 @@ public class OSQP {
 
 	public static final double RHO_MIN = 1e-06;
 	public static final double RHO_MAX = 1e06;
-	public static final double RHO_EQ_OVER_RHO_INEQ = 1e04;
+	public static final double RHO_EQ_OVER_RHO_INEQ = 1e03;
 	public static final double RHO_TOL = 1e-04; ///< tolerance for detecting if an inequality is set to equality
 
 
@@ -56,13 +56,13 @@ public class OSQP {
 	public static final String OSQP_VERSION = "0.6.0";
 
 	public static final boolean ADAPTIVE_RHO = true;
-	public static final int ADAPTIVE_RHO_INTERVAL = 0;
+	public static final int ADAPTIVE_RHO_INTERVAL = 50;
 	public static final double ADAPTIVE_RHO_FRACTION = 0.4;         ///< fraction of setup time after which we update rho
 	public static final int ADAPTIVE_RHO_MULTIPLE_TERMINATION = 4; ///< multiple of check_termination after which we update rho (if PROFILING disabled)
 	public static final int ADAPTIVE_RHO_FIXED = 100;             ///< number of iterations after which we update rho if termination_check  and PROFILING are disabled
 	public static final int ADAPTIVE_RHO_TOLERANCE = 5;          ///< tolerance for adopting new rho; minimum ratio between new rho and the current one
 
-	public static final double TIME_LIMIT = Double.POSITIVE_INFINITY;
+	public static final double TIME_LIMIT = 1e10;
 	
 	public static final int PRINT_INTERVAL = 200;
 	

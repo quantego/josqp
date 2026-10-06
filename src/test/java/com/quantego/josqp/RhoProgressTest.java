@@ -7,6 +7,8 @@ public class RhoProgressTest {
     private OSQP problem() {
         CSCMatrix one=new CSCMatrix(1,1,1,new int[]{0,1},new int[]{0},new double[]{1});
         OSQP.Settings s=new OSQP.Settings();s.verbose=false;s.scaling=0;s.adaptive_rho_kkt=true;
+        // Exercise the progress gate with the tighter, termination-synchronised cadence.
+        s.adaptive_rho_interval=0;
         return new OSQP(new OSQP.Data(1,1,one,one,new double[]{-2},new double[]{0},new double[]{1},0),s);
     }
     @Test public void insufficientProgressSkipsRefactorAndLeavesRhoUnchanged() {

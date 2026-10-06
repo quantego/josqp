@@ -15,7 +15,10 @@ public final class StabilityBenchmark {
         OSQP.LOG.setLevel(Level.OFF);
         OSQP.Data original = Parser.readQmps(args[0]).getData();
         OSQP.Settings s = new OSQP.Settings();
-        s.verbose = false; s.warm_start = false; s.adaptive_rho_interval = 100;
+        s.verbose = false; s.warm_start = false;
+        // 100 keeps earlier audit runs reproducible; -1 leaves the solver default in place.
+        int rhoInterval = Integer.getInteger("audit.rhoInterval", 100);
+        if (rhoInterval >= 0) s.adaptive_rho_interval = rhoInterval;
         s.max_iter = Integer.parseInt(System.getProperty("audit.maxIter", "100000"));
         s.time_limit = Double.parseDouble(System.getProperty("audit.seconds", "10"));
         s.eps_abs = s.eps_rel = Double.parseDouble(System.getProperty("audit.eps", "0.001"));

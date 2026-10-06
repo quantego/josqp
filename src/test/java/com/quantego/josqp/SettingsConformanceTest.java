@@ -85,19 +85,27 @@ public class SettingsConformanceTest {
                 OSQP.Settings.class.getField("adaptive_rho_kkt").getBoolean(settings));
     }
 
-    /**
-     * Defaults where JOSQP still follows OSQP 0.6 instead of 1.0. They are pinned here so that any
-     * change is deliberate; aligning them changes solver behaviour and every measurement.
-     */
+    /** Defaults of the OSQP 1.0 double/CPU build, pinned so a change is always deliberate. */
     @Test
-    public void knownDefaultDivergencesArePinned() {
+    public void defaultsMatchOsqp100() {
         OSQP.Settings settings = new OSQP.Settings();
-        assertTrue("OSQP 1.0 defaults adaptive_rho_interval to 50, JOSQP keeps 0 (automatic)",
-                settings.adaptive_rho_interval == 0);
-        assertTrue("OSQP 1.0 uses 1e3 for rho_eq_over_rho_ineq, JOSQP keeps 1e4",
-                OSQP.RHO_EQ_OVER_RHO_INEQ == 1e4);
-        assertTrue("OSQP 1.0 disables the time limit with 1e10, JOSQP uses positive infinity",
-                Double.isInfinite(new OSQP.Settings().time_limit));
+        assertTrue("adaptive_rho_interval must be 50 as in OSQP 1.0",
+                settings.adaptive_rho_interval == 50);
+        assertTrue("rho_eq_over_rho_ineq must be 1e3 as in OSQP 1.0",
+                OSQP.RHO_EQ_OVER_RHO_INEQ == 1e3);
+        assertTrue("time_limit must default to 1e10 as in OSQP 1.0",
+                settings.time_limit == 1e10);
+        assertTrue("adaptive_rho must default to true", settings.adaptive_rho);
+        assertTrue("adaptive_rho_tolerance must default to 5.0",
+                settings.adaptive_rho_tolerance == 5.0);
+        assertTrue("warm_start must default to true", settings.warm_start);
+        assertTrue("check_termination must default to 25", settings.check_termination == 25);
+        assertTrue("max_iter must default to 4000", settings.max_iter == 4000);
+        assertTrue("delta must default to 1e-6", settings.delta == 1e-6);
+        assertTrue("polish_refine_iter must default to 3", settings.polish_refine_iter == 3);
+        assertTrue("eps_abs must default to 1e-3", settings.eps_abs == 1e-3);
+        assertTrue("eps_prim_inf must default to 1e-4", settings.eps_prim_inf == 1e-4);
+        assertTrue("scaling must default to 10", settings.scaling == 10);
     }
 
     @Test

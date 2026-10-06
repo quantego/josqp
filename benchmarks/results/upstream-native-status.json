@@ -1,0 +1,96 @@
+{
+  "arguments": {
+    "files": [
+      "target/ubh1.native.bin",
+      "target/qplib_8991.native.bin",
+      "target/qplib_10034.native.bin"
+    ],
+    "inspect": false,
+    "eps": 1e-06,
+    "output": "benchmarks/results/upstream-native-status.json"
+  },
+  "adapters_executed": false,
+  "runs": [
+    {
+      "file": "target/ubh1.native.bin",
+      "n": 18009,
+      "m": 30009,
+      "export_sha256": "24ba774ef920d313e5ddec424651d5494b25da93a93ebb87ca8a178d29e1b0ab",
+      "matrices_nnz": [
+        6003,
+        66009
+      ],
+      "solvers": [
+        {
+          "solver": "osqp",
+          "failure": "missing_dependency",
+          "detail": "No module named 'numpy'"
+        },
+        {
+          "solver": "piqp",
+          "failure": "missing_dependency",
+          "detail": "No module named 'numpy'"
+        }
+      ]
+    },
+    {
+      "file": "target/qplib_8991.native.bin",
+      "n": 14400,
+      "m": 14400,
+      "export_sha256": "5486f497aa599f77b893d073ab2217f75b131770e7f51e4f914a3e80fe27e80e",
+      "matrices_nnz": [
+        42960,
+        14400
+      ],
+      "solvers": [
+        {
+          "solver": "osqp",
+          "failure": "missing_dependency",
+          "detail": "No module named 'numpy'"
+        },
+        {
+          "solver": "piqp",
+          "failure": "missing_dependency",
+          "detail": "No module named 'numpy'"
+        }
+      ]
+    },
+    {
+      "file": "target/qplib_10034.native.bin",
+      "n": 40400,
+      "m": 80600,
+      "export_sha256": "a832105a42b9605be0aa588b169fcb57995d6050dc7e430d371a9d682a94b13c",
+      "matrices_nnz": [
+        401,
+        280003
+      ],
+      "solvers": [
+        {
+          "solver": "osqp",
+          "failure": "missing_dependency",
+          "detail": "No module named 'numpy'"
+        },
+        {
+          "solver": "piqp",
+          "failure": "missing_dependency",
+          "detail": "No module named 'numpy'"
+        }
+      ]
+    }
+  ],
+  "source_inputs": {
+    "target/ubh1.native.bin": {
+      "input": "../josqp_benchmarks/extracted/ubh1.qps",
+      "source_sha256": "5bf03bf108b6470b59fe5c444876793535827fd21e36018c5bb00494255a90c0"
+    },
+    "target/qplib_8991.native.bin": {
+      "input": "../josqp_benchmarks/extracted/qplib_8991.qps",
+      "source_sha256": "00e5cd0b6b0c4da1299082bba7f4b2ed58686a902367536809d3a328e0c81149"
+    },
+    "target/qplib_10034.native.bin": {
+      "input": "../josqp_benchmarks/extracted/qplib_10034.qps",
+      "source_sha256": "72dedb8dd2728d3ce305ea0196b9c8d808010f042eee2818fdc8ffc20bf74100"
+    }
+  },
+  "installation_block": "pip supplied no NumPy distributions; attempted native OSQP git clone failed to resolve github.com in the local execution environment."
+}

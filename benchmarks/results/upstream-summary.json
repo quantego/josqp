@@ -1,0 +1,814 @@
+{
+  "factor": {
+    "cases": [
+      {
+        "file": "qplib_8495.qps",
+        "identical_sha256": "d9864659d66af5ad62acaa29f6b54c806430058fafec1462cc56d62ce19e8de2",
+        "modes": {
+          "baseline": {
+            "factor_ms": 64.833125
+          },
+          "schedule": {
+            "factor_ms": 69.240292
+          },
+          "blocks": {
+            "factor_ms": 70.721833
+          },
+          "blocks-scalar": {
+            "factor_ms": 80.557167
+          }
+        },
+        "time_saved_percent": {
+          "baseline": 0.0,
+          "schedule": -6.79770873299721,
+          "blocks": -9.082869289425744,
+          "blocks-scalar": -24.25309901381434
+        }
+      },
+      {
+        "file": "qplib_8559.qps",
+        "identical_sha256": "bbd0d2f4243b654940d7bbca76807b27c757a0c09c84fb1cc84fbdf6b822bf81",
+        "modes": {
+          "baseline": {
+            "factor_ms": 883.398166
+          },
+          "schedule": {
+            "factor_ms": 710.827041
+          },
+          "blocks": {
+            "factor_ms": 821.517625
+          },
+          "blocks-scalar": {
+            "factor_ms": 953.759792
+          }
+        },
+        "time_saved_percent": {
+          "baseline": 0.0,
+          "schedule": 19.534919998917,
+          "blocks": 7.004830141338559,
+          "blocks-scalar": -7.964882508030935
+        }
+      },
+      {
+        "file": "qplib_8785.qps",
+        "identical_sha256": "feacae624fec6f2097a61dc18935a58256816ee5c5ec0bdebf7d5a49d79857fb",
+        "modes": {
+          "baseline": {
+            "factor_ms": 374.779875
+          },
+          "schedule": {
+            "factor_ms": 345.140458
+          },
+          "blocks": {
+            "factor_ms": 292.326542
+          },
+          "blocks-scalar": {
+            "factor_ms": 339.966
+          }
+        },
+        "time_saved_percent": {
+          "baseline": 0.0,
+          "schedule": 7.908486815093784,
+          "blocks": 22.00046974240546,
+          "blocks-scalar": 9.28915273265407
+        }
+      }
+    ],
+    "jvms": 36,
+    "samples": 108,
+    "geometric_time_saved_percent": {
+      "schedule": 7.502570489322213,
+      "blocks": 7.508254095516498,
+      "blocks-scalar": -6.761907109427057
+    }
+  },
+  "solver": {
+    "cases": [
+      {
+        "file": "qplib_8495.qps",
+        "identical_sha256": "202c06cee7b87e2317868446fba04571c737d0c4c91663ca88f80827a9134008",
+        "modes": {
+          "baseline": {
+            "solve_ms": 368.7353955,
+            "setup_ms": 80.760542,
+            "allocated_bytes": 32.0,
+            "setup_plus_solve_ms": 449.5025415
+          },
+          "schedule": {
+            "solve_ms": 381.148188,
+            "setup_ms": 85.3364375,
+            "allocated_bytes": 7771040.0,
+            "setup_plus_solve_ms": 466.4846255
+          },
+          "blocks": {
+            "solve_ms": 387.658375,
+            "setup_ms": 90.5807085,
+            "allocated_bytes": 7771040.0,
+            "setup_plus_solve_ms": 481.36306249999996
+          },
+          "blocks-scalar": {
+            "solve_ms": 392.7829165,
+            "setup_ms": 92.5733545,
+            "allocated_bytes": 7771040.0,
+            "setup_plus_solve_ms": 485.23264600000005
+          }
+        },
+        "time_saved_percent": {
+          "baseline": 0.0,
+          "schedule": -3.36631434125505,
+          "blocks": -5.131858707065717,
+          "blocks-scalar": -6.521619918638932
+        }
+      },
+      {
+        "file": "qplib_8559.qps",
+        "identical_sha256": "d31a5e3d1d3c62b6e1de7454d27a0c8e399e01843d9b3870a2c5cd1359ac2677",
+        "modes": {
+          "baseline": {
+            "solve_ms": 3610.417375,
+            "setup_ms": 868.817646,
+            "allocated_bytes": 64.0,
+            "setup_plus_solve_ms": 4479.235021
+          },
+          "schedule": {
+            "solve_ms": 3415.560937,
+            "setup_ms": 800.875958,
+            "allocated_bytes": 28829880.0,
+            "setup_plus_solve_ms": 4216.697333
+          },
+          "blocks": {
+            "solve_ms": 3557.9319375,
+            "setup_ms": 841.5429795,
+            "allocated_bytes": 28829880.0,
+            "setup_plus_solve_ms": 4407.140313
+          },
+          "blocks-scalar": {
+            "solve_ms": 3797.2107085,
+            "setup_ms": 897.82575,
+            "allocated_bytes": 28829880.0,
+            "setup_plus_solve_ms": 4695.036458500001
+          }
+        },
+        "time_saved_percent": {
+          "baseline": 0.0,
+          "schedule": 5.397061274667713,
+          "blocks": 1.4537221614163043,
+          "blocks-scalar": -5.173732399844755
+        }
+      },
+      {
+        "file": "qplib_8785.qps",
+        "identical_sha256": "3bb772a288c62a7d1371bf0f99c94d608a3ebc1742b6efac906c33a26da92b6f",
+        "modes": {
+          "baseline": {
+            "solve_ms": 1460.3364164999998,
+            "setup_ms": 450.122771,
+            "allocated_bytes": 784264.0,
+            "setup_plus_solve_ms": 1908.996396
+          },
+          "schedule": {
+            "solve_ms": 1381.0499795,
+            "setup_ms": 391.15587500000004,
+            "allocated_bytes": 25704336.0,
+            "setup_plus_solve_ms": 1779.5480005
+          },
+          "blocks": {
+            "solve_ms": 1314.7681045,
+            "setup_ms": 445.1220415,
+            "allocated_bytes": 25690320.0,
+            "setup_plus_solve_ms": 1759.890146
+          },
+          "blocks-scalar": {
+            "solve_ms": 1408.3755625,
+            "setup_ms": 396.697604,
+            "allocated_bytes": 24915144.0,
+            "setup_plus_solve_ms": 1808.025896
+          }
+        },
+        "time_saved_percent": {
+          "baseline": 0.0,
+          "schedule": 5.42932683895031,
+          "blocks": 9.968135448466365,
+          "blocks-scalar": 3.5581427274500865
+        }
+      }
+    ],
+    "jvms": 36,
+    "samples": 72,
+    "geometric_time_saved_percent": {
+      "schedule": 2.572839261370341,
+      "blocks": 2.2934667706000944,
+      "blocks-scalar": -2.6132724702408128
+    }
+  },
+  "upstream-gap-repeat": {
+    "ubh1.qps": {
+      "statuses": [
+        "SOLVED",
+        "SOLVED",
+        "SOLVED"
+      ],
+      "median_solve_ms": 6387.442125,
+      "objective": [
+        1.1160033129243747,
+        1.1160033129243747,
+        1.1160033129243747
+      ],
+      "primal_violation": [
+        1.7947650015059935e-06,
+        1.7947650015059935e-06,
+        1.7947650015059935e-06
+      ],
+      "stationarity": [
+        1.5358145119429099e-09,
+        1.5358145119429099e-09,
+        1.5358145119429099e-09
+      ],
+      "iterations": [
+        15725,
+        15725,
+        15725
+      ],
+      "rho_updates": [
+        3,
+        3,
+        3
+      ]
+    },
+    "qplib_8991.qps": {
+      "statuses": [
+        "SOLVED",
+        "SOLVED",
+        "SOLVED"
+      ],
+      "median_solve_ms": 180.395166,
+      "objective": [
+        -1.2045230205506372,
+        -1.2045230205506372,
+        -1.2045230205506372
+      ],
+      "primal_violation": [
+        0.00025707001209721025,
+        0.00025707001209721025,
+        0.00025707001209721025
+      ],
+      "stationarity": [
+        6.502051553162196e-06,
+        6.502051553162196e-06,
+        6.502051553162196e-06
+      ],
+      "iterations": [
+        125,
+        125,
+        125
+      ],
+      "rho_updates": [
+        1,
+        1,
+        1
+      ]
+    },
+    "qplib_8790.qps": {
+      "statuses": [
+        "SOLVED",
+        "SOLVED",
+        "SOLVED"
+      ],
+      "median_solve_ms": 480.589417,
+      "objective": [
+        -0.4346870937523525,
+        -0.4346870937523525,
+        -0.4346870937523525
+      ],
+      "primal_violation": [
+        7.332915455740552e-05,
+        7.332915455740552e-05,
+        7.332915455740552e-05
+      ],
+      "stationarity": [
+        3.056654097184869e-07,
+        3.056654097184869e-07,
+        3.056654097184869e-07
+      ],
+      "iterations": [
+        225,
+        225,
+        225
+      ],
+      "rho_updates": [
+        1,
+        1,
+        1
+      ]
+    }
+  },
+  "upstream-gap-disabled": {
+    "ubh1.qps": {
+      "statuses": [
+        "SOLVED",
+        "SOLVED",
+        "SOLVED"
+      ],
+      "median_solve_ms": 124.631208,
+      "objective": [
+        3.78441498952608,
+        3.78441498952608,
+        3.78441498952608
+      ],
+      "primal_violation": [
+        2.0512349969692423e-06,
+        2.0512349969692423e-06,
+        2.0512349969692423e-06
+      ],
+      "stationarity": [
+        0.00010190237596777174,
+        0.00010190237596777174,
+        0.00010190237596777174
+      ],
+      "iterations": [
+        50,
+        50,
+        50
+      ],
+      "rho_updates": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "upstream-linear-audit-final": {
+    "qplib_10034.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 313.624292,
+      "objective": [
+        -5.219170366807114e-07
+      ],
+      "primal_violation": [
+        0.00012025746885661187
+      ],
+      "stationarity": [
+        0.0008770867173818475
+      ],
+      "iterations": [
+        25
+      ],
+      "rho_updates": [
+        0
+      ]
+    },
+    "qplib_10038.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 752.272959,
+      "objective": [
+        -5.198055620284656e-05
+      ],
+      "primal_violation": [
+        8.851895619130246e-05
+      ],
+      "stationarity": [
+        0.0006562938513892114
+      ],
+      "iterations": [
+        25
+      ],
+      "rho_updates": [
+        0
+      ]
+    },
+    "primalc5.qps": {
+      "statuses": [
+        "DUAL_INFEASIBLE"
+      ],
+      "median_solve_ms": 57.7485,
+      "objective": [
+        -1e+30
+      ],
+      "primal_violation": [
+        NaN
+      ],
+      "stationarity": [
+        NaN
+      ],
+      "iterations": [
+        325
+      ],
+      "rho_updates": [
+        3
+      ]
+    },
+    "primalc8.qps": {
+      "statuses": [
+        "MAX_ITER_REACHED"
+      ],
+      "median_solve_ms": 2250.128083,
+      "objective": [
+        -553469.3732216527
+      ],
+      "primal_violation": [
+        12784.056473572764
+      ],
+      "stationarity": [
+        0.006753369793531583
+      ],
+      "iterations": [
+        100000
+      ],
+      "rho_updates": [
+        134
+      ]
+    },
+    "ubh1.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 11374.322958,
+      "objective": [
+        1.1160033129243747
+      ],
+      "primal_violation": [
+        1.7947650015059935e-06
+      ],
+      "stationarity": [
+        1.5358145119429099e-09
+      ],
+      "iterations": [
+        15725
+      ],
+      "rho_updates": [
+        3
+      ]
+    }
+  },
+  "upstream-kkt-rho": {
+    "qplib_10034.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 206.624333,
+      "objective": [
+        -5.219170366807114e-07
+      ],
+      "primal_violation": [
+        0.00012025746885661187
+      ],
+      "stationarity": [
+        0.0008770867173818475
+      ],
+      "iterations": [
+        25
+      ],
+      "rho_updates": [
+        0
+      ]
+    },
+    "qplib_10038.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 646.52225,
+      "objective": [
+        -5.198055620284656e-05
+      ],
+      "primal_violation": [
+        8.851895619130246e-05
+      ],
+      "stationarity": [
+        0.0006562938513892114
+      ],
+      "iterations": [
+        25
+      ],
+      "rho_updates": [
+        0
+      ]
+    },
+    "primalc5.qps": {
+      "statuses": [
+        "MAX_ITER_REACHED"
+      ],
+      "median_solve_ms": 771.151375,
+      "objective": [
+        38.032022267184765
+      ],
+      "primal_violation": [
+        0.0
+      ],
+      "stationarity": [
+        2.6667026801430183e-05
+      ],
+      "iterations": [
+        100000
+      ],
+      "rho_updates": [
+        3
+      ]
+    },
+    "primalc8.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 633.541375,
+      "objective": [
+        -17979.444820122117
+      ],
+      "primal_violation": [
+        1.659186519594094
+      ],
+      "stationarity": [
+        0.009835031359788804
+      ],
+      "iterations": [
+        45875
+      ],
+      "rho_updates": [
+        1
+      ]
+    },
+    "ubh1.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 6706.189916,
+      "objective": [
+        1.1160035694069381
+      ],
+      "primal_violation": [
+        4.885830165248366e-06
+      ],
+      "stationarity": [
+        1.5374237400203085e-09
+      ],
+      "iterations": [
+        15250
+      ],
+      "rho_updates": [
+        3
+      ]
+    },
+    "qseba.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 302.449083,
+      "objective": [
+        81631007.26055561
+      ],
+      "primal_violation": [
+        0.06334178573355354
+      ],
+      "stationarity": [
+        0.16451992268287496
+      ],
+      "iterations": [
+        8650
+      ],
+      "rho_updates": [
+        2
+      ]
+    },
+    "qfffff80.qps": {
+      "statuses": [
+        "SOLVED_INACCURATE"
+      ],
+      "median_solve_ms": 3947.57825,
+      "objective": [
+        873271.165119533
+      ],
+      "primal_violation": [
+        0.14198431557380786
+      ],
+      "stationarity": [
+        9.795421070785126e-05
+      ],
+      "iterations": [
+        100000
+      ],
+      "rho_updates": [
+        2
+      ]
+    },
+    "qplib_8991.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 169.940542,
+      "objective": [
+        -1.2045230205506372
+      ],
+      "primal_violation": [
+        0.00025707001209721025
+      ],
+      "stationarity": [
+        6.502051553162196e-06
+      ],
+      "iterations": [
+        125
+      ],
+      "rho_updates": [
+        1
+      ]
+    },
+    "qplib_8790.qps": {
+      "statuses": [
+        "SOLVED"
+      ],
+      "median_solve_ms": 482.359375,
+      "objective": [
+        -0.4346870937523525
+      ],
+      "primal_violation": [
+        7.332915455740552e-05
+      ],
+      "stationarity": [
+        3.056654097184869e-07
+      ],
+      "iterations": [
+        225
+      ],
+      "rho_updates": [
+        1
+      ]
+    }
+  },
+  "upstream-kkt-rho-strict": {
+    "primalc5.qps": {
+      "statuses": [
+        "MAX_ITER_REACHED",
+        "MAX_ITER_REACHED",
+        "MAX_ITER_REACHED"
+      ],
+      "median_solve_ms": 719.043625,
+      "objective": [
+        38.032022267184765,
+        38.032022267184765,
+        38.032022267184765
+      ],
+      "primal_violation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "stationarity": [
+        2.6667026801430183e-05,
+        2.6667026801430183e-05,
+        2.6667026801430183e-05
+      ],
+      "iterations": [
+        100000,
+        100000,
+        100000
+      ],
+      "rho_updates": [
+        3,
+        3,
+        3
+      ]
+    },
+    "primalc8.qps": {
+      "statuses": [
+        "MAX_ITER_REACHED",
+        "MAX_ITER_REACHED",
+        "MAX_ITER_REACHED"
+      ],
+      "median_solve_ms": 1279.452334,
+      "objective": [
+        -18483.259037237396,
+        -18483.259037237396,
+        -18483.259037237396
+      ],
+      "primal_violation": [
+        0.11999897579702973,
+        0.11999897579702973,
+        0.11999897579702973
+      ],
+      "stationarity": [
+        2.2108284378763443e-06,
+        2.2108284378763443e-06,
+        2.2108284378763443e-06
+      ],
+      "iterations": [
+        100000,
+        100000,
+        100000
+      ],
+      "rho_updates": [
+        4,
+        4,
+        4
+      ]
+    }
+  },
+  "upstream-kkt-rho-long": {
+    "primalc8.qps": {
+      "statuses": [
+        "SOLVED",
+        "SOLVED",
+        "SOLVED"
+      ],
+      "median_solve_ms": 1548.166,
+      "objective": [
+        -18309.412596822178,
+        -18309.412596822178,
+        -18309.412596822178
+      ],
+      "primal_violation": [
+        0.003896052268053444,
+        0.003896052268053444,
+        0.003896052268053444
+      ],
+      "stationarity": [
+        2.9321537509119366e-07,
+        2.9321537509119366e-07,
+        2.9321537509119366e-07
+      ],
+      "iterations": [
+        124450,
+        124450,
+        124450
+      ],
+      "rho_updates": [
+        4,
+        4,
+        4
+      ]
+    }
+  },
+  "upstream-kkt-rho-absolute": {
+    "primalc8.qps": {
+      "statuses": [
+        "SOLVED_INACCURATE",
+        "SOLVED_INACCURATE",
+        "SOLVED_INACCURATE"
+      ],
+      "median_solve_ms": 11605.4385,
+      "objective": [
+        -18309.429789486516,
+        -18309.429789486516,
+        -18309.429789486516
+      ],
+      "primal_violation": [
+        3.2735811146267224e-06,
+        3.2735811146267224e-06,
+        3.2735811146267224e-06
+      ],
+      "stationarity": [
+        1.982486502579718e-12,
+        1.982486502579718e-12,
+        1.982486502579718e-12
+      ],
+      "iterations": [
+        1000000,
+        1000000,
+        1000000
+      ],
+      "rho_updates": [
+        6,
+        6,
+        6
+      ]
+    }
+  },
+  "upstream-rho-control-absolute": {
+    "primalc8.qps": {
+      "statuses": [
+        "MAX_ITER_REACHED"
+      ],
+      "median_solve_ms": 11748.690167,
+      "objective": [
+        12632.986668961075
+      ],
+      "primal_violation": [
+        0.0
+      ],
+      "stationarity": [
+        0.01607205790069466
+      ],
+      "iterations": [
+        1000000
+      ],
+      "rho_updates": [
+        1355
+      ]
+    }
+  },
+  "full_default_statuses": {
+    "SOLVED": 44,
+    "SOLVED_INACCURATE": 2,
+    "PRIMAL_INFEASIBLE": 2,
+    "TIME_LIMIT_REACHED": 12,
+    "MAX_ITER_REACHED": 2,
+    "DUAL_INFEASIBLE": 1,
+    "missing_input": 1
+  },
+  "full_default_records": 64,
+  "native_adapters_executed": false,
+  "tests": {
+    "portable": 60,
+    "vector": 63
+  }
+}

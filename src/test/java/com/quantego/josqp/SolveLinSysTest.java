@@ -3,7 +3,7 @@ package com.quantego.josqp;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class SolveLinSysTest {
 	

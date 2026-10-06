@@ -1,0 +1,231 @@
+JUnit version 4.13.2-SNAPSHOT
+.2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-names-8995299906899761226.mps.
+E.
+E.2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-quad-2737869055648810297.qps.
+Error in reading the QUADOBJ section!
+2026-10-06 10:12:07 INFO:	Read MPS in 0.00sec.
+E.E.2026-10-06 10:12:07 INFO:	Begin parsing file target/does-not-exist-regression.mps.
+java.io.FileNotFoundException: target/does-not-exist-regression.mps (No such file or directory)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:185)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:139)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:109)
+	at com.quantego.josqp.Parser.readQmps(Parser.java:422)
+	at com.quantego.josqp.RegressionTest.lambda$missingInputFilesFailInsteadOfReturningEmptyProblems$0(RegressionTest.java:29)
+	at org.junit.Assert.assertThrows(Assert.java:1001)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at com.quantego.josqp.RegressionTest.missingInputFilesFailInsteadOfReturningEmptyProblems(RegressionTest.java:29)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:61)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.BlockJUnit4ClassRunner$1.evaluate(BlockJUnit4ClassRunner.java:100)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:366)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:103)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:63)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+	at org.junit.runners.Suite.runChild(Suite.java:128)
+	at org.junit.runners.Suite.runChild(Suite.java:27)
+	at org.junit.runners.ParentRunner$4.run(ParentRunner.java:331)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:79)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:329)
+	at org.junit.runners.ParentRunner.access$100(ParentRunner.java:66)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:293)
+	at org.junit.runners.ParentRunner$3.evaluate(ParentRunner.java:306)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:413)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:137)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:115)
+	at org.junit.runner.JUnitCore.runMain(JUnitCore.java:77)
+	at org.junit.runner.JUnitCore.main(JUnitCore.java:36)
+2026-10-06 10:12:07 INFO:	Read MPS in 0.00sec.
+E.2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+2026-10-06 10:12:07 INFO:	Begin parsing file /var/folders/j8/sx_h5bxd6l56whjgc7wgfqhm0000gn/T/josqp-descriptor-14031790707310624355.mps.
+E.E.E.E.E.E
+Time: 0.079
+There were 11 failures:
+1) mpsNamesAreLiteralAndRemainDistinct(com.quantego.josqp.RegressionTest)
+java.lang.NullPointerException: Cannot invoke "java.lang.Integer.intValue()" because the return value of "java.util.Map.get(Object)" is null
+	at com.quantego.josqp.Parser.parseCol(Parser.java:316)
+	at com.quantego.josqp.Parser.readQmps(Parser.java:441)
+	at com.quantego.josqp.RegressionTest.mpsNamesAreLiteralAndRemainDistinct(RegressionTest.java:41)
+2) productDoesNotSwallowInvalidInput(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected java.lang.IndexOutOfBoundsException to be thrown, but nothing was thrown
+	at org.junit.Assert.assertThrows(Assert.java:1028)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at com.quantego.josqp.RegressionTest.productDoesNotSwallowInvalidInput(RegressionTest.java:23)
+3) malformedQuadraticEntryDoesNotSilentlyChangeModel(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected java.lang.IllegalArgumentException to be thrown, but nothing was thrown
+	at org.junit.Assert.assertThrows(Assert.java:1028)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at com.quantego.josqp.RegressionTest.malformedQuadraticEntryDoesNotSilentlyChangeModel(RegressionTest.java:56)
+4) zeroTimeLimitIsDisabled(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected:<SOLVED> but was:<TIME_LIMIT_REACHED>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.quantego.josqp.RegressionTest.zeroTimeLimitIsDisabled(RegressionTest.java:91)
+5) missingInputFilesFailInsteadOfReturningEmptyProblems(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected java.io.UncheckedIOException to be thrown, but nothing was thrown
+	at org.junit.Assert.assertThrows(Assert.java:1028)
+	at org.junit.Assert.assertThrows(Assert.java:981)
+	at com.quantego.josqp.RegressionTest.missingInputFilesFailInsteadOfReturningEmptyProblems(RegressionTest.java:29)
+6) malformedInputClosesItsFileDescriptor(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: File descriptors leaked
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.assertTrue(Assert.java:42)
+	at com.quantego.josqp.RegressionTest.malformedInputClosesItsFileDescriptor(RegressionTest.java:73)
+7) updatingBothBoundsUpdatesConstraintPenalty(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected:<1000.0> but was:<0.1>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:555)
+	at org.junit.Assert.assertEquals(Assert.java:685)
+	at com.quantego.josqp.RegressionTest.updatingBothBoundsUpdatesConstraintPenalty(RegressionTest.java:118)
+8) repeatedSolveDoesNotRetainOldSolvedStatus(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected:<MAX_ITER_REACHED> but was:<SOLVED>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.quantego.josqp.RegressionTest.repeatedSolveDoesNotRetainOldSolvedStatus(RegressionTest.java:101)
+9) quietTimeLimitWorksWithoutTerminationChecks(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected:<TIME_LIMIT_REACHED> but was:<SOLVED>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.quantego.josqp.RegressionTest.quietTimeLimitWorksWithoutTerminationChecks(RegressionTest.java:82)
+10) infiniteBoundsDoNotDisablePrimalInfeasibilityDetection(com.quantego.josqp.RegressionTest)
+java.lang.AssertionError: expected:<PRIMAL_INFEASIBLE> but was:<MAX_ITER_REACHED>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:120)
+	at org.junit.Assert.assertEquals(Assert.java:146)
+	at com.quantego.josqp.RegressionTest.infiniteBoundsDoNotDisablePrimalInfeasibilityDetection(RegressionTest.java:111)
+11) rejectedBoundsLeaveSolverUsable(com.quantego.josqp.RegressionTest)
+arrays first differed at element [0]; expected:<0.0> but was:<2.0>
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:78)
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:28)
+	at org.junit.Assert.assertArrayEquals(Assert.java:471)
+	at org.junit.Assert.assertArrayEquals(Assert.java:485)
+	at com.quantego.josqp.RegressionTest.rejectedBoundsLeaveSolverUsable(RegressionTest.java:136)
+	... 30 trimmed
+Caused by: java.lang.AssertionError: expected:<0.0> but was:<2.0>
+	at org.junit.Assert.fail(Assert.java:89)
+	at org.junit.Assert.failNotEquals(Assert.java:835)
+	at org.junit.Assert.assertEquals(Assert.java:555)
+	at org.junit.Assert.assertEquals(Assert.java:685)
+	at org.junit.internal.InexactComparisonCriteria.assertElementsEqual(InexactComparisonCriteria.java:19)
+	at org.junit.internal.ComparisonCriteria.arrayEquals(ComparisonCriteria.java:76)
+	... 35 more
+
+FAILURES!!!
+Tests run: 11,  Failures: 11

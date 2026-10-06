@@ -1,9 +1,9 @@
 package com.quantego.josqp;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.in;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
@@ -34,8 +34,8 @@ public class PrimalDualInfeasibilityTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(OSQP.Status.SOLVED, osqp.work.info.status,
-                "Primal dual infeasibility test 1: Error in solver status!");
+        assertEquals("Primal dual infeasibility test 1: Error in solver status!",
+                OSQP.Status.SOLVED, osqp.work.info.status);
 
         // Compare primal solutions
         assertThat("Primal dual infeasibility test 1: Error in primal solution!",
@@ -48,8 +48,8 @@ public class PrimalDualInfeasibilityTest {
                 lessThan(OSQPTester.TESTS_TOL));
 
         // Compare objective values
-        assertEquals(osqp.work.info.obj_val, data.obj_value1, OSQPTester.TESTS_TOL,
-                "Primal dual infeasibility test 1: Error in objective value!");
+        assertEquals("Primal dual infeasibility test 1: Error in objective value!",
+                data.obj_value1, osqp.work.info.obj_val, OSQPTester.TESTS_TOL);
     }
 
     @Test
@@ -77,8 +77,8 @@ public class PrimalDualInfeasibilityTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(OSQP.Status.PRIMAL_INFEASIBLE, osqp.work.info.status,
-                "Primal dual infeasibility test 2: Error in solver status!");
+        assertEquals("Primal dual infeasibility test 2: Error in solver status!",
+                OSQP.Status.PRIMAL_INFEASIBLE, osqp.work.info.status);
     }
 
     @Test
@@ -106,8 +106,8 @@ public class PrimalDualInfeasibilityTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals(OSQP.Status.DUAL_INFEASIBLE, osqp.work.info.status,
-                "Primal dual infeasibility test 3: Error in solver status!");
+        assertEquals("Primal dual infeasibility test 3: Error in solver status!",
+                OSQP.Status.DUAL_INFEASIBLE, osqp.work.info.status);
     }
 
     @Test
@@ -136,7 +136,7 @@ public class PrimalDualInfeasibilityTest {
 
         // Compare solver statuses
         assertThat("Primal dual infeasibility test 4: Error in solver status!",
-                osqp.work.info.status, in(new OSQP.Status[] { OSQP.Status.PRIMAL_INFEASIBLE,
+                osqp.work.info.status, isIn(new OSQP.Status[] { OSQP.Status.PRIMAL_INFEASIBLE,
                         OSQP.Status.DUAL_INFEASIBLE }));
     }
 }

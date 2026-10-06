@@ -401,6 +401,11 @@ public class OSQP {
 	
 	public OSQP.Status solve() {
 		int iter = 0;
+		reset_info(work.info);
+		work.info.status_polish = 0;
+		work.info.polish_time = 0.0;
+		work.info.run_time = 0.0;
+		final double timeBeforeSolve = work.first_run ? work.info.setup_time : work.info.update_time;
 		work.first_run = false;
 		boolean compute_cost_function = work.settings.verbose; // Boolean: compute the cost function in the loop or not
 		boolean can_check_termination = false; // Boolean: check termination or not
@@ -416,7 +421,7 @@ public class OSQP {
 			print_header();
 		}
 		
-		double solve_time = System.currentTimeMillis();
+		long solve_time = System.nanoTime();
 		work.info.solve_time = 0.;
 
 		// Main ADMM algorithm
@@ -441,6 +446,13 @@ public class OSQP {
 		    update_z(work);
 		    /* Compute y^{k+1} */
 		    update_y(work);
+		    if (work.settings.time_limit > 0.0 && Double.isFinite(work.settings.time_limit)
+		            && (System.nanoTime() - solve_time) / 1e9 >= work.settings.time_limit) {
+		        update_info(work, iter, compute_cost_function, false);
+		        work.info.status = Status.TIME_LIMIT_REACHED;
+		        can_check_termination = true;
+		        break;
+		    }
 		    can_check_termination = work.settings.check_termination>0 &&
                     (iter % work.settings.check_termination == 0);
 		    if (can_check_termination) {
@@ -448,17 +460,14 @@ public class OSQP {
 		        update_info(work, iter, compute_cost_function, false);
 		        // check if printing is enables
 		        if (work.settings.verbose && iter % PRINT_INTERVAL==0) {
-		        	work.info.solve_time = (System.currentTimeMillis()-solve_time)/1000.;
+		            work.info.solve_time = (System.nanoTime()-solve_time)/1e9;
+		            work.info.run_time = timeBeforeSolve + work.info.solve_time;
 		        	print_summary(work);
 		        }
 		        // Check algorithm termination
 		        if (check_termination(work, false)) {
 		          // Terminate algorithm
 		          break;
-		        }
-		        if (work.settings.time_limit<Double.POSITIVE_INFINITY & work.info.run_time >= work.settings.time_limit) {
-				      work.info.status = Status.TIME_LIMIT_REACHED;
-				      break;
 		        }
 		      }
 		    // Adapt rho
@@ -512,7 +521,7 @@ public class OSQP {
 		  work.info.rho_estimate = compute_rho_estimate(work);
 		  
 		  /* Update solve time one last time*/
-		  work.info.solve_time = (System.currentTimeMillis()-solve_time)/1000.;
+		  work.info.solve_time = (System.nanoTime()-solve_time)/1e9;
 		  
 		  // Polish the obtained solution
 		  if (work.settings.polish && (work.info.status == Status.SOLVED))
@@ -522,6 +531,7 @@ public class OSQP {
 
 		  // Store solution
 		  store_solution(work);
+		  work.info.run_time = timeBeforeSolve + work.info.solve_time + work.info.polish_time;
 		  
 		  if (work.settings.verbose) {
 		       print_summary(work);
@@ -544,7 +554,6 @@ public class OSQP {
 	
 	void print_summary(Workspace work) {
 		OSQP.Info info = work.info;
-		info.run_time = work.first_run ? info.setup_time+info.solve_time+info.polish_time : info.update_time+info.solve_time+info.polish_time;
 		LOG.info(String.format("%d\t%12.4f\t%12.4f\t%12.4f\t%12.4f\t%12.4f", info.iter, info.obj_val, info.pri_res, info.dua_res, work.settings.rho, info.run_time));
 	}
 	
@@ -866,21 +875,9 @@ public class OSQP {
 
 	}
 	
-	static void compute_rhs(Workspace work) {
-		  int i; // Index
-
-		  for (i = 0; i < work.data.n; i++) {
-		    // Cycle over part related to x variables
-		    work.xz_tilde[i] = work.settings.sigma * work.x_prev[i] -
-		                        work.data.q[i];
-		  }
-
-		  for (i = 0; i < work.data.m; i++) {
-		    // Cycle over dual variable in the first step (nu)
-		    work.xz_tilde[i + work.data.n] = work.z_prev[i] - work.rho_inv_vec[i] *
-		                                        work.y[i];
-		  }
-		}
+	static void compute_rhs(Workspace work){
+        NumericKernels.INSTANCE.compute_rhs(work);
+    }
 	
 	static void update_xz_tilde(Workspace work) {
 		  // Compute right-hand side
@@ -890,47 +887,17 @@ public class OSQP {
 		  work.linsys_solver.solve(work.linsys_solver.sol,work.xz_tilde);
 		}
 
-	static void update_x(Workspace work) {
-		  int i;
+	static void update_x(Workspace work){
+        NumericKernels.INSTANCE.update_x(work);
+    }
 
-		  // update x
-		  for (i = 0; i < work.data.n; i++) {
-		    work.x[i] = work.settings.alpha * work.xz_tilde[i] +
-		                 (1.0 - work.settings.alpha) * work.x_prev[i];
-		  }
+		static void update_z(Workspace work){
+        NumericKernels.INSTANCE.update_z(work);
+    }
 
-		  // update delta_x
-		  for (i = 0; i < work.data.n; i++) {
-		    work.delta_x[i] = work.x[i] - work.x_prev[i];
-		  }
-		}
-
-		static void update_z(Workspace work) {
-		  int i;
-
-		  // update z
-		  for (i = 0; i < work.data.m; i++) {
-		    work.z[i] = work.settings.alpha * work.xz_tilde[i + work.data.n] +
-		                 (1.0 - work.settings.alpha) * work.z_prev[i] +
-		                 work.rho_inv_vec[i] * work.y[i];
-		  }
-
-		  // project z
-		  Projection.project(work, work.z);
-		}
-
-		static void update_y(Workspace work) {
-		  int i; // Index
-
-		  for (i = 0; i < work.data.m; i++) {
-		    work.delta_y[i] = work.rho_vec[i] *
-		                       (work.settings.alpha *
-		                        work.xz_tilde[i + work.data.n] +
-		                        (1.0 - work.settings.alpha) * work.z_prev[i] -
-		                        work.z[i]);
-		    work.y[i] += work.delta_y[i];
-		  }
-		}
+		static void update_y(Workspace work){
+        NumericKernels.INSTANCE.update_y(work);
+    }
 	
 		static double compute_obj_val(Workspace work, double[] x) {
 			  double obj_val;
@@ -1101,8 +1068,9 @@ public class OSQP {
 		  if (norm_delta_y > eps_prim_inf) { // ||delta_y|| > 0
 
 		    for (i = 0; i < work.data.m; i++) {
-		      ineq_lhs += work.data.u[i] * Math.max(work.delta_y[i], 0) + 
-		                  work.data.l[i] * Math.min(work.delta_y[i], 0);
+		      // Avoid 0 * Infinity producing NaN for unbounded constraints.
+		      if (work.delta_y[i] > 0) ineq_lhs += work.data.u[i] * work.delta_y[i];
+		      else if (work.delta_y[i] < 0) ineq_lhs += work.data.l[i] * work.delta_y[i];
 		    }
 
 		    // Check if the condition is satisfied: ineq_lhs < -eps
@@ -1436,6 +1404,8 @@ public class OSQP {
 		
 		public void update_bounds(double[] l_new, double[] u_new) {
 			int i;
+			if (l_new.length != work.data.m || u_new.length != work.data.m)
+				throw new IllegalArgumentException("Bound lengths must match number of constraints");
 
 		
 			// Check if lower bound is smaller than upper bound
@@ -1457,10 +1427,18 @@ public class OSQP {
 			
 			// Reset solver information
 			reset_info(work.info);
+			update_rho_vec(work);
 
 		}
 
 	public void update_lower_bound(double[] l_new) {
+		if (l_new.length != work.data.m)
+			throw new IllegalArgumentException("Bound length must match number of constraints");
+		for (int i = 0; i < work.data.m; i++) {
+			double scaled = work.settings.scaling != 0 ? l_new[i] * work.scaling.E[i] : l_new[i];
+			if (scaled > work.data.u[i])
+				throw new IllegalStateException("Lower bound is higher than upper bound in row " + i);
+		}
 		// Replace l by the new vector
 		LinAlg.prea_vec_copy(l_new, work.data.l, work.data.m);
 
@@ -1484,6 +1462,13 @@ public class OSQP {
 	}
 
 	public void update_upper_bound(double[] u_new) {
+		if (u_new.length != work.data.m)
+			throw new IllegalArgumentException("Bound length must match number of constraints");
+		for (int i = 0; i < work.data.m; i++) {
+			double scaled = work.settings.scaling != 0 ? u_new[i] * work.scaling.E[i] : u_new[i];
+			if (scaled < work.data.l[i])
+				throw new IllegalStateException("Upper bound is less than lower bound in row " + i);
+		}
 		// Replace u by the new vector
 		LinAlg.prea_vec_copy(u_new, work.data.u, work.data.m);
 

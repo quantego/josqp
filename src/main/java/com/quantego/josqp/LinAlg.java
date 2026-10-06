@@ -4,45 +4,19 @@ package com.quantego.josqp;
 class LinAlg {
     /* VECTOR FUNCTIONS ----------------------------------------------------------*/
     public static void vec_add_scaled(double[] c, double[] a, double[] b, int n, double sc){
-
-        for (int i=0; i<n;i++){
-            c[i] = a[i] + sc*b[i];
-        }
+        NumericKernels.INSTANCE.vec_add_scaled(c, a, b, n, sc);
     }
 
     public static double vec_scaled_norm_inf(double[] S, double[] v, int l){
-
-        double max = 0;
-        for (int i =0;i<l;i++){
-            double abs_Sv_i = Math.abs(S[i] * v[i]);
-            if(abs_Sv_i > max){
-                max = abs_Sv_i;
-            }
-        }
-        return max;
+        return NumericKernels.INSTANCE.vec_scaled_norm_inf(S, v, l);
     }
 
     public static double vec_norm_inf(double [] v, int l){
-        double max = 0;
-        for (int i = 0; i<l; i++){
-            double abs_v_i = Math.abs(v[i]);
-            if(abs_v_i > max){
-                max = abs_v_i;
-            }
-        }
-        return max;
+        return NumericKernels.INSTANCE.vec_norm_inf(v, l);
     }
 
     public static double vec_norm_inf_diff(double[] a, double[] b, int l){
-        double nmDiff = 0;
-        double tmp;
-        for (int i = 0; i<l; i++){
-            tmp = Math.abs(a[i]-b[i]);
-            if(tmp > nmDiff){
-                nmDiff = tmp;
-            }
-        }
-        return nmDiff;
+        return NumericKernels.INSTANCE.vec_norm_inf_diff(a, b, l);
     }
 
     public static double vec_mean(double[] a, int n){
@@ -72,10 +46,8 @@ class LinAlg {
         }
     }
 
-    public static void vec_mult_scalar(double[] a, double sc, int n) {
-        for (int i = 0; i < n; i++) {
-            a[i] *= sc;
-        }
+    public static void vec_mult_scalar(double[] a, double sc, int n){
+        NumericKernels.INSTANCE.vec_mult_scalar(a, sc, n);
     }
     public static double[] vec_copy(double[] a, int n){
     double[] b = new double[a.length];
@@ -91,10 +63,8 @@ class LinAlg {
         for (int i = 0; i < n; i++) b[i] = a[i];
     }
 
-    public static void vec_ew_recipr(double[] a , double[] b, int n) {
-        for (int i = 0; i < n; i++) {
-            b[i] = 1.0 / a[i];
-        }
+    public static void vec_ew_recipr(double[] a , double[] b, int n){
+        NumericKernels.INSTANCE.vec_ew_recipr(a, b, n);
     }
 
     public static double vec_prod(double[] a, double[] b, int n){
@@ -106,20 +76,12 @@ class LinAlg {
         return prod;
     }
 
-    public static void vec_ew_prod(double[] a , double[] b, double[] c, int n) {
-    	try {
-	        for (int i = 0; i < n; i++) {
-	            c[i] = b[i] * a[i];
-	        }
-    	} catch(Exception e) {
-    		System.out.println();
-    	}
+    public static void vec_ew_prod(double[] a , double[] b, double[] c, int n){
+        NumericKernels.INSTANCE.vec_ew_prod(a, b, c, n);
     }
 
-    public static void vec_ew_sqrt(double[] a, int n) {
-        for (int i = 0; i < n; i++) {
-            a[i] = Math.sqrt(a[i]);
-        }
+    public static void vec_ew_sqrt(double[] a, int n){
+        NumericKernels.INSTANCE.vec_ew_sqrt(a, n);
     }
 
     public static void vec_ew_max(double[] a, int n, double max_val) {
@@ -150,11 +112,8 @@ class LinAlg {
 
 
     /* MATRIX FUNCTIONS ----------------------------------------------------------*/
-    public static void mat_mult_scalar(CSCMatrix A, double sc) {
-        int nnzA = A.Ap[A.n];
-        for (int i = 0; i < nnzA; i++) {
-            A.Ax[i] *= sc;
-        }
+    public static void mat_mult_scalar(CSCMatrix A, double sc){
+        NumericKernels.INSTANCE.mat_mult_scalar(A, sc);
     }
 
     public static void mat_premult_diag(CSCMatrix A, double[] d) {
@@ -166,13 +125,8 @@ class LinAlg {
         }
     }
 
-    public static void mat_postmult_diag(CSCMatrix A, double[] d) {
-        for (int j = 0; j < A.n; j++) {                // Cycle over columns j
-            for (int i = A.Ap[j]; i < A.Ap[j + 1]; i++) { // Cycle every row i in column j
-                A.Ax[i] *= d[j];                        // Scale by corresponding element
-                // of d for column j
-            }
-        }
+    public static void mat_postmult_diag(CSCMatrix A, double[] d){
+        NumericKernels.INSTANCE.mat_postmult_diag(A, d);
     }
 
     public static void mat_vec(CSCMatrix A, double[] x, double[] y, int startx, int starty, int plus_eq) {

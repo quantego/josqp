@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +37,7 @@ public class Utils {
     
     public static double[] readDoubleColumn(String filename, String separator, int rowskip, int colindex) {
 		List<Double> list = new LinkedList<>();
-		try {
-			FileInputStream in = new FileInputStream(filename);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename)))) {
 			int k=0;
 			while (k++<rowskip)
 				br.readLine();
@@ -56,19 +55,15 @@ public class Utils {
 				else
 					list.add(Double.NaN);
 			}
-			br.close();
-			in.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new UncheckedIOException("Cannot read column file: " + filename, e);
 		}
 		return toDoubleArray(list);
 	}
     
     public static int[] readIntColumn(String filename, String separator, int rowskip, int colindex) {
 		List<Integer> list = new LinkedList<>();
-		try {
-			FileInputStream in = new FileInputStream(filename);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename)))) {
 			int k=0;
 			while (k++<rowskip)
 				br.readLine();
@@ -80,10 +75,8 @@ public class Utils {
 				else
 					list.add(Integer.MAX_VALUE);
 			}
-			br.close();
-			in.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new UncheckedIOException("Cannot read column file: " + filename, e);
 		}
 		return toIntArray(list);
 	}

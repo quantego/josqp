@@ -259,8 +259,9 @@ public class QDLDL  {
     static void Lsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {
 		int i,j;
 		for(i = 0; i < n; i++){
+		    final double xi = x[i]; // L is strictly lower triangular: this entry cannot change here.
 		    for(j = Lp[i]; j < Lp[i+1]; j++){
-		        x[Li[j]] -= Lx[j]*x[i];
+		        x[Li[j]] -= Lx[j]*xi;
 		    }
 		}
     }
@@ -268,15 +269,26 @@ public class QDLDL  {
     static void Ltsolve(int n, int[] Lp, int[] Li, double[] Lx, double[] x) {
     	int i,j;
     	  for(i = n-1; i>=0; i--){
+              double xi = x[i];
     	      for(j = Lp[i]; j < Lp[i+1]; j++){
-    	          x[i] -= Lx[j]*x[Li[j]];
+		          xi -= Lx[j]*x[Li[j]];
     	      }
+              x[i] = xi;
     	  }
     }
     
     public static double[] solve(LDL ldl, double[] b) {
     	final double x[] = b.clone();
+        solveInPlace(ldl, x);
+        return x;
+    }
+
+    /** Solve using caller-owned workspace; no per-solve array allocation. */
+    public static void solveInPlace(LDL ldl, double[] x) {
     	final int n = ldl.L.n;
+        if (x.length != n) {
+            throw new IllegalArgumentException("Right-hand side length must match factorization");
+        }
     	final int[] Lp = ldl.L.Ap;
     	final int[] Li = ldl.L.Ai;
     	final double[] Lx = ldl.L.Ax;
@@ -284,7 +296,6 @@ public class QDLDL  {
     	Lsolve(n,Lp,Li,Lx,x);
     	for(i = 0; i < n; i++) x[i] *= ldl.Dinv[i];
     	Ltsolve(n,Lp,Li,Lx,x);
-    	return x;
     }
     
     public static class Etree {

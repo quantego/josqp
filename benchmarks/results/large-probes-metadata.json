@@ -1,0 +1,10 @@
+{
+  "phase": "before triangular loop caching",
+  "source_manifest": "qap15.metadata.json",
+  "solve_time_limit_seconds": 20,
+  "external_timeout_seconds": 60,
+  "max_heap": "2g",
+  "mode": "vector",
+  "warmup_rounds": 0,
+  "timings_are_exploratory_not_comparative": true
+}

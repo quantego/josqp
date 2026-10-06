@@ -1,0 +1,40 @@
+{
+  "arguments": {
+    "files": [
+      "qap15.mps"
+    ],
+    "modes": [
+      "before-hotloops",
+      "scalar",
+      "vector"
+    ],
+    "forks": 1,
+    "warmup": 1,
+    "warmup_seconds": 3,
+    "samples": 3,
+    "max_iter": 10000,
+    "timeout": 120,
+    "output": "benchmarks/results/hotloop-trial.csv"
+  },
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "architecture": "arm64",
+  "java": "openjdk version \"26.0.2\" 2026-07-21\nOpenJDK Runtime Environment Homebrew (build 26.0.2)\nOpenJDK 64-Bit Server VM Homebrew (build 26.0.2, mixed mode, sharing)\n",
+  "source_sha256": {
+    "src/main/java/com/quantego/josqp/AMD.java": "43e908a94413c0fa6292b063bf564cd7dd4d82ffe24c44e7ddd57aae901978e9",
+    "src/main/java/com/quantego/josqp/CSCMatrix.java": "fb8d3268653637935cf0aa114805fe267d7220d39911445b992108529f4a7e13",
+    "src/main/java/com/quantego/josqp/CSCMatrixBuilder.java": "8ddcda25ed1c58795391f3202a1a8c84a2f1cf713b44f7909837630bf5c4120b",
+    "src/main/java/com/quantego/josqp/KKT.java": "f2539cfd9fa2fb11e4f440a9f06964d783c04e9fc45dfcce16c13d167bbf9fa1",
+    "src/main/java/com/quantego/josqp/LinAlg.java": "1682576c507f437d2131d386cb1f3dd60627689fb125d29728133762c15144eb",
+    "src/main/java/com/quantego/josqp/LinSys.java": "38b60b877c05eff634c58f789fbceedb89c3732902199642508029adadad7cd7",
+    "src/main/java/com/quantego/josqp/Model.java": "a9c9e061846aced54b626f932f8b4abd6e8cb0e4908d6b5fc308e82f3d9cb21c",
+    "src/main/java/com/quantego/josqp/NumericKernels.java": "887c0290151a295f6f16f010910d004d6b09a30c48669983cd4fac4c31beb621",
+    "src/main/java/com/quantego/josqp/OSQP.java": "7445b62758ca7cb79daa58b3e73586ebf5027570ece44d3eebfb2fe9ec66b656",
+    "src/main/java/com/quantego/josqp/Parser.java": "ea1b64f6f5e9b6b1004a5d7f44ee7eebc8851ffdacf61b83a9ec54fd4d1d8cae",
+    "src/main/java/com/quantego/josqp/Polish.java": "22fec424492d61811b56297fec2d670337d0a661e5dd71f6d02280e69a9c27df",
+    "src/main/java/com/quantego/josqp/Projection.java": "f7546fd0e957fe1be402b954fd409eb06d8672144615969a79a6e1b367425781",
+    "src/main/java/com/quantego/josqp/QDLDL.java": "c7cad2250a11f5381e6cf6af07c1dd21b8461b19996625de8040922ef3380349",
+    "src/main/java/com/quantego/josqp/Scaling.java": "fabe339b891a06812e3d7ca31a1d8771a33d5fec9dce36cc6d080d28b638e883",
+    "src/main/java/com/quantego/josqp/Utils.java": "7910b2a83867049069a906afa27a2626b27236d063a85bdbda9ea54bf7d14f78",
+    "src/vector/java/com/quantego/josqp/VectorKernels.java": "be39b9d57f677e9bfaa02f57cebcb8193752e9e7daf50372b24ac687b8b02936"
+  }
+}

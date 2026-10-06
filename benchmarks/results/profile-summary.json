@@ -1,0 +1,110 @@
+{
+  "setup": {
+    "samples": 366,
+    "methods": [
+      {
+        "method": "com.quantego.josqp.QDLDL.decompose",
+        "samples": 348,
+        "percent": 95.08196721311475
+      },
+      {
+        "method": "com.quantego.josqp.AMD.amd_2",
+        "samples": 14,
+        "percent": 3.8251366120218577
+      },
+      {
+        "method": "com.quantego.josqp.QDLDL.computeEtree",
+        "samples": 2,
+        "percent": 0.546448087431694
+      },
+      {
+        "method": "com.quantego.josqp.CSCMatrix.csc_symperm",
+        "samples": 1,
+        "percent": 0.273224043715847
+      },
+      {
+        "method": "com.quantego.josqp.KKT.form_KKT",
+        "samples": 1,
+        "percent": 0.273224043715847
+      }
+    ]
+  },
+  "solve": {
+    "samples": 281,
+    "methods": [
+      {
+        "method": "com.quantego.josqp.QDLDL.Ltsolve",
+        "samples": 171,
+        "percent": 60.854092526690394
+      },
+      {
+        "method": "com.quantego.josqp.QDLDL.Lsolve",
+        "samples": 104,
+        "percent": 37.01067615658363
+      },
+      {
+        "method": "com.quantego.josqp.QDLDL.solveInPlace",
+        "samples": 2,
+        "percent": 0.7117437722419929
+      },
+      {
+        "method": "com.quantego.josqp.VectorKernels.vec_scaled_norm_inf",
+        "samples": 1,
+        "percent": 0.35587188612099646
+      },
+      {
+        "method": "com.quantego.josqp.VectorKernels.compute_rhs",
+        "samples": 1,
+        "percent": 0.35587188612099646
+      },
+      {
+        "method": "com.quantego.josqp.VectorKernels.update_z",
+        "samples": 1,
+        "percent": 0.35587188612099646
+      },
+      {
+        "method": "com.quantego.josqp.LinAlg.mat_vec",
+        "samples": 1,
+        "percent": 0.35587188612099646
+      }
+    ]
+  },
+  "other": {
+    "samples": 5,
+    "methods": [
+      {
+        "method": "jdk.jfr.internal.periodic.JVMEventTask.execute",
+        "samples": 1,
+        "percent": 20.0
+      },
+      {
+        "method": "jdk.jfr.internal.consumer.EventLog.shouldLog",
+        "samples": 1,
+        "percent": 20.0
+      },
+      {
+        "method": "jdk.internal.misc.Unsafe.compareAndSetInt",
+        "samples": 1,
+        "percent": 20.0
+      },
+      {
+        "method": "jdk.jfr.internal.periodic.Batch.getDelta",
+        "samples": 1,
+        "percent": 20.0
+      },
+      {
+        "method": "java.util.ArrayList.iterator",
+        "samples": 1,
+        "percent": 20.0
+      }
+    ]
+  },
+  "provenance": {
+    "phase": "before triangular loop caching",
+    "source_manifest": "qap15.metadata.json",
+    "raw_recording": "target/qap15-vector.jfr",
+    "warmup_rounds": 1,
+    "measured_rounds": 3,
+    "sampling_includes_warmup": true
+  }
+}

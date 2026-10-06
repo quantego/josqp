@@ -1,0 +1,32 @@
+[
+  {
+    "file": "nug08-3rd.mps",
+    "returncode": 1,
+    "stdout": "",
+    "stderr": "WARNING: Using incubator modules: jdk.incubator.vector\nException in thread \"main\" java.lang.IllegalStateException: Line     19729    20448       17   158496        1       16        0        0 started with an empty character but contains no data.\n\tat com.quantego.josqp.Parser.readQmps(Parser.java:459)\n\tat com.quantego.josqp.SolverBenchmark.main(SolverBenchmark.java:18)\n"
+  },
+  {
+    "file": "irish-electricity.mps",
+    "returncode": 0,
+    "stdout": "sample,file,n,m,nnz,parse_ms,setup_ms,solve_ms,allocated_bytes,status,iterations,objective,primal_residual,dual_residual,x_hash,y_hash\n0,/Users/mini/Dropbox/codex-relay/channels/familieninsel/research/josqp/src/test/resources/irish-electricity.mps,61728,165987,584985,452.435667,600.371666,20003.344000,580502864,TIME_LIMIT_REACHED,6333,2334212.0871905484,1005.1800175555635,0.030328880060854015,1730479089,-415373176\n",
+    "stderr": "WARNING: Using incubator modules: jdk.incubator.vector\nDATA n=61728 m=165987 nnz=584985 parse_ms=452.436\n"
+  },
+  {
+    "file": "ex10.mps",
+    "timeout_seconds": 60,
+    "stdout": "sample,file,n,m,nnz,parse_ms,setup_ms,solve_ms,allocated_bytes,status,iterations,objective,primal_residual,dual_residual,x_hash,y_hash\n",
+    "stderr": "WARNING: Using incubator modules: jdk.incubator.vector\nDATA n=17680 m=87288 nnz=1179680 parse_ms=496.099\n"
+  },
+  {
+    "file": "supportcase10.mps",
+    "returncode": 0,
+    "stdout": "sample,file,n,m,nnz,parse_ms,setup_ms,solve_ms,allocated_bytes,status,iterations,objective,primal_residual,dual_residual,x_hash,y_hash\n0,/Users/mini/Dropbox/codex-relay/channels/familieninsel/research/josqp/src/test/resources/supportcase10.mps,14770,180454,569852,428.250625,25431.033791,20011.286167,497209400,TIME_LIMIT_REACHED,592,3.3693851049851555,0.0046909420015170400,0.023334045199317588,1578109870,-904002947\n",
+    "stderr": "WARNING: Using incubator modules: jdk.incubator.vector\nDATA n=14770 m=180454 nnz=569852 parse_ms=428.251\n"
+  },
+  {
+    "file": "rmine15_lp.mps",
+    "timeout_seconds": 60,
+    "stdout": "sample,file,n,m,nnz,parse_ms,setup_ms,solve_ms,allocated_bytes,status,iterations,objective,primal_residual,dual_residual,x_hash,y_hash\n",
+    "stderr": "WARNING: Using incubator modules: jdk.incubator.vector\nDATA n=42438 m=400833 nnz=922170 parse_ms=638.546\n"
+  }
+]

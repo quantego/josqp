@@ -7,7 +7,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
-import java.util.regex.Pattern;
 
 /**
  * A class to store a matrix in the Row-Column-Value (RCV) format.
@@ -312,7 +311,7 @@ public class Parser {
 		int colIndex = cols.get(colName);
 		for (int i=2; i<tokens.length; i+=2) {
 			String rowName = removeSpecialChars(tokens[i]);
-			if (!Pattern.matches(rowName, objName)) { // initially there was rowName.matches method, but that was showing a strange behavior in some examples (e.g. qbandm.qps)! It could be a bug in the Java language!
+			if (!rowName.equals(objName)) {
 				Arcv.addEntry(rows.get(rowName), colIndex, Double.parseDouble(tokens[i+1]));
 			} else {
 				q.set(colIndex, sign*Double.parseDouble(tokens[i+1]));
@@ -321,9 +320,8 @@ public class Parser {
 	}
 
 	private static String removeSpecialChars(String input) {
-		String output = input.replace(".", "!_");
-		output = output.replace("+", "!!");
-		return output;
+		// MPS names are identifiers, not regular expressions. Keep them distinct.
+		return input;
 	}
 
 	private static void parseRhs(Map<String, Integer> rows, List<Integer> rowSense, List<Double> l, List<Double> u,
@@ -332,7 +330,7 @@ public class Parser {
 		String rowName;
 		for (int i=2; i<tokens.length; i+=2) {
 			rowName = removeSpecialChars(tokens[i]);
-			if (Pattern.matches(rowName, objName)) {
+			if (rowName.equals(objName)) {
 				offset.add(0, -Double.parseDouble(tokens[i + 1]));
 				continue;
 			}
@@ -388,7 +386,7 @@ public class Parser {
 				Prcv.addEntry(col1, col2, val);
 			}
 		} catch (Exception e) {
-		System.out.println("Error in reading the QUADOBJ section!");
+			throw new IllegalArgumentException("Invalid QUADOBJ entry: " + Arrays.toString(tokens), e);
 		}
 	}
 
@@ -418,9 +416,7 @@ public class Parser {
 		List<Double>  q          = new ArrayList<>();
 		List<Integer> rowSense   = new ArrayList<>();
 		List<Double>  offset     = new ArrayList<>();
-		try {
-			FileInputStream in = new FileInputStream(filename);
-			BufferedReader br = new BufferedReader(new InputStreamReader(in));
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(filename)))) {
 			Section currentSection = Section.HEAD;
 			String line;
 			while((line = br.readLine()) != null) {
@@ -511,10 +507,8 @@ public class Parser {
 					}
 
 			}
-			br.close();
-			in.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new UncheckedIOException("Cannot read MPS/QPS file: " + filename, e);
 		}
 		Utils.toDoubleArray(q);
 		OSQP.LOG.info(String.format("Read MPS in %.2fsec.",(System.currentTimeMillis()-tme)/1000.));

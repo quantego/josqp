@@ -58,6 +58,26 @@ traps to avoid when pasting these lines: an inline `# comment` after a command
 is read as an *argument* unless `interactive_comments` is set, and an unquoted
 `var?prompt` argument to `read` is treated as a glob pattern.
 
+Instead of the browser flow a **fine-grained personal access token** works too:
+create it under *Settings -> Developer settings -> Personal access tokens ->
+Fine-grained tokens*, set *Repository access* to "Only select repositories" and
+pick `quantego/josqp`. Repository permissions:
+
+| Permission | Why |
+|---|---|
+| `Secrets: Read and write` | set the four repository secrets |
+| `Metadata: Read` | mandatory, added automatically |
+| `Contents: Read and write` | only if the same token should push branch and tag |
+| `Workflows: Read and write` | only for pushes that touch `.github/workflows/` |
+
+`gh`'s own help recommends the `GH_TOKEN` environment variable for fine-grained
+tokens rather than `--with-token`:
+
+```
+printf "GitHub-Token: " && read -rs T && echo && export GH_TOKEN="$T"
+gh auth status && gh secret list --repo quantego/josqp
+```
+
 ## Release
 
 1. Set `<version>` in `pom.xml`, move the `## [Unreleased]` entries of

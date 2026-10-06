@@ -281,4 +281,51 @@ public class BuilderTest {
         assertEquals(n, model.getNumVariables());
         assertEquals(n, model.getNumConstraints());
     }
+
+    @Test
+    public void offDiagonalTermUsesTheMonomialCoefficient() {
+        // min x^2 + y^2 - x*y - x - y is minimal at (1, 1) with value -1. The coefficient passed to
+        // add() must be the coefficient of x*y, exactly as it is the coefficient of x^2 on the
+        // diagonal; the old behaviour doubled the off-diagonal term.
+        Model.Builder builder = Model.getBuilder();
+        Model.Variable x = builder.addVariable();
+        Model.Variable y = builder.addVariable();
+        builder.setObjective().add(1, x, x).add(1, y, y).add(-1, x, y).add(-1, x).add(-1, y)
+                .minimize();
+        Model model = builder.build();
+
+        assertEquals(OSQP.Status.SOLVED, model.solve(tight()));
+        assertEquals(1.0, model.getSolution(0), 1e-5);
+        assertEquals(1.0, model.getSolution(1), 1e-5);
+        assertEquals(-1.0, model.getObj(), 1e-5);
+    }
+
+    @Test
+    public void offDiagonalTermIsOrderIndependent() {
+        Model.Builder builder = Model.getBuilder();
+        Model.Variable x = builder.addVariable();
+        Model.Variable y = builder.addVariable();
+        builder.setObjective().add(1, x, x).add(1, y, y).add(-1, y, x).add(-1, x).add(-1, y)
+                .minimize();
+        Model model = builder.build();
+
+        assertEquals(OSQP.Status.SOLVED, model.solve(tight()));
+        assertEquals(1.0, model.getSolution(0), 1e-5);
+        assertEquals(1.0, model.getSolution(1), 1e-5);
+    }
+
+    @Test
+    public void bulkQuadraticObjectiveUsesTheMonomialCoefficient() {
+        Model.Builder builder = Model.getBuilder();
+        builder.addVariables(2, null, null);
+        builder.linearObjective(new int[] { 0, 1 }, new double[] { -1, -1 });
+        builder.quadraticObjective(new int[] { 0, 1, 0 }, new int[] { 0, 1, 1 },
+                new double[] { 1, 1, -1 });
+        builder.minimize();
+        Model model = builder.build();
+
+        assertEquals(OSQP.Status.SOLVED, model.solve(tight()));
+        assertEquals(1.0, model.getSolution(0), 1e-5);
+        assertEquals(1.0, model.getSolution(1), 1e-5);
+    }
 }

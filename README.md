@@ -44,6 +44,27 @@ var model = builder.build();
 model.solve()
 ```
 
+### Quadratic terms
+
+`add(a, x, x)` sets the coefficient of `x*x`, `add(a, x, y)` the coefficient of `x*y`, and
+`quadraticObjective(rows, cols, values)` does the same for index pairs. The coefficient is the
+coefficient of the monomial, unchanged by the argument order, and the entry is always stored in the
+upper triangle of `P`.
+
+Earlier versions doubled the off-diagonal coefficient, so `add(-1, x, y)` used to mean `-2*x*y` and
+`add(-1, y, x)` raised `quad_form matrix is not upper triangular` ([issue
+#2](https://github.com/quantego/josqp/issues/2)). Models that relied on the halving workaround
+(`add(-0.5, x, y)` for `-x*y`) have to pass the full coefficient now.
+
+### Updating a model
+
+A `Model` can be solved repeatedly. Changing an objective or constraint coefficient between solves
+reuses the current factorisation. Adding or removing a nonzero changes the sparsity pattern; jOSQP
+then rebuilds the solver and runs a new symbolic factorisation, because the KKT mappings and the
+scaling are tied to the pattern. At the solver level `OSQP.update_A` and `OSQP.update_P` stay
+value-only, exactly like `osqp_update_data_mat` in OSQP: they require the pattern to be unchanged
+([issue #4](https://github.com/quantego/josqp/issues/4)).
+
 ### MPS/QPS Reader
 
 Also, jOSQP comes with a parser for MPS and QPS files to import and solve existing linear and quadratic programming problems. Use the static function `Parser.readQmps` to read a file and pass the resulting model data to the solver:

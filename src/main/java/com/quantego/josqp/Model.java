@@ -563,6 +563,9 @@ public class Model {
     OSQP.Data _data;
     CSCMatrixBuilder _A;
     CSCMatrixBuilder _P;
+    /** Matrices the current solver was built from; their pattern is the in-place update guard. */
+    CSCMatrix _solverA;
+    CSCMatrix _solverP;
     IntList _cr;
     IntList _rr;
     DoubleList _ub;
@@ -713,15 +716,23 @@ public class Model {
     }
 
     /**
-     * Set the quadratic coefficient of the objective function.
+     * Set the coefficient of the quadratic term {@code value * x1 * x2}. Diagonal and off-diagonal
+     * terms follow the same convention: the objective is {@code 0.5 x'Px}, so a diagonal entry
+     * needs the factor two while an off-diagonal entry is stored as the coefficient itself. The
+     * entry is stored in the upper triangle, independent of the argument order.
+     *
      * @param var1 index of the first variable
      * @param var2 index of the second variable
-     * @param value coefficient
+     * @param value coefficient of the monomial {@code value * x1 * x2}
      */
     public void setQbj(int var1, int var2, double value) {
         if (var1 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var1));
         if (var2 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var2));
-        _P.set(var1,var2,2*value);
+        if (var1 == var2) {
+            _P.set(var1, var2, 2 * value);
+        } else {
+            _P.set(Math.min(var1, var2), Math.max(var1, var2), value);
+        }
         _newP = true;
     }
 
@@ -822,7 +833,11 @@ public class Model {
         for (int k = 0; k < rows.length; k++) {
             if (rows[k] >= _nCols || cols[k] >= _nCols)
                 throw new IllegalArgumentException("Quadratic term refers to an unknown variable.");
-            _P.set(rows[k], cols[k], 2 * values[k]);
+            if (rows[k] == cols[k]) {
+                _P.set(rows[k], cols[k], 2 * values[k]);
+            } else {
+                _P.set(Math.min(rows[k], cols[k]), Math.max(rows[k], cols[k]), values[k]);
+            }
         }
         _newP = true;
     }
@@ -909,10 +924,17 @@ public class Model {
         else
             _param = new OSQP.Settings();
 
+        final CSCMatrix P = _P.build(_maximize);
+        final CSCMatrix A = _A.build(false);
+        // Remember the matrices the solver was built from. Their pattern is what an in-place value
+        // update may rely on; a changed pattern requires a fresh symbolic factorisation.
+        _solverP = P;
+        _solverA = A;
+
         _data = OSQP.Data.takeOwnership(_nCols,
                 _nRows,
-                _P.build(_maximize),
-                _A.build(false),
+                P,
+                A,
                 _maximize ? _q.toArrayNegated() : _q.toArray(),
                 _lb.toArray(),
                 _ub.toArray(),
@@ -921,6 +943,33 @@ public class Model {
                 _maximize ? -_offset : _offset
         );
         _solver = new OSQP(_data,_param);
+    }
+
+    /** True when the freshly assembled builder still reproduces the pattern the solver holds. */
+    private static boolean sameStructure(CSCMatrixBuilder builder, CSCMatrix solverMatrix) {
+        if (builder == null || solverMatrix == null)
+            return false;
+        final int[] starts = builder.getStarts();
+        final int[] indices = builder.getIndices();
+        final int nz = starts[starts.length - 1];
+        if (solverMatrix.n != starts.length - 1 || solverMatrix.Ap[solverMatrix.n] != nz)
+            return false;
+        for (int i = 0; i <= solverMatrix.n; i++)
+            if (starts[i] != solverMatrix.Ap[i])
+                return false;
+        for (int i = 0; i < nz; i++)
+            if (indices[i] != solverMatrix.Ai[i])
+                return false;
+        return true;
+    }
+
+    private static boolean finite(double[] values) {
+        if (values == null)
+            return false;
+        for (double v : values)
+            if (!Double.isFinite(v))
+                return false;
+        return true;
     }
 
     /**
@@ -950,18 +999,36 @@ public class Model {
                 _solver.warm_start(_x,_y);
             }
             else {
-                if (_newQ) {
-                    _solver.update_lin_cost(_maximize ? _q.toArrayNegated() : _q.toArray());
-                }
-                if (_newL || _newU)
-                    _solver.update_bounds(_lb.toArray(), _ub.toArray());
+                // A value update can only be applied in place while the sparsity pattern is
+                // unchanged; the solver's KKT mappings cache that pattern. Adding or removing a
+                // nonzero therefore needs a fresh solver with a new symbolic factorisation.
+                boolean rebuild = false;
                 if (_newA) {
                     _A.update(false);
-                    _solver.update_A(_A.getElements(), _A.getIndices());
+                    rebuild = !sameStructure(_A, _solverA);
                 }
-                if (_newP) {
+                if (!rebuild && _newP) {
                     _P.update(_maximize);
-                    _solver.update_P(_P.getElements(), _P.getIndices());
+                    rebuild = !sameStructure(_P, _solverP);
+                }
+                if (rebuild) {
+                    init(settings);
+                    if (finite(_x) && finite(_y) && _x.length == _nCols && _y.length == _nRows)
+                        _solver.warm_start(_x, _y);
+                }
+                else {
+                    if (_newQ) {
+                        _solver.update_lin_cost(_maximize ? _q.toArrayNegated() : _q.toArray());
+                    }
+                    if (_newL || _newU)
+                        _solver.update_bounds(_lb.toArray(), _ub.toArray());
+                    // Pass the full value vector in the same CSC order the solver holds. Row indices
+                    // are not positions: they are only equal when the pattern happens to be dense
+                    // along the diagonal, which is exactly how the old call silently misfired.
+                    if (_newA)
+                        _solver.update_A(_A.getElements(), null);
+                    if (_newP)
+                        _solver.update_P(_P.getElements(), null);
                 }
             }
         }

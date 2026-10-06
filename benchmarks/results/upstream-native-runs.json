@@ -1,0 +1,123 @@
+{
+  "arguments": {
+    "files": [
+      "target/ubh1.native.bin",
+      "target/qplib_8991.native.bin",
+      "target/qplib_10034.native.bin"
+    ],
+    "inspect": false,
+    "eps": 1e-06,
+    "output": "benchmarks/results/upstream-native-runs.json"
+  },
+  "adapters_executed": true,
+  "runs": [
+    {
+      "file": "target/ubh1.native.bin",
+      "n": 18009,
+      "m": 30009,
+      "export_sha256": "24ba774ef920d313e5ddec424651d5494b25da93a93ebb87ca8a178d29e1b0ab",
+      "matrices_nnz": [
+        6003,
+        66009
+      ],
+      "solvers": [
+        {
+          "solver": "osqp",
+          "version": "1.1.3",
+          "status": "solved",
+          "finite": true,
+          "setup_ms": 5.5037918500602245,
+          "solve_ms": 10839.30283295922,
+          "objective": 1.1160008159262524,
+          "primal_violation": 3.064982934120053e-09,
+          "stationarity": 1.5392884449710875e-12,
+          "gap_expression": -3.215914840204448e-06
+        },
+        {
+          "solver": "piqp",
+          "version": "0.6.4",
+          "status": "Status.PIQP_SOLVED",
+          "finite": true,
+          "setup_ms": 2.7987919747829437,
+          "solve_ms": 25.09891684167087,
+          "objective": 1.1160008156948154,
+          "primal_violation": 4.4564352208453784e-13,
+          "stationarity": 1.1995070735293378e-15,
+          "gap_expression": -2.5063142672365757e-09
+        }
+      ]
+    },
+    {
+      "file": "target/qplib_8991.native.bin",
+      "n": 14400,
+      "m": 14400,
+      "export_sha256": "5486f497aa599f77b893d073ab2217f75b131770e7f51e4f914a3e80fe27e80e",
+      "matrices_nnz": [
+        42960,
+        14400
+      ],
+      "solvers": [
+        {
+          "solver": "osqp",
+          "version": "1.1.3",
+          "status": "solved",
+          "finite": true,
+          "setup_ms": 10.113999946042895,
+          "solve_ms": 220.92658397741616,
+          "objective": -1.2044834380665315,
+          "primal_violation": 0.0,
+          "stationarity": 3.408731630294426e-16,
+          "gap_expression": -2.7755575615628914e-14
+        },
+        {
+          "solver": "piqp",
+          "version": "0.6.4",
+          "status": "Status.PIQP_SOLVED",
+          "finite": true,
+          "setup_ms": 4.867041949182749,
+          "solve_ms": 94.97870784252882,
+          "objective": -1.2044834380404983,
+          "primal_violation": 0.0,
+          "stationarity": 6.5577941107030426e-09,
+          "gap_expression": -4.605138492763672e-10
+        }
+      ]
+    },
+    {
+      "file": "target/qplib_10034.native.bin",
+      "n": 40400,
+      "m": 80600,
+      "export_sha256": "a832105a42b9605be0aa588b169fcb57995d6050dc7e430d371a9d682a94b13c",
+      "matrices_nnz": [
+        401,
+        280003
+      ],
+      "solvers": [
+        {
+          "solver": "osqp",
+          "version": "1.1.3",
+          "status": "run time limit reached",
+          "finite": true,
+          "setup_ms": 117.11004097014666,
+          "solve_ms": 14888.368542073295,
+          "objective": -0.061544304101622545,
+          "primal_violation": 0.08184050948884525,
+          "stationarity": 2.0073146831975136e-05,
+          "gap_expression": -0.009292833685865073
+        },
+        {
+          "solver": "piqp",
+          "version": "0.6.4",
+          "status": "Status.PIQP_MAX_ITER_REACHED",
+          "finite": true,
+          "setup_ms": 25.337708881124854,
+          "solve_ms": 27461.846583988518,
+          "objective": -0.06600842584348499,
+          "primal_violation": 5.314531060103948e-06,
+          "stationarity": 2.495068583910244e-08,
+          "gap_expression": 0.0006531462072375946
+        }
+      ]
+    }
+  ]
+}

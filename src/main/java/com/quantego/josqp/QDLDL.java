@@ -377,6 +377,23 @@ public class QDLDL  {
               x[i] = xi;
     	  }
     }
+
+    /**
+     * Backward solve with the diagonal scaling folded in. L is strictly lower
+     * triangular, so every entry Li[j] has already been processed (and scaled)
+     * when column i is reached in descending order. This is the same arithmetic
+     * as scaling all of x first, with one pass over x less.
+     */
+    static void LtsolveScaled(int n, int[] Lp, int[] Li, double[] Lx, double[] Dinv, double[] x) {
+    	int i,j;
+    	for(i = n-1; i>=0; i--){
+            double xi = x[i]*Dinv[i];
+    		for(j = Lp[i]; j < Lp[i+1]; j++){
+    			xi -= Lx[j]*x[Li[j]];
+    		}
+            x[i] = xi;
+    	}
+    }
     
     public static double[] solve(LDL ldl, double[] b) {
     	final double x[] = b.clone();
@@ -394,10 +411,8 @@ public class QDLDL  {
     	final int[] Lp = ldl.L.Ap;
     	final int[] Li = ldl.L.Ai;
     	final double[] Lx = ldl.L.Ax;
-    	int i;
     	Lsolve(n,Lp,Li,Lx,x);
-    	for(i = 0; i < n; i++) x[i] *= ldl.Dinv[i];
-    	Ltsolve(n,Lp,Li,Lx,x);
+    	LtsolveScaled(n,Lp,Li,Lx,ldl.Dinv,x);
     }
     
     public static class Etree {

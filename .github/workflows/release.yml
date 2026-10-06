@@ -1,0 +1,51 @@
+name: Release
+
+# Publishes com.quantego:josqp to Maven Central whenever a v* tag is pushed.
+# The Central Portal deployment is published automatically (autoPublish=true in
+# pom.xml), so a green run ends with the version live in Central.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   CENTRAL_USERNAME   Central Portal user-token username
+#   CENTRAL_PASSWORD   Central Portal user-token password
+#   GPG_PRIVATE_KEY    ASCII-armoured private key: gpg --armor --export-secret-keys <KEY-ID>
+#   GPG_PASSPHRASE     passphrase of that key
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK and Central credentials
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+
+      - name: Import the signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
+          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format=long
+
+      - name: Build, test and deploy
+        env:
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: mvn -B -Prelease deploy

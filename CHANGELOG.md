@@ -74,11 +74,16 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   update), both filled like in OSQP 1.0.
 - **Maven release profile** for Maven Central: `mvn -Prelease deploy` attaches
   the sources and javadoc jars, signs all artifacts with GPG and publishes
-  through the Sonatype Central Portal (`autoPublish=false`, so the deployment
-  still has to be released in the Portal). `pom.xml` carries the metadata
-  Central requires (`name`, `description`, `url`, `licenses`, `developers`,
-  `scm`). The published artifact is the plain Java 8 build; the Vector API
-  backend stays behind the `vector` profile.
+  through the Sonatype Central Portal. `autoPublish=true`, so a successful
+  deployment goes live without a manual release step. `pom.xml` carries the
+  metadata Central requires (`name`, `description`, `url`, `licenses`,
+  `developers`, `scm`). The published artifact is the plain Java 8 build; the
+  Vector API backend stays behind the `vector` profile.
+- **GitHub Actions**: `release.yml` builds, tests, signs and deploys on every
+  `v*` tag; `ci.yml` runs the portable suite on JDK 17 and 21 and the Vector API
+  suite on JDK 26 for every push and pull request. The required repository
+  secrets and the whole procedure are documented in
+  [RELEASING.md](RELEASING.md).
 
 ### Changed
 

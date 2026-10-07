@@ -4,8 +4,8 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RegressionTest {
     @Test public void boundsWithAndWithoutNamesHandleValuelessTypes() throws Exception {
@@ -91,8 +91,8 @@ public class RegressionTest {
         java.lang.management.OperatingSystemMXBean bean = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
         Class<?> unix;
         try { unix = Class.forName("com.sun.management.UnixOperatingSystemMXBean"); }
-        catch (ClassNotFoundException e) { org.junit.Assume.assumeNoException(e); return; }
-        org.junit.Assume.assumeTrue(unix.isInstance(bean));
+        catch (ClassNotFoundException e) { org.junit.jupiter.api.Assumptions.abort("UnixOperatingSystemMXBean unavailable: " + e); return; }
+        org.junit.jupiter.api.Assumptions.assumeTrue(unix.isInstance(bean));
         java.lang.reflect.Method count = unix.getMethod("getOpenFileDescriptorCount");
         Path file = Files.createTempFile("josqp-descriptor-", ".mps");
         try {
@@ -100,7 +100,7 @@ public class RegressionTest {
             long before = (Long) count.invoke(bean);
             for (int i = 0; i < 100; i++)
                 assertThrows(IllegalStateException.class, () -> Parser.readQmps(file.toString()));
-            assertTrue("File descriptors leaked", (Long) count.invoke(bean) <= before + 2);
+            assertTrue((Long) count.invoke(bean) <= before + 2, "File descriptors leaked");
         } finally { Files.deleteIfExists(file); }
     }
 

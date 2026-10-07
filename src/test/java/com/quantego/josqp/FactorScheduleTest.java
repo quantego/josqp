@@ -1,7 +1,7 @@
 package com.quantego.josqp;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FactorScheduleTest {
     private void same(QDLDL.LDL a,QDLDL.LDL b) {

@@ -1,7 +1,7 @@
 package com.quantego.josqp;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DualityGapTest {
     private OSQP problem(double q, double lower, double upper, int scaling) {
@@ -47,7 +47,7 @@ public class DualityGapTest {
         assertEquals(1000,stuck.work.info.primdual_int,0);
         assertEquals(1000,stuck.work.info.rel_kkt_error,0);
         OSQP.update_info(stuck.work,50,true,false);
-        assertEquals("the integral accumulates over the info updates",2000,stuck.work.info.primdual_int,0);
+        assertEquals(2000, stuck.work.info.primdual_int, 0, "the integral accumulates over the info updates");
     }
 
     @Test public void infiniteBoundsAndTinyMultipliersDoNotCreateNaNs() {

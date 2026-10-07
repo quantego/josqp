@@ -1,6 +1,6 @@
 package com.quantego.josqp;
 
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 
 public class LinAlgDataGenerator
 {

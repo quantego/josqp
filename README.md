@@ -133,8 +133,8 @@ The project is available at the central repository. Simply add the following dep
 
 Another option is to simply download the [latest build](https://github.com/quantego/josqp/releases/latest) of the jar from the release page and import it in your Java project.
 
-Building and testing locally requires a JDK and Maven; the tests run with `mvn test`, the optional
-Vector API backend with `mvn -Pvector test` on JDK 26. See [CHANGELOG.md](CHANGELOG.md) for the
+Building and testing locally requires a JDK and Maven; the tests run with `mvn test` (JUnit 5),
+the optional Vector API backend with `mvn -Pvector test` on JDK 26. See [CHANGELOG.md](CHANGELOG.md) for the
 changes since 0.6.5.
 
 ## Requirements

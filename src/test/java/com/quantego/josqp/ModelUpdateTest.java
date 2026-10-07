@@ -1,8 +1,8 @@
 package com.quantego.josqp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Repeated solves after changing matrix values.
@@ -24,8 +24,8 @@ public class ModelUpdateTest {
 
     private static void assertSameSolution(Model fresh, Model reused) {
         for (int i = 0; i < fresh.getNumVariables(); i++)
-            assertEquals("variable " + i, fresh.getSolution(i), reused.getSolution(i), 1e-5);
-        assertEquals("objective", fresh.getObj(), reused.getObj(), 1e-5);
+            assertEquals(fresh.getSolution(i), reused.getSolution(i), 1e-5, "variable " + i);
+        assertEquals(fresh.getObj(), reused.getObj(), 1e-5, "objective");
     }
 
     @Test

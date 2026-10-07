@@ -1,8 +1,8 @@
 package com.quantego.josqp;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 public class UnconstrainedTest {
@@ -25,16 +25,23 @@ public class UnconstrainedTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals("Unconstrained test solve: Error in solver status!",sols_data.status_test, osqp.work.info.status
-                );
+        assertEquals(
+                sols_data.status_test,
+                osqp.work.info.status,
+                "Unconstrained test solve: Error in solver status!");
 
         // Compare primal solutions
-        assertEquals("Unconstrained test solve: Error in primal solution!",
-                true,LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n)<OSQPTester.TESTS_TOL);
+        assertEquals(
+                true,
+                LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n)<OSQPTester.TESTS_TOL,
+                "Unconstrained test solve: Error in primal solution!");
 
         // Compare objective values
-        assertEquals("Unconstrained test solve: Error in objective value!",sols_data.obj_value_test, osqp.work.info.obj_val, OSQPTester.TESTS_TOL
-                );
+        assertEquals(
+                sols_data.obj_value_test,
+                osqp.work.info.obj_val,
+                OSQPTester.TESTS_TOL,
+                "Unconstrained test solve: Error in objective value!");
     }
 
 }

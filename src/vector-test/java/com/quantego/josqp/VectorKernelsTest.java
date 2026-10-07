@@ -1,8 +1,8 @@
 package com.quantego.josqp;
 
 import java.util.Random;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class VectorKernelsTest {
     private final NumericKernels scalar = new NumericKernels();
@@ -11,7 +11,7 @@ public class VectorKernelsTest {
     private void same(double[] a, double[] b) {
         assertEquals(a.length, b.length);
         for (int i = 0; i < a.length; i++)
-            assertEquals("element " + i, Double.doubleToLongBits(a[i]), Double.doubleToLongBits(b[i]));
+            assertEquals(Double.doubleToLongBits(a[i]), Double.doubleToLongBits(b[i]), "element " + i);
     }
 
     @Test public void denseKernelsHandleTailsAliasingAndSpecialValues() {

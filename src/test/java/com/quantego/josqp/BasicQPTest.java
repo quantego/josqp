@@ -1,9 +1,9 @@
 package com.quantego.josqp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class BasicQPTest {
 
@@ -30,19 +30,28 @@ public class BasicQPTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals("Basic QP test solve: Error in solver status!",sols_data.status_test, osqp.work.info.status
-                );
+        assertEquals(sols_data.status_test, osqp.work.info.status, "Basic QP test solve: Error in solver status!");
 
         // Compare primal solutions
-        assertEquals("Basic QP test solve: Error in primal solution!",
-                LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n),OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+        assertEquals(
+                LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n),
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test solve: Error in primal solution!");
 
         // Compare dual solutions
-        assertEquals("Basic QP test solve: Error in dual solution!",
-                LinAlg.vec_norm_inf_diff(osqp.work.solution.y, sols_data.y_test, data.m),OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+        assertEquals(
+                LinAlg.vec_norm_inf_diff(osqp.work.solution.y, sols_data.y_test, data.m),
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test solve: Error in dual solution!");
 
         // Compare objective values
-        assertEquals("Basic QP test solve: Error in objective value!",sols_data.obj_value_test, osqp.work.info.obj_val, OSQPTester.TESTS_TOL);
+        assertEquals(
+                sols_data.obj_value_test,
+                osqp.work.info.obj_val,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test solve: Error in objective value!");
 
         // Try to set wrong settings
 //        assertThrows("Basic QP test solve: Wrong value of rho not caught!", IllegalArgumentException.class, OSQP.osqp_update_rho(osqp.work, -0.1));
@@ -418,28 +427,39 @@ public class BasicQPTest {
         osqp.solve();
 
         // Check if iter == max_iter
-        assertEquals("Basic QP test check termination: Error in number of iterations taken!",osqp.work.settings.max_iter, osqp.work.info.iter
-                );
+        assertEquals(
+                osqp.work.settings.max_iter,
+                osqp.work.info.iter,
+                "Basic QP test check termination: Error in number of iterations taken!");
 
         // Compare solver statuses
-        assertEquals("Basic QP test check termination: Error in solver status!",sols_data.status_test, osqp.work.info.status
-                );
+        assertEquals(
+                sols_data.status_test,
+                osqp.work.info.status,
+                "Basic QP test check termination: Error in solver status!");
 
         // Compare primal solutions
-        assertEquals("Basic QP test check termination: Error in primal solution!",
+        assertEquals(
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.x, sols_data.x_test, data.n),
-                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test check termination: Error in primal solution!");
 
         // Compare dual solutions
         // print_vec(work.solution.y, data.m, "y_sol");
         // print_vec(sols_data.y_test, data.m, "y_test");
-        assertEquals("Basic QP test check termination: Error in dual solution!",
+        assertEquals(
                 LinAlg.vec_norm_inf_diff(osqp.work.solution.y, sols_data.y_test, data.m),
-                OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test check termination: Error in dual solution!");
 
         // Compare objective values
-        assertEquals("Basic QP test check termination: Error in objective value!",sols_data.obj_value_test, osqp.work.info.obj_val, OSQPTester.TESTS_TOL
-                );
+        assertEquals(
+                sols_data.obj_value_test,
+                osqp.work.info.obj_val,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test check termination: Error in objective value!");
     }
 
     @Test
@@ -468,24 +488,30 @@ public class BasicQPTest {
         final int n_iter_new_solver = osqp1.work.info.iter;
 
         // Compare solver statuses
-        assertEquals("Update rho test solve: Error in solver status!",sols_data.status_test, osqp1.work.info.status
-                );
+        assertEquals(sols_data.status_test, osqp1.work.info.status, "Update rho test solve: Error in solver status!");
 
         // Compare primal solutions
-        assertEquals("Update rho test solve: Error in primal solution!",
+        assertEquals(
                 LinAlg.vec_norm_inf_diff(osqp1.work.solution.x, sols_data.x_test, data.n)
                         / LinAlg.vec_norm_inf(sols_data.x_test, data.n),
-                        OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Update rho test solve: Error in primal solution!");
 
         // Compare dual solutions
-        assertEquals("Update rho test solve: Error in dual solution!",
+        assertEquals(
                 LinAlg.vec_norm_inf_diff(osqp1.work.solution.y, sols_data.y_test, data.m)
                         / LinAlg.vec_norm_inf(sols_data.y_test, data.m),
-                        OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Update rho test solve: Error in dual solution!");
 
         // Compare objective values
-        assertEquals("Update rho test solve: Error in objective value!",sols_data.obj_value_test, osqp1.work.info.obj_val, OSQPTester.TESTS_TOL
-                );
+        assertEquals(
+                sols_data.obj_value_test,
+                osqp1.work.info.obj_val,
+                OSQPTester.TESTS_TOL,
+                "Update rho test solve: Error in objective value!");
 
         // Create new problem with different rho and update it
         final OSQP.Settings settings2 = new OSQP.Settings();
@@ -506,28 +532,39 @@ public class BasicQPTest {
         osqp2.solve();
 
         // Compare solver statuses
-        assertEquals("Basic QP test update rho: Error in solver status!",sols_data.status_test, osqp2.work.info.status
-                );
+        assertEquals(
+                sols_data.status_test,
+                osqp2.work.info.status,
+                "Basic QP test update rho: Error in solver status!");
 
         // Compare primal solutions
-        assertEquals("Basic QP test update rho: Error in primal solution!",
+        assertEquals(
                 LinAlg.vec_norm_inf_diff(osqp2.work.solution.x, sols_data.x_test, data.n)
                         / LinAlg.vec_norm_inf(sols_data.x_test, data.n),
-                        OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test update rho: Error in primal solution!");
 
         // Compare dual solutions
-        assertEquals("Basic QP test update rho: Error in dual solution!",
+        assertEquals(
                 LinAlg.vec_norm_inf_diff(osqp2.work.solution.y, sols_data.y_test, data.m)
                         / LinAlg.vec_norm_inf(sols_data.y_test, data.m),
-                        OSQPTester.TESTS_TOL,OSQPTester.TESTS_TOL);
+                OSQPTester.TESTS_TOL,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test update rho: Error in dual solution!");
 
         // Compare objective values
-        assertEquals("Basic QP test update rho: Error in objective value!",sols_data.obj_value_test, osqp2.work.info.obj_val, OSQPTester.TESTS_TOL
-                );
+        assertEquals(
+                sols_data.obj_value_test,
+                osqp2.work.info.obj_val,
+                OSQPTester.TESTS_TOL,
+                "Basic QP test update rho: Error in objective value!");
 
         // Assert same number of iterations
-        assertEquals("Basic QP test update rho: Error in number of iterations!",n_iter_new_solver, osqp2.work.info.iter
-                );
+        assertEquals(
+                n_iter_new_solver,
+                osqp2.work.info.iter,
+                "Basic QP test update rho: Error in number of iterations!");
     }
 
     @Test
@@ -562,7 +599,7 @@ public class BasicQPTest {
         osqp.solve();
 
         // Check if the number of iterations is the same
-        assertEquals("Basic QP test warm start: Cold start error!",iter, osqp.work.info.iter);
+        assertEquals(iter, osqp.work.info.iter, "Basic QP test warm start: Cold start error!");
 
         // Warm start from the solution and solve again
         osqp.warm_start_x(xopt);
@@ -570,7 +607,7 @@ public class BasicQPTest {
         osqp.solve();
 
         // Check that the number of iterations equals 1
-        assertEquals("Basic QP test warm start: Warm start error!",1, osqp.work.info.iter);
+        assertEquals(1, osqp.work.info.iter, "Basic QP test warm start: Warm start error!");
     }
 
 }

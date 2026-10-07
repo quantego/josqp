@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Build without Maven using real, locally built JUnit/Hamcrest dependencies."""
+"""Build without Maven using real, locally built JUnit/Hamcrest dependencies.
+
+The current test suite runs on JUnit 5 (Jupiter); it is driven by the JUnit Platform
+console launcher, which is fetched from Maven Central into ``.tools/junit5-jars`` on
+first use. The archived revisions (baseline, pre-workspace) still contain JUnit 4
+sources and keep the old runner.
+"""
 import argparse
 import pathlib
 import subprocess
@@ -8,6 +14,7 @@ import shutil
 import io
 import tarfile
 import re
+import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORKSPACE = ROOT.parent
@@ -16,6 +23,27 @@ JAVA = pathlib.Path(os.environ.get('JOSQP_JAVA_HOME', os.environ.get('JAVA_HOME'
 DEPS = os.environ.get('JOSQP_TEST_CLASSPATH', str(WORKSPACE / '.tools/classes'))
 BASELINE = '36f06131eeb8977fa66b31936449802c9401a7cc'
 PRE_WORKSPACE = '9a27a42'
+JUNIT5_VERSION = '1.14.4'
+HAMCREST_VERSION = '2.2'
+JUNIT5_DIR = WORKSPACE / '.tools/junit5-jars'
+JUNIT5_JAR = JUNIT5_DIR / f'junit-platform-console-standalone-{JUNIT5_VERSION}.jar'
+HAMCREST_JAR = JUNIT5_DIR / f'hamcrest-{HAMCREST_VERSION}.jar'
+JUNIT4_MODES = ('baseline', 'baseline-qplib', 'pre-workspace')
+
+def fetch(url, destination):
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    print(f'Downloading {url}')
+    with urllib.request.urlopen(url, timeout=120) as response, open(destination, 'wb') as target:
+        shutil.copyfileobj(response, target)
+
+def junit5_classpath():
+    if not JUNIT5_JAR.exists():
+        fetch('https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/'
+              f'{JUNIT5_VERSION}/junit-platform-console-standalone-{JUNIT5_VERSION}.jar', JUNIT5_JAR)
+    if not HAMCREST_JAR.exists():
+        fetch('https://repo1.maven.org/maven2/org/hamcrest/hamcrest/'
+              f'{HAMCREST_VERSION}/hamcrest-{HAMCREST_VERSION}.jar', HAMCREST_JAR)
+    return os.pathsep.join((str(JUNIT5_JAR), str(HAMCREST_JAR)))
 
 def compile_to(destination, sources, classpath=None, vector=False, release=None):
     if not sources:
@@ -110,30 +138,56 @@ def build(mode, revision=None):
     compile_to(base, benchmark_sources, str(base), vector=True)
     return base
 
+def junit4_test_source(name):
+    """Letzte Fassung einer Testdatei, die noch JUnit 4 importierte (aus der Historie)."""
+    relative = f'src/test/java/com/quantego/josqp/{name}'
+    revisions = subprocess.run(['git', 'rev-list', 'HEAD', '--', relative], cwd=ROOT,
+                               capture_output=True, text=True, check=True).stdout.split()
+    for revision in revisions:
+        blob = subprocess.run(['git', 'show', f'{revision}:{relative}'], cwd=ROOT,
+                              capture_output=True, check=True).stdout
+        if b'org.junit.Test' in blob:
+            return blob
+    raise SystemExit(f'Keine JUnit-4-Fassung von {name} in der Historie gefunden')
+
+
 def tests(mode):
     base = build(mode)
     test_root = ROOT
     if mode in ('baseline', 'baseline-qplib'):
         test_root = ROOT / 'target/baseline-src'
-        # Original assertions, adapted to the genuine JUnit 4 / Hamcrest 1.3 APIs.
-        # The original suite mixed Jupiter assertions/annotations with JUnit 4.
+        # The archived upstream suite mixed Jupiter assertions/annotations with JUnit 4 and does
+        # not compile as it stands. These two files are taken from the latest revision in which
+        # they still used JUnit 4, so the comparison keeps running against the current JUnit 4
+        # classpath.
         for name in ('PrimalDualInfeasibilityTest.java', 'SolveLinSysTest.java'):
-            shutil.copyfile(ROOT / 'src/test/java/com/quantego/josqp' / name,
-                            test_root / 'src/test/java/com/quantego/josqp' / name)
+            (test_root / 'src/test/java/com/quantego/josqp' / name).write_bytes(junit4_test_source(name))
     elif mode == 'pre-workspace':
         test_root = ROOT / 'target/pre-workspace-src'
     sources = sorted((test_root / 'src/test/java').rglob('*.java'))
     if mode not in ('baseline', 'baseline-qplib', 'portable'):
         sources += sorted((test_root / 'src/vector-test/java').rglob('*.java'))
-    cp = os.pathsep.join((str(base), str(DEPS)))
-    compile_to(base, sources, cp, vector=mode not in ('baseline', 'baseline-qplib', 'portable'))
-    classes = ['com.quantego.josqp.' + p.stem for p in sources if p.stem.endswith('Test')]
-    command = [str(JAVA / 'bin/java'), '-cp', cp]
-    if mode not in ('baseline', 'baseline-qplib', 'portable'):
-        command += ['--add-modules', 'jdk.incubator.vector']
-    if mode in ('vector', 'pre-workspace'):
-        command += ['-Djosqp.vector=true']
-    subprocess.run(command + ['org.junit.runner.JUnitCore'] + classes, check=True, cwd=ROOT)
+    vector = mode not in ('baseline', 'baseline-qplib', 'portable')
+    if mode in JUNIT4_MODES:
+        cp = os.pathsep.join((str(base), str(DEPS)))
+        compile_to(base, sources, cp, vector=vector)
+        classes = ['com.quantego.josqp.' + p.stem for p in sources if p.stem.endswith('Test')]
+        command = [str(JAVA / 'bin/java'), '-cp', cp]
+        if vector:
+            command += ['--add-modules', 'jdk.incubator.vector']
+        if mode == 'pre-workspace':
+            command += ['-Djosqp.vector=true']
+        subprocess.run(command + ['org.junit.runner.JUnitCore'] + classes, check=True, cwd=ROOT)
+        return
+    cp = os.pathsep.join((str(base), junit5_classpath()))
+    compile_to(base, sources, cp, vector=vector)
+    command = [str(JAVA / 'bin/java')]
+    if vector:
+        command += ['--add-modules', 'jdk.incubator.vector', '-Djosqp.vector=true']
+    command += ['-jar', str(JUNIT5_JAR), 'execute', '--disable-ansi-colors',
+                '--class-path', cp, '--scan-class-path', '--include-classname', '.*Test',
+                '--details=summary']
+    subprocess.run(command, check=True, cwd=ROOT)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

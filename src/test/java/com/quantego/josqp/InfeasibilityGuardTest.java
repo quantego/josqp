@@ -1,9 +1,9 @@
 package com.quantego.josqp;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * The infeasibility tests reuse the last dual (primal infeasibility) or primal (dual infeasibility)
@@ -65,8 +65,9 @@ public class InfeasibilityGuardTest {
         // The genuine certificate is still recognised, one check interval later.
         final OSQP sustained = solve(data.A12, data.u2, 2, null, 2000);
         assertEquals(OSQP.Status.PRIMAL_INFEASIBLE, sustained.work.info.status);
-        assertTrue("A sustained certificate must be declared later than a single-check one",
-                sustained.work.info.iter > firstCheck);
+        assertTrue(
+                sustained.work.info.iter > firstCheck,
+                "A sustained certificate must be declared later than a single-check one");
 
         // Stopping on the first passing check must not produce the accurate verdict. The
         // last-resort approximate check may still report an inaccurate hint.
@@ -85,8 +86,9 @@ public class InfeasibilityGuardTest {
 
         final OSQP sustained = solve(data.A34, data.u3, 2, null, 2000);
         assertEquals(OSQP.Status.DUAL_INFEASIBLE, sustained.work.info.status);
-        assertTrue("A sustained certificate must be declared later than a single-check one",
-                sustained.work.info.iter > firstCheck);
+        assertTrue(
+                sustained.work.info.iter > firstCheck,
+                "A sustained certificate must be declared later than a single-check one");
 
         final OSQP single = solve(data.A34, data.u3, 2, null, sustained.work.info.iter - 25);
         assertEquals(OSQP.Status.DUAL_INFEASIBLE_INACCURATE, single.work.info.status);
@@ -98,12 +100,14 @@ public class InfeasibilityGuardTest {
         final PrimalDualInfeasibilityTestSolsData data =
                 PrimalDualInfeasibilityTestDataGenerator.generateData();
         for (double margin : new double[] { 1.0, 0.1, 0.01 }) {
-            assertEquals("primal certificate lost at margin " + margin,
-                    OSQP.Status.PRIMAL_INFEASIBLE,
-                    solve(data.A12, data.u2, 2, margin, 20000).work.info.status);
-            assertEquals("dual certificate lost at margin " + margin,
-                    OSQP.Status.DUAL_INFEASIBLE,
-                    solve(data.A34, data.u3, 2, margin, 20000).work.info.status);
+            assertEquals(
+                OSQP.Status.PRIMAL_INFEASIBLE,
+                solve(data.A12, data.u2, 2, margin, 20000).work.info.status,
+                "primal certificate lost at margin " + margin);
+            assertEquals(
+                OSQP.Status.DUAL_INFEASIBLE,
+                solve(data.A34, data.u3, 2, margin, 20000).work.info.status,
+                "dual certificate lost at margin " + margin);
         }
     }
 

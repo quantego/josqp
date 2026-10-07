@@ -1,16 +1,16 @@
 package com.quantego.josqp;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Keeps {@link OSQP.Settings} compatible with the public {@code OSQPSettings} structure of
@@ -78,8 +78,7 @@ public class SettingsConformanceTest {
     public void everyOsqpSettingExistsUnderItsNameOrAlias() {
         for (String name : OSQP_1_0_SETTINGS) {
             String alias = ALIASES.get(name);
-            assertTrue("OSQP 1.0 setting '" + name + "' is missing",
-                    hasField(name) || (alias != null && hasField(alias)));
+            assertTrue(hasField(name) || (alias != null && hasField(alias)), "OSQP 1.0 setting '" + name + "' is missing");
         }
     }
 
@@ -93,13 +92,13 @@ public class SettingsConformanceTest {
 
         OSQP.Settings settings = new OSQP.Settings();
         settings.setPolishing(true);
-        assertTrue("setPolishing must drive the polish field", settings.polish);
+        assertTrue(settings.polish, "setPolishing must drive the polish field");
         assertTrue(settings.isPolishing());
         settings.polish = false;
         assertFalse(settings.isPolishing());
 
         settings.setWarmStarting(false);
-        assertFalse("setWarmStarting must drive the warm_start field", settings.warm_start);
+        assertFalse(settings.warm_start, "setWarmStarting must drive the warm_start field");
         assertFalse(settings.isWarmStarting());
         settings.warm_start = true;
         assertTrue(settings.isWarmStarting());
@@ -132,11 +131,11 @@ public class SettingsConformanceTest {
     public void inertSettingsArePresentWithTheOsqpDefaults() {
         OSQP.Settings settings = new OSQP.Settings();
         for (String name : INERT.keySet())
-            assertTrue("'" + name + "' is listed as inert but does not exist", hasField(name));
-        assertTrue("device must default to the CPU device", settings.device.isEmpty());
-        assertTrue("solutions must be allocated", settings.allocate_solution);
-        assertTrue("no profiler level by default", settings.profiler_level == 0);
-        assertTrue("the CG defaults must match OSQP 1.0", settings.cg_max_iter == OSQP.CG_MAX_ITER);
+            assertTrue(hasField(name), "'" + name + "' is listed as inert but does not exist");
+        assertTrue(settings.device.isEmpty(), "device must default to the CPU device");
+        assertTrue(settings.allocate_solution, "solutions must be allocated");
+        assertTrue(settings.profiler_level == 0, "no profiler level by default");
+        assertTrue(settings.cg_max_iter == OSQP.CG_MAX_ITER, "the CG defaults must match OSQP 1.0");
         assertTrue(settings.cg_tol_reduction == OSQP.CG_TOL_REDUCTION);
         assertTrue(settings.cg_tol_fraction == OSQP.CG_TOL_FRACTION);
         assertTrue(settings.cg_precond == OSQP.Preconditioner.OSQP_DIAGONAL_PRECONDITIONER);
@@ -145,16 +144,14 @@ public class SettingsConformanceTest {
     @Test
     public void supportedSettingsUseTheOsqpNameOrDefaultValue() {
         OSQP.Settings settings = new OSQP.Settings();
-        assertTrue("check_dualgap must default to true like OSQP 1.0 doubles", settings.check_dualgap);
-        assertFalse("OSQP 1.0 defaults polishing to off", settings.polish);
-        assertTrue("linsys_solver must default to the direct QDLDL solver",
-                settings.linsys_solver == OSQP.LinSysSolver.OSQP_DIRECT_SOLVER);
-        assertTrue("rho_is_vec must default to true (the builtin OSQP 1.0 default)",
-                settings.rho_is_vec);
-        assertFalse("the optional KKT diagnostics must stay off by default",
-                settings.check_linear_residual);
-        assertFalse("the optional rho progress gate must stay off by default",
-                settings.adaptive_rho_kkt);
+        assertTrue(settings.check_dualgap, "check_dualgap must default to true like OSQP 1.0 doubles");
+        assertFalse(settings.polish, "OSQP 1.0 defaults polishing to off");
+        assertTrue(
+                settings.linsys_solver == OSQP.LinSysSolver.OSQP_DIRECT_SOLVER,
+                "linsys_solver must default to the direct QDLDL solver");
+        assertTrue(settings.rho_is_vec, "rho_is_vec must default to true (the builtin OSQP 1.0 default)");
+        assertFalse(settings.check_linear_residual, "the optional KKT diagnostics must stay off by default");
+        assertFalse(settings.adaptive_rho_kkt, "the optional rho progress gate must stay off by default");
     }
 
     /** Defaults of the OSQP 1.0 double/CPU build, pinned so a change is always deliberate. */

@@ -1,8 +1,8 @@
 package com.quantego.josqp;
 
 import java.util.Random;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FactorWorkspaceTest {
     private CSCMatrix matrix() {
@@ -13,7 +13,7 @@ public class FactorWorkspaceTest {
     private void bits(double[] expected, double[] actual) {
         assertEquals(expected.length, actual.length);
         for (int i = 0; i < expected.length; i++)
-            assertEquals("entry " + i, Double.doubleToLongBits(expected[i]), Double.doubleToLongBits(actual[i]));
+            assertEquals(Double.doubleToLongBits(expected[i]), Double.doubleToLongBits(actual[i]), "entry " + i);
     }
 
     private void check(CSCMatrix a, QDLDL q) {

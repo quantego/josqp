@@ -90,6 +90,11 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Changed
 
+- **Test suite migrated to JUnit 5 (Jupiter)**. `mvn test` and `benchmarks/run.py` now drive the
+  suite through the JUnit Platform; `junit:junit:4.13.2` is gone and only `hamcrest` remains as an
+  extra test dependency for the two matcher assertions. JUnit 5 expects the failure message as the
+  *last* argument, so every message-carrying assertion was reordered. The archived `baseline` and
+  `pre-workspace` harness modes keep running the historical JUnit 4 sources.
 - Settings that jOSQP cannot honour are now rejected instead of silently
   ignored: `linsys_solver = OSQP_INDIRECT_SOLVER` (no conjugate-gradient solver)
   and `rho_is_vec = false` (scalar rho) throw an `IllegalArgumentException` from

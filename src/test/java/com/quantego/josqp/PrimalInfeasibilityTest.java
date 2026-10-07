@@ -1,9 +1,9 @@
 package com.quantego.josqp;
 
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 public class PrimalInfeasibilityTest {
@@ -31,7 +31,10 @@ public class PrimalInfeasibilityTest {
         osqp.solve();
 
         // Compare solver statuses
-        assertEquals("Primal infeasible QP test solve: Error in solver status!",sols_data.status_test, osqp.work.info.status);
+        assertEquals(
+                sols_data.status_test,
+                osqp.work.info.status,
+                "Primal infeasible QP test solve: Error in solver status!");
     }
 
 }

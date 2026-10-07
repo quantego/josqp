@@ -3,8 +3,8 @@ package com.quantego.josqp;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StabilityRegressionTest {
     private OSQP.Data read(String rows, String rhs, String ranges) throws Exception {

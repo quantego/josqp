@@ -1,10 +1,10 @@
 package com.quantego.josqp;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 import com.quantego.josqp.LinAlgDataGenerator.lin_alg_sols_data;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.Math;
 
@@ -65,7 +65,9 @@ public class LinAlgTest {
         Adns = csc_to_dns(data.test_sp_matrix_A);
 
         // Compute norm of the elementwise difference with
-        assertTrue("Linear algebra tests: error in constructing sparse/dense matrix!",(LinAlg.vec_norm_inf_diff(Adns, data.test_sp_matrix_Adns,data.test_sp_matrix_A.m*data.test_sp_matrix_A.n) < TESTS_TOL));
+        assertTrue(
+                (LinAlg.vec_norm_inf_diff(Adns, data.test_sp_matrix_Adns,data.test_sp_matrix_A.m*data.test_sp_matrix_A.n) < TESTS_TOL),
+                "Linear algebra tests: error in constructing sparse/dense matrix!");
 
 
     };
@@ -86,38 +88,41 @@ public class LinAlgTest {
                 data.test_vec_ops_v2,
                 data.test_vec_ops_n,
                 data.test_vec_ops_sc);
-        assertTrue("Linear algebra tests: error in vector operation, adding scaled vector",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(add_scaled, data.test_vec_ops_add_scaled,
-                        data.test_vec_ops_n) < TESTS_TOL 
-        );
+                        data.test_vec_ops_n) < TESTS_TOL,
+                "Linear algebra tests: error in vector operation, adding scaled vector");
 
         // Norm_inf of the difference
-        assertTrue("Linear algebra tests: error in vector operation, norm_inf of difference",
+        assertTrue(
                 Math.abs(LinAlg.vec_norm_inf_diff(data.test_vec_ops_v1,
                         data.test_vec_ops_v2,
                         data.test_vec_ops_n) -
                         data.test_vec_ops_norm_inf_diff) <
-                        TESTS_TOL);
+                        TESTS_TOL,
+                "Linear algebra tests: error in vector operation, norm_inf of difference");
 
         // norm_inf
         norm_inf = LinAlg.vec_norm_inf(data.test_vec_ops_v1, data.test_vec_ops_n);
-        assertTrue("Linear algebra tests: error in vector operation, norm_inf",Math.abs(norm_inf - data.test_vec_ops_norm_inf) < TESTS_TOL
-        );
+        assertTrue(
+                Math.abs(norm_inf - data.test_vec_ops_norm_inf) < TESTS_TOL,
+                "Linear algebra tests: error in vector operation, norm_inf");
 
         // Elementwise reciprocal
         ew_reciprocal = new double[data.test_vec_ops_n];
         LinAlg.vec_ew_recipr(data.test_vec_ops_v1, ew_reciprocal, data.test_vec_ops_n);
-        assertTrue("Linear algebra tests: error in vector operation, elementwise reciprocal",
-                LinAlg.vec_norm_inf_diff(ew_reciprocal, data.test_vec_ops_ew_reciprocal,data.test_vec_ops_n) < TESTS_TOL
-        );
+        assertTrue(
+                LinAlg.vec_norm_inf_diff(ew_reciprocal, data.test_vec_ops_ew_reciprocal,data.test_vec_ops_n) < TESTS_TOL,
+                "Linear algebra tests: error in vector operation, elementwise reciprocal");
 
 
         // Vector product
         vecprod = LinAlg.vec_prod(data.test_vec_ops_v1,
                 data.test_vec_ops_v2,
                 data.test_vec_ops_n);
-        assertTrue("Linear algebra tests: error in vector operation, vector product",Math.abs(vecprod - data.test_vec_ops_vec_prod) < TESTS_TOL
-        );
+        assertTrue(
+                Math.abs(vecprod - data.test_vec_ops_vec_prod) < TESTS_TOL,
+                "Linear algebra tests: error in vector operation, vector product");
 
         // Elementwise maximum between two vectors
         vec_ew_max_vec_test = new double[data.test_vec_ops_n];
@@ -125,8 +130,9 @@ public class LinAlgTest {
                 data.test_vec_ops_v2,
                 vec_ew_max_vec_test,
                 data.test_vec_ops_n);
-        assertTrue("Linear algebra tests: error in vector operation, elementwise maximum between vectors",Math.abs(vecprod - data.test_vec_ops_vec_prod) < TESTS_TOL                
-        );
+        assertTrue(
+                Math.abs(vecprod - data.test_vec_ops_vec_prod) < TESTS_TOL,
+                "Linear algebra tests: error in vector operation, elementwise maximum between vectors");
         // Elementwise minimum between two vectors
         vec_ew_min_vec_test = new double[data.test_vec_ops_n ];
         //c_float *)c_malloc(data.test_vec_ops_n * sizeof(c_float));
@@ -134,10 +140,10 @@ public class LinAlgTest {
                 data.test_vec_ops_v2,
                 vec_ew_min_vec_test,
                 data.test_vec_ops_n);
-        assertTrue("Linear algebra tests: error in vector operation, elementwise minimum between vectors",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(vec_ew_min_vec_test, data.test_vec_ops_ew_min_vec,
-                        data.test_vec_ops_n) < TESTS_TOL
-        );
+                        data.test_vec_ops_n) < TESTS_TOL,
+                "Linear algebra tests: error in vector operation, elementwise minimum between vectors");
         return ;
     };
     @Test
@@ -161,8 +167,9 @@ public class LinAlgTest {
 
         // Premultiply matrix A
         LinAlg.mat_premult_diag(dA, data.test_mat_ops_d);
-        assertTrue("Linear algebra tests: error in matrix operation, premultiply diagonal",
-                is_eq_csc(dA, data.test_mat_ops_prem_diag, TESTS_TOL));
+        assertTrue(
+                is_eq_csc(dA, data.test_mat_ops_prem_diag, TESTS_TOL),
+                "Linear algebra tests: error in matrix operation, premultiply diagonal");
 
 
         // Postmultiply matrix A
@@ -173,16 +180,18 @@ public class LinAlgTest {
         // Maximum norm over columns
         inf_norm_cols_rows_test = new double[data.test_mat_ops_n];
         LinAlg.mat_inf_norm_cols(data.test_mat_ops_A, inf_norm_cols_rows_test);
-        assertTrue("Linear algebra tests: error in matrix operation, postmultiply diagonal",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(inf_norm_cols_rows_test, data.test_mat_ops_inf_norm_cols,
-                        data.test_mat_ops_n) < TESTS_TOL);
+                        data.test_mat_ops_n) < TESTS_TOL,
+                "Linear algebra tests: error in matrix operation, postmultiply diagonal");
 
         // Maximum norm over rows
         LinAlg.mat_inf_norm_rows(data.test_mat_ops_A, inf_norm_cols_rows_test);
-        assertTrue("Linear algebra tests: error in matrix operation, max norm over rows",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(inf_norm_cols_rows_test,
                         data.test_mat_ops_inf_norm_rows,
-                        data.test_mat_ops_n) < TESTS_TOL);
+                        data.test_mat_ops_n) < TESTS_TOL,
+                "Linear algebra tests: error in matrix operation, max norm over rows");
 
         return ;
     };
@@ -201,29 +210,33 @@ public class LinAlgTest {
 
         // Matrix-vector multiplication:  y = Ax
         LinAlg.mat_vec(data.test_mat_vec_A, data.test_mat_vec_x, Ax, 0,0,1);
-        assertTrue("Linear algebra tests: error in matrix-vector operation, matrix-vector multiplication",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(Ax, data.test_mat_vec_Ax,
-                        data.test_mat_vec_m) < TESTS_TOL);
+                        data.test_mat_vec_m) < TESTS_TOL,
+                "Linear algebra tests: error in matrix-vector operation, matrix-vector multiplication");
 
         // Cumulative matrix-vector multiplication:  y += Ax
         Ax_cum = LinAlg.vec_copy(data.test_mat_vec_y, data.test_mat_vec_m);
         LinAlg.mat_vec(data.test_mat_vec_A, data.test_mat_vec_x, Ax_cum,0,0,1);
-        assertTrue("Linear algebra tests: error in matrix-vector operation, cumulative matrix-vector multiplication",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(Ax_cum, data.test_mat_vec_Ax_cum,
-                        data.test_mat_vec_m) < TESTS_TOL);
+                        data.test_mat_vec_m) < TESTS_TOL,
+                "Linear algebra tests: error in matrix-vector operation, cumulative matrix-vector multiplication");
 
         // Matrix-transpose-vector multiplication:  x = A'*y
         LinAlg.mat_tpose_vec(data.test_mat_vec_A, data.test_mat_vec_y, ATy, 0,0,0, false);
-        assertTrue("Linear algebra tests: error in matrix-vector operation, matrix-transpose-vector multiplication",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(ATy, data.test_mat_vec_ATy,
-                        data.test_mat_vec_n) < TESTS_TOL);
+                        data.test_mat_vec_n) < TESTS_TOL,
+                "Linear algebra tests: error in matrix-vector operation, matrix-transpose-vector multiplication");
 
         // Cumulative matrix-transpose-vector multiplication:  x += A'*y
         ATy_cum = LinAlg.vec_copy(data.test_mat_vec_x, data.test_mat_vec_n);
         LinAlg.mat_tpose_vec(data.test_mat_vec_A, data.test_mat_vec_y, ATy_cum,0,0 ,1, false);
-        assertTrue("Linear algebra tests: error in matrix-vector operation, cumulative matrix-transpose-vector multiplication",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(ATy_cum, data.test_mat_vec_ATy_cum,
-                        data.test_mat_vec_n) < TESTS_TOL);
+                        data.test_mat_vec_n) < TESTS_TOL,
+                "Linear algebra tests: error in matrix-vector operation, cumulative matrix-transpose-vector multiplication");
 
         // Symmetric-matrix-vector multiplication (only upper part is stored)
         LinAlg.mat_vec(data.test_mat_vec_Pu, data.test_mat_vec_x, Px, 0,0,1);          // upper
@@ -234,9 +247,10 @@ public class LinAlgTest {
         // part
         // (without
         // diagonal)
-        assertTrue("Linear algebra tests: error in matrix-vector operation, symmetric matrix-vector multiplication",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(Px, data.test_mat_vec_Px,
-                        data.test_mat_vec_n) < TESTS_TOL);
+                        data.test_mat_vec_n) < TESTS_TOL,
+                "Linear algebra tests: error in matrix-vector operation, symmetric matrix-vector multiplication");
 
 
         // Cumulative symmetric-matrix-vector multiplication
@@ -249,9 +263,10 @@ public class LinAlgTest {
         // part
         // (without
         // diagonal)
-        assertTrue("Linear algebra tests: error in matrix-vector operation, cumulative symmetric matrix-vector multiplication",
+        assertTrue(
                 LinAlg.vec_norm_inf_diff(Px_cum, data.test_mat_vec_Px_cum,
-                        data.test_mat_vec_n) < TESTS_TOL);
+                        data.test_mat_vec_n) < TESTS_TOL,
+                "Linear algebra tests: error in matrix-vector operation, cumulative symmetric matrix-vector multiplication");
         return ;
     };
     @Test
@@ -262,16 +277,19 @@ public class LinAlgTest {
         // Extract upper triangular part
         CSCMatrix Ptriu =  CSCMatrix.csc_to_triu(data.test_mat_extr_triu_P);
 
-        assertTrue("Linear algebra tests: error in forming upper triangular matrix!",
-                is_eq_csc(data.test_mat_extr_triu_Pu, Ptriu, TESTS_TOL));
+        assertTrue(
+                is_eq_csc(data.test_mat_extr_triu_Pu, Ptriu, TESTS_TOL),
+                "Linear algebra tests: error in forming upper triangular matrix!");
 
         // Compute infinity norm over columns of the original matrix by using the
         // upper triangular part only
         inf_norm_cols_test = new double[data.test_mat_extr_triu_n];
         LinAlg.mat_inf_norm_cols_sym_triu(Ptriu, inf_norm_cols_test);
-        assertTrue("Linear algebra tests: error in forming upper triangular matrix, infinity norm over columns",LinAlg.vec_norm_inf_diff(inf_norm_cols_test,
+        assertTrue(
+                LinAlg.vec_norm_inf_diff(inf_norm_cols_test,
                 data.test_mat_extr_triu_P_inf_norm_cols,
-                data.test_mat_extr_triu_n) < TESTS_TOL);
+                data.test_mat_extr_triu_n) < TESTS_TOL,
+                "Linear algebra tests: error in forming upper triangular matrix, infinity norm over columns");
 
         return ;
     }
@@ -284,8 +302,9 @@ public class LinAlgTest {
         // Compute quadratic form
         quad_form_t = LinAlg.quad_form(data.test_qpform_Pu, data.test_qpform_x);
 
-        assertTrue("Linear algebra tests: error in computing quadratic form using upper triangular matrix!",
-                (Math.abs(quad_form_t - data.test_qpform_value) < TESTS_TOL));
+        assertTrue(
+                (Math.abs(quad_form_t - data.test_qpform_value) < TESTS_TOL),
+                "Linear algebra tests: error in computing quadratic form using upper triangular matrix!");
 
         // cleanup
         //clean_problem_lin_alg_sols_data(data);

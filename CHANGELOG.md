@@ -10,7 +10,7 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-10-06
+## [1.0.0] - 2026-10-08
 
 ### Changed — breaking
 
@@ -114,6 +114,10 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Fixed
 
+- **The documented terminal command works.** The published jar had no `Main-Class`, so
+  `java -jar josqp.jar <file.qps>` failed even though `Parser` has a `main`; the jar plugin now sets
+  `Main-Class: com.quantego.josqp.Parser`. Verified with `src/test/resources/qafiro.qps` and against
+  the usage message for a missing argument.
 - **`mvn test` compiles again.** The pom depended on
   `org.hamcrest:hamcrest-library:2.2`, which is only a shim without
   `org.hamcrest.Matchers`; the tests compiled through the project's own
@@ -161,8 +165,11 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 ### Documentation
 
 - README: quadratic-term convention and the migration note for existing models,
-  how model updates reuse or rebuild the solver, and the infeasibility
-  certificates section.
+  how model updates reuse or rebuild the solver, the settings that OSQP 1.0 adds
+  and the ones jOSQP cannot honour, the index-based bulk API, the infeasibility
+  certificates section, building from source, the license and a status note on
+  the addressed issues. The code examples were compiled against the released jar
+  with `--release 8`.
 - `JOSQP-Vector-API.md` (project report) documents the measurements, the native
   OSQP/PIQP comparisons, the GitHub issue assessment and the remaining OSQP 1.0
   API delta.

@@ -1,6 +1,8 @@
 # jOSQP
 
-jOSQP is a fork of the quadratic programming solver, [OSQP](http://osqp.org) (Operator Splitting Quadratic Program), but written entirely in Java. There are no dependencies other than Java 8 or higher.
+jOSQP is a fork of the quadratic programming solver [OSQP](http://osqp.org) (Operator Splitting
+Quadratic Program), written entirely in Java. It has no runtime dependencies beyond Java 8, and its
+settings, defaults and termination criteria follow OSQP 1.0.
 
 The solver can handle quadratic programming problems of the form: 
 
@@ -35,14 +37,42 @@ $$
 can be expressed and solved in only a few lines of Java code.
 
 ```
-var builder = Model.getBuilder();
-var x = builder.addVariable().lb(1).ub(3);
-var y = builder.addVariable().ub(5);
-builder.setObjective().add(5,x).add(0.5,x,x).add(3,y).minimize();
-builder.addConstraint().add(2,x).add(-1,y).geq(4);
-var model = builder.build();
-model.solve()
+import com.quantego.josqp.Model;
+import com.quantego.josqp.Model.Variable;
+
+Model.Builder builder = Model.getBuilder();
+Variable x = builder.addVariable().lb(1).ub(3);
+Variable y = builder.addVariable().ub(5);
+builder.setObjective().add(5, x).add(0.5, x, x).add(3, y).minimize();
+builder.addConstraint().add(2, x).add(-1, y).geq(4);
+Model model = builder.build();
+model.solve();
 ```
+
+`Variable`, `Builder`, `Objective` and `Constraint` are nested types of `Model`; the model is built
+and solved with Java 8, no language level above that is required.
+
+### Bulk model API
+
+The algebraic builder creates one `Variable` object and one map entry per coefficient, which becomes
+expensive for models with hundreds of thousands of entries. `Builder` therefore also offers an
+index-based API that works on primitive arrays, and `Model#setConstraintBounds` changes bounds later
+without touching the sparsity pattern:
+
+```
+int n = 300_000;
+double[] lower = new double[n];
+double[] upper = new double[n];
+Model.Builder builder = Model.getBuilder();
+builder.addVariables(n, lower, upper);
+builder.linearObjective(new int[] {0, 1}, new double[] {1.0, 2.0});
+builder.quadraticObjective(new int[] {0}, new int[] {0}, new double[] {0.5});
+builder.constraint(new int[] {0, 1}, new double[] {2.0, -1.0}, 4.0, Double.POSITIVE_INFINITY);
+Model model = builder.build();
+```
+
+For 300,000 variables, 2,000 rows and 200 entries per row this path builds the model in about 41 ms
+and allocates 129 MB, against 224 ms and 236 MB along the algebraic builder.
 
 ### Quadratic terms
 
@@ -66,19 +96,33 @@ scaling are tied to the pattern. At the solver level `OSQP.update_A` and `OSQP.u
 value-only, exactly like `osqp_update_data_mat` in OSQP: they require the pattern to be unchanged
 ([issue #4](https://github.com/quantego/josqp/issues/4)).
 
-### MPS/QPS Reader
+### Settings
 
-Also, jOSQP comes with a parser for MPS and QPS files to import and solve existing linear and quadratic programming problems. Use the static function `Parser.readQmps` to read a file and pass the resulting model data to the solver:
-```
-var p = Parser.readQmps(<qps_file_name>);
-var opt = new OSQP(p.getData(),new OSQP.Settings());
-opt.solve();
-```
-The solver can also be called from the terminal
-```
-java -jar josqp.jar <qps_file_name>
-```
-After solving the problem through the terminal, jOSQP creates a log file,`josqp.log`, that contains a summary of the solution process. The terminal command has been used for benchmarking.
+`new OSQP(data, settings)` and `Model#solve(settings)` take an `OSQP.Settings` object that mirrors
+`OSQPSettings` of OSQP 1.0. The defaults are the ones of the C library — `eps_abs` and `eps_rel`
+`1e-3`, `max_iter` 4000, `rho` 0.1, `adaptive_rho_interval` 50, `check_dualgap` enabled,
+`time_limit` `1e10`, polishing off, warm starting on — and an invalid configuration is rejected in
+the `OSQP` constructor, as `osqp_setup` does.
+
+Two families of names matter in practice:
+
+* `polishing` and `warm_starting` are the OSQP 1.0 names and are available as accessors:
+  `Settings#setPolishing(boolean)` / `isPolishing()` and `setWarmStarting(boolean)` /
+  `isWarmStarting()`. The fields keep their 0.6 names `polish` and `warm_start`, so code written
+  against older jOSQP keeps compiling.
+* Settings that only exist in the C runtime are accepted for parity but cannot change a solve:
+  `device`, `allocate_solution`, `profiler_level` and the four conjugate-gradient parameters
+  (`cg_max_iter`, `cg_tol_reduction`, `cg_tol_fraction`, `cg_precond`), because jOSQP implements only
+  the direct QDLDL factorisation. `linsys_solver = LinSysSolver.OSQP_INDIRECT_SOLVER` and
+  `rho_is_vec = false` are rejected with an `IllegalArgumentException` rather than silently ignored,
+  since honouring them is impossible here.
+
+`OSQP.Info` carries the OSQP 1.0 fields `primdual_int` (running integral of the duality gap) and
+`rel_kkt_error` alongside the usual status, objective and residual values.
+
+Three jOSQP additions have no counterpart in OSQP 1.0 and default to the upstream behaviour:
+`infeasibility_streak` and `infeasibility_margin` (see below), plus the optional diagnostics
+`check_linear_residual` with `linear_refine_iter`, and `adaptive_rho_kkt`.
 
 ### Infeasibility certificates
 
@@ -107,6 +151,21 @@ On all 63 benchmark instances the guards remove exactly the three false infeasib
 and change no other status; the genuine infeasibility problems of the test suite are still detected
 at the same iteration.
 
+### MPS/QPS Reader
+
+Also, jOSQP comes with a parser for MPS and QPS files to import and solve existing linear and quadratic programming problems. Use the static function `Parser.readQmps` to read a file and pass the resulting model data to the solver:
+```
+Parser p = Parser.readQmps(<qps_file_name>);
+OSQP opt = new OSQP(p.getData(), new OSQP.Settings());
+opt.solve();
+```
+The jar is executable and solves a file from the terminal:
+```
+java -jar josqp.jar <qps_file_name>
+java -jar josqp.jar src/test/resources/qafiro.qps
+```
+After solving the problem through the terminal, jOSQP creates a log file, `josqp.log`, that contains a summary of the solution process. The terminal command has been used for benchmarking.
+
 ## Benchmarks
 
 The following table summarizes the results of benchmarks with the Maros-Meszaros problem set as well as the QPlib with the original OSQP library written in C as well as the commercial GUROBI solver.
@@ -119,6 +178,12 @@ The following table summarizes the results of benchmarks with the Maros-Meszaros
 The table reports the [shifted geometric mean](https://plato.asu.edu/ftp/shgeom.html) for each solver across all instances that could be solved by OSQP. Further details can be found [in a companion repository](https://github.com/FaridAlavi/josqp_benchmarks).
 
 For the considered instances, jOSQP performs at par with the original OSQP code. This result is quite astonishing, as it demonstrates that a pure Java implementation of a solver for mathematical optimization is not necessarily slower than the same implementation written in C or C++, as long as such code does not make excessive use of objects and reuses memory as much as possible.
+
+Two measurements behind the current version: an optional Vector API backend (`mvn -Pvector`)
+accelerates the individual norm kernels by up to 7.5x, but its effect on a complete solve stays below
+one percent, which is why the published artifact is the plain Java 8 build. Reusing the symbolic
+factorisation and its work arrays across rho updates cuts the solve time of the largest measured
+QPLIB instance (`qplib_8602`) by 13.9 % and removes almost all temporary allocations.
 
 ## Installation
 
@@ -133,13 +198,38 @@ The project is available at the central repository. Simply add the following dep
 
 Another option is to simply download the [latest build](https://github.com/quantego/josqp/releases/latest) of the jar from the release page and import it in your Java project.
 
-Building and testing locally requires a JDK and Maven; the tests run with `mvn test` (JUnit 5),
-the optional Vector API backend with `mvn -Pvector test` on JDK 26. See [CHANGELOG.md](CHANGELOG.md) for the
-changes since 0.6.5.
+## Building from source
+
+The build uses Maven and produces a Java 8 artifact (`maven.compiler.release=8`):
+
+```
+mvn test                            # 90 tests, JUnit 5
+mvn -Pvector test                   # 93 tests, needs JDK 26 and jdk.incubator.vector
+mvn -Prelease package               # main, sources and javadoc jar in target/
+java -jar target/josqp-1.0.0.jar src/test/resources/qafiro.qps
+```
+
+`benchmarks/run.py` builds and tests the same sources without Maven and fetches the JUnit Platform
+console launcher into the parent workspace on first use.
 
 ## Requirements
 
-* Java JDK 8
+* Java 8 or higher to use the library; the published jar is compiled with `--release 8`
+* JDK 26 for the optional Vector API profile
+* A JDK and Maven 3.9 or newer to build and test
+
+## Status
+
+Version 1.0.0 fixes [issue #2](https://github.com/quantego/josqp/issues/2) (quadratic coefficients)
+and [issue #4](https://github.com/quantego/josqp/issues/4) (updating `A` and `P`), and brings the
+settings surface in line with OSQP 1.0 ([issue
+#1](https://github.com/quantego/josqp/issues/1)) except the consolidated
+`osqp_update_vec`/`osqp_update_data_mat` calls. [CHANGELOG.md](CHANGELOG.md) lists everything,
+including the breaking changes.
+
+## License
+
+MIT License, see [LICENSE](LICENSE).
 
 ## Authors
 * Nils Loehndorf

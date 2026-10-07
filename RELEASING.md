@@ -91,7 +91,7 @@ gh auth status && gh secret list --repo quantego/josqp
 ## Release
 
 1. Set `<version>` in `pom.xml`, move the `## [Unreleased]` entries of
-   [CHANGELOG.md](CHANGELOG.md) into a dated section and commit.
+   [CHANGELOG.md](CHANGELOG.md) into a dated section (the date is the day you publish) and commit.
 2. Tag and push:
 
    ```

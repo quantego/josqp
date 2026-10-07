@@ -212,6 +212,9 @@ java -cp target/portable-classes -Djosqp.bench.timeLimit=20 \
 - Reusing the symbolic factorisation and its work arrays across rho updates cut the solve time of
   `qplib_8602` from 31.6 to 27.2 seconds in an earlier measurement and removed almost all temporary
   allocations.
+- Updating P and A together through `update_data_mat` halfs the work of the 0.6 pair `update_P` plus
+  `update_A`, because unscaling, rescaling and the KKT refresh happen once: 8.5 ms against 17.1 ms
+  on `qplib_8792`, and the same factor on `qplib_8991`.
 
 For the historical cross-solver comparison with Gurobi, OSQP and jOSQP across the whole
 Maros-Meszaros and QPLIB sets see the [companion

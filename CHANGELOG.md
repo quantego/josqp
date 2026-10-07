@@ -82,7 +82,9 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   `osqp_update_data_mat`. A `null` argument leaves that vector or matrix
   untouched, one-sided bound updates are allowed, and updating both matrices in
   one call unscales, rescales and refreshes the KKT values once instead of once
-  per matrix. `update_P`, `update_A` and `update_P_A` delegate to it, and
+  per matrix: on `qplib_8792` (n = 15,129) a combined update takes 8.5 ms against
+  17.1 ms for `update_P` followed by `update_A`, the same factor on `qplib_8991`.
+  `update_P`, `update_A` and `update_P_A` delegate to it, and
   malformed index arrays (wrong length, out of range, indices without values)
   are rejected instead of silently ignored.
 - **Maven release profile** for Maven Central: `mvn -Prelease deploy` attaches

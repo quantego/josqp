@@ -129,7 +129,7 @@ The passphrase comes from `MAVEN_GPG_PASSPHRASE` or a running `gpg-agent`.
 ## Verifying a release locally
 
 ```bash
-mvn test                            # 90 tests
-mvn -Pvector test                   # 93 tests, JDK 26
+mvn test                            # 96 tests
+mvn -Pvector test                   # 99 tests, JDK 26
 mvn -Prelease -DskipTests package   # main, sources and javadoc jars in target/
 ```

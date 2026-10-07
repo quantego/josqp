@@ -236,8 +236,8 @@ Another option is to simply download the [latest build](https://github.com/quant
 The build uses Maven and produces a Java 8 artifact (`maven.compiler.release=8`):
 
 ```
-mvn test                            # 90 tests, JUnit 5
-mvn -Pvector test                   # 93 tests, needs JDK 26 and jdk.incubator.vector
+mvn test                            # 96 tests, JUnit 5
+mvn -Pvector test                   # 99 tests, needs JDK 26 and jdk.incubator.vector
 mvn -Prelease package               # main, sources and javadoc jar in target/
 java -jar target/josqp-1.0.0.jar src/test/resources/qafiro.qps
 ```

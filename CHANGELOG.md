@@ -75,6 +75,16 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   `Info` carries `primdual_int` (running integral of `|duality_gap|`) and
   `rel_kkt_error` (`max(pri_res, dua_res, |duality_gap|)` of the last info
   update), both filled like in OSQP 1.0.
+- **Consolidated update entry points** ([issue
+  #1](https://github.com/quantego/josqp/issues/1)):
+  `OSQP#update_data_vec(q, l, u)` and
+  `OSQP#update_data_mat(Px, PxIdx, Ax, AxIdx)` mirror `osqp_update_data_vec` and
+  `osqp_update_data_mat`. A `null` argument leaves that vector or matrix
+  untouched, one-sided bound updates are allowed, and updating both matrices in
+  one call unscales, rescales and refreshes the KKT values once instead of once
+  per matrix. `update_P`, `update_A` and `update_P_A` delegate to it, and
+  malformed index arrays (wrong length, out of range, indices without values)
+  are rejected instead of silently ignored.
 - **Maven release profile** for Maven Central: `mvn -Prelease deploy` attaches
   the sources and javadoc jars, signs all artifacts with GPG and publishes
   through the Sonatype Central Portal. `autoPublish=true`, so a successful
@@ -164,6 +174,11 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Documentation
 
+- README: the benchmark section now shows nine QPLIB instances measured against
+  native OSQP 1.1.3 with the current version (median of three cold starts, both
+  configurations spelled out) instead of the historical cross-solver table, which
+  only covered an earlier version. `benchmarks/summarize_readme.py` rebuilds the
+  table from the two result files.
 - README: quadratic-term convention and the migration note for existing models,
   how model updates reuse or rebuild the solver, the settings that OSQP 1.0 adds
   and the ones jOSQP cannot honour, the index-based bulk API, the infeasibility

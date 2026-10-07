@@ -42,6 +42,11 @@ Generate User Token* you get a username and a password.
 | `GPG_PRIVATE_KEY` | ASCII-armoured private key from step 1 |
 | `GPG_PASSPHRASE` | passphrase of that key |
 
+The simplest route needs no GitHub token at all: create the four secrets by hand
+under <https://github.com/quantego/josqp/settings/secrets/actions/new>. The
+private key can be copied straight to the clipboard with
+`gpg --armor --export-secret-keys "$KEYID" | pbcopy`.
+
 With the GitHub CLI (`gh auth login --scopes repo` once, `KEYID` from step 1):
 
 ```
@@ -58,10 +63,15 @@ traps to avoid when pasting these lines: an inline `# comment` after a command
 is read as an *argument* unless `interactive_comments` is set, and an unquoted
 `var?prompt` argument to `read` is treated as a glob pattern.
 
-Instead of the browser flow a **fine-grained personal access token** works too:
-create it under *Settings -> Developer settings -> Personal access tokens ->
-Fine-grained tokens*, set *Repository access* to "Only select repositories" and
-pick `quantego/josqp`. Repository permissions:
+Instead of the browser flow a **fine-grained personal access token** works too. It
+is created in your **personal** account (*Settings -> Developer settings ->
+Personal access tokens -> Fine-grained tokens*), but `quantego` has to be picked
+as the **resource owner**, because the repository belongs to the organization;
+the organization must allow that first (*Organization -> Settings -> Personal
+access tokens -> Allow access via fine-grained personal access tokens*), and if
+approval is required an organization owner has to approve the token. Then set
+*Repository access* to "Only select repositories" and pick `quantego/josqp`.
+Repository permissions:
 
 | Permission | Why |
 |---|---|

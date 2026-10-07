@@ -49,8 +49,11 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   `quadraticObjective(rows, cols, values)` and
   `constraint(indices, coefficients, lower, upper)`, plus
   `Model#setConstraintBounds(int, double, double)`. It avoids boxing, `Pair`
-  objects and intermediate maps; building a 300,000-variable model takes about
-  41 ms instead of 322 ms and allocates 129 MB instead of 343 MB.
+  objects and intermediate maps: a 300,000-variable model with 2,000 rows and
+  200 entries per row builds in about 41 ms and allocates 129 MB, where the
+  algebraic builder path needs 224 ms and 236 MB. That path itself came down
+  from 322 ms, 343 MB and 694 MB peak heap to 224 ms, 236 MB and 524 MB peak
+  through the primitive triplet storage.
 - **Optional Vector API backend** (`src/vector`, Maven profile `vector`,
   `-Djosqp.vector=true`). It accelerates isolated norm computations by up to
   7.5x, but the contribution to a full solve stays below 1 %, so the default

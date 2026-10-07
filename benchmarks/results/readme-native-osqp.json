@@ -1,0 +1,505 @@
+{
+  "arguments": {
+    "files": [
+      "../josqp_benchmarks/extracted/qplib_9002.qps",
+      "../josqp_benchmarks/extracted/qplib_8938.qps",
+      "../josqp_benchmarks/extracted/qplib_8845.qps",
+      "../josqp_benchmarks/extracted/qplib_8616.qps",
+      "../josqp_benchmarks/extracted/qplib_8906.qps",
+      "../josqp_benchmarks/extracted/qplib_8559.qps",
+      "../josqp_benchmarks/extracted/qplib_8792.qps",
+      "../josqp_benchmarks/extracted/qplib_8991.qps",
+      "../josqp_benchmarks/extracted/qplib_8602.qps"
+    ],
+    "solvers": [
+      "osqp"
+    ],
+    "repeats": 3,
+    "eps": 0.001,
+    "time_limit": 20.0,
+    "output": "benchmarks/results/readme-native-osqp.json"
+  },
+  "java": "/opt/homebrew/opt/openjdk@26/libexec/openjdk.jdk/Contents/Home",
+  "cases": [
+    {
+      "name": "qplib_9002",
+      "file": "target/native-bins/qplib_9002.native.bin",
+      "n": 2890,
+      "m": 4539,
+      "export_sha256": "1e698d849c12d29ae110fc49078ce72c48961b5c4a7520d92f6191ef5b44ef5d",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 6.203083088621497,
+              "solve_ms": 5983.86533302255,
+              "objective": 5698100756.572957,
+              "primal_violation": 0.3763764752075076,
+              "stationarity": 0.0005338457114942019,
+              "gap_expression": 11374796.776000977
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 6.309666903689504,
+              "solve_ms": 5978.02595817484,
+              "objective": 5698100756.572957,
+              "primal_violation": 0.3763764752075076,
+              "stationarity": 0.0005338457114942019,
+              "gap_expression": 11374796.776000977
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 6.6161248832941055,
+              "solve_ms": 6016.134792007506,
+              "objective": 5698100756.572957,
+              "primal_violation": 0.3763764752075076,
+              "stationarity": 0.0005338457114942019,
+              "gap_expression": 11374796.776000977
+            }
+          ],
+          "median_solve_ms": 5983.86533302255,
+          "median_setup_ms": 6.309666903689504,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            5698100756.572957,
+            5698100756.572957,
+            5698100756.572957
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8938",
+      "file": "target/native-bins/qplib_8938.native.bin",
+      "n": 4001,
+      "m": 16000,
+      "export_sha256": "1d61cd1356ad520967cec9973a916da6ca192b9186afc2f7c5e95ed993a87a8c",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 2.257042098790407,
+              "solve_ms": 14747.22162517719,
+              "objective": -38.78682071465161,
+              "primal_violation": 0.812628742553585,
+              "stationarity": 1.4678784399091427e-07,
+              "gap_expression": -0.37170994011966485
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 2.19141598790884,
+              "solve_ms": 15083.592917071655,
+              "objective": -38.78682071465161,
+              "primal_violation": 0.812628742553585,
+              "stationarity": 1.4678784399091427e-07,
+              "gap_expression": -0.37170994011966485
+            },
+            {
+              "status": "maximum iterations reached",
+              "finite": true,
+              "setup_ms": 2.201833063736558,
+              "solve_ms": 14671.810792060569,
+              "objective": -38.78682071465161,
+              "primal_violation": 0.812628742553585,
+              "stationarity": 1.4678784399091427e-07,
+              "gap_expression": -0.37170994011966485
+            }
+          ],
+          "median_solve_ms": 14747.22162517719,
+          "median_setup_ms": 2.201833063736558,
+          "statuses": [
+            "maximum iterations reached"
+          ],
+          "objectives": [
+            -38.78682071465161,
+            -38.78682071465161,
+            -38.78682071465161
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8845",
+      "file": "target/native-bins/qplib_8845.native.bin",
+      "n": 1546,
+      "m": 2323,
+      "export_sha256": "737866ec5ed2f7ffe7d79fc1ffcf82dcb4a37a9ccb2b9bec42a243afaedda6fe",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 7.6346248388290405,
+              "solve_ms": 342.4895000644028,
+              "objective": 13429411.67284372,
+              "primal_violation": 0.1678758021069628,
+              "stationarity": 4.391982198827228,
+              "gap_expression": -23585.9242387712
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 7.4504578951746225,
+              "solve_ms": 345.74949997477233,
+              "objective": 13429411.67284372,
+              "primal_violation": 0.1678758021069628,
+              "stationarity": 4.391982198827228,
+              "gap_expression": -23585.9242387712
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 7.467207964509726,
+              "solve_ms": 345.7572089973837,
+              "objective": 13429411.67284372,
+              "primal_violation": 0.1678758021069628,
+              "stationarity": 4.391982198827228,
+              "gap_expression": -23585.9242387712
+            }
+          ],
+          "median_solve_ms": 345.74949997477233,
+          "median_setup_ms": 7.467207964509726,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            13429411.67284372,
+            13429411.67284372,
+            13429411.67284372
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8616",
+      "file": "target/native-bins/qplib_8616.native.bin",
+      "n": 13870,
+      "m": 24274,
+      "export_sha256": "7fa6318eb77b92cb16ff04c4671e79c224858bd658843edcf3772b1d61467df3",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 5.5885829497128725,
+              "solve_ms": 54.22541685402393,
+              "objective": 245.0687581847937,
+              "primal_violation": 2.2524864227296826e-06,
+              "stationarity": 4.536548072140226e-05,
+              "gap_expression": -0.0005971321644437921
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 5.522666964679956,
+              "solve_ms": 53.87983308173716,
+              "objective": 245.0687581847937,
+              "primal_violation": 2.2524864227296826e-06,
+              "stationarity": 4.536548072140226e-05,
+              "gap_expression": -0.0005971321644437921
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 5.487042013555765,
+              "solve_ms": 53.995708003640175,
+              "objective": 245.0687581847937,
+              "primal_violation": 2.2524864227296826e-06,
+              "stationarity": 4.536548072140226e-05,
+              "gap_expression": -0.0005971321644437921
+            }
+          ],
+          "median_solve_ms": 53.995708003640175,
+          "median_setup_ms": 5.522666964679956,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            245.0687581847937,
+            245.0687581847937,
+            245.0687581847937
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8906",
+      "file": "target/native-bins/qplib_8906.native.bin",
+      "n": 5223,
+      "m": 6061,
+      "export_sha256": "266e730d7c929633bbdee9d06049a6a97ff17f919fe3f6073d348ca5113ce8bc",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 11.347000021487474,
+              "solve_ms": 173.452541930601,
+              "objective": 3016917.5675004246,
+              "primal_violation": 0.01059783388217353,
+              "stationarity": 2.1137221799522763,
+              "gap_expression": 4446.887548137456
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 11.328999884426594,
+              "solve_ms": 173.4646251425147,
+              "objective": 3016917.5675004246,
+              "primal_violation": 0.01059783388217353,
+              "stationarity": 2.1137221799522763,
+              "gap_expression": 4446.887548137456
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 11.539584025740623,
+              "solve_ms": 173.17654192447662,
+              "objective": 3016917.5675004246,
+              "primal_violation": 0.01059783388217353,
+              "stationarity": 2.1137221799522763,
+              "gap_expression": 4446.887548137456
+            }
+          ],
+          "median_solve_ms": 173.452541930601,
+          "median_setup_ms": 11.347000021487474,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            3016917.5675004246,
+            3016917.5675004246,
+            3016917.5675004246
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8559",
+      "file": "target/native-bins/qplib_8559.native.bin",
+      "n": 10000,
+      "m": 15000,
+      "export_sha256": "12d1daba892ea0b20dd68247ea1fa78ff50fd937261c481a8bc641aa77fefb16",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 708.8393331505358,
+              "solve_ms": 4907.838291954249,
+              "objective": 108665593.12340595,
+              "primal_violation": 0.005378738645122741,
+              "stationarity": 18.138145924873243,
+              "gap_expression": -24775.515880078077
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 706.1477089300752,
+              "solve_ms": 4912.478666054085,
+              "objective": 108665593.12340595,
+              "primal_violation": 0.005378738645122741,
+              "stationarity": 18.138145924873243,
+              "gap_expression": -24775.515880078077
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 707.9742499627173,
+              "solve_ms": 4932.254707906395,
+              "objective": 108665593.12340595,
+              "primal_violation": 0.005378738645122741,
+              "stationarity": 18.138145924873243,
+              "gap_expression": -24775.515880078077
+            }
+          ],
+          "median_solve_ms": 4912.478666054085,
+          "median_setup_ms": 707.9742499627173,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            108665593.12340595,
+            108665593.12340595,
+            108665593.12340595
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8792",
+      "file": "target/native-bins/qplib_8792.native.bin",
+      "n": 15129,
+      "m": 15129,
+      "export_sha256": "a3810ea5df2d913237d46b2d6407030ea0f5d8b2de4f7d2108653f54191559ce",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 9.437083033844829,
+              "solve_ms": 74.92441707290709,
+              "objective": 1.9009627779746878,
+              "primal_violation": 0.00033736567582929103,
+              "stationarity": 8.132378520386638e-06,
+              "gap_expression": -3.7731860154543995e-05
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 9.6177919767797,
+              "solve_ms": 76.05391601100564,
+              "objective": 1.9009627779746878,
+              "primal_violation": 0.00033736567582929103,
+              "stationarity": 8.132378520386638e-06,
+              "gap_expression": -3.7731860154543995e-05
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 9.458999847993255,
+              "solve_ms": 75.04654093645513,
+              "objective": 1.9009627779746878,
+              "primal_violation": 0.00033736567582929103,
+              "stationarity": 8.132378520386638e-06,
+              "gap_expression": -3.7731860154543995e-05
+            }
+          ],
+          "median_solve_ms": 75.04654093645513,
+          "median_setup_ms": 9.458999847993255,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            1.9009627779746878,
+            1.9009627779746878,
+            1.9009627779746878
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8991",
+      "file": "target/native-bins/qplib_8991.native.bin",
+      "n": 14400,
+      "m": 14400,
+      "export_sha256": "5486f497aa599f77b893d073ab2217f75b131770e7f51e4f914a3e80fe27e80e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 10.950417025014758,
+              "solve_ms": 72.66025012359023,
+              "objective": -1.2045230205602115,
+              "primal_violation": 0.000257070044262675,
+              "stationarity": 6.502127017852167e-06,
+              "gap_expression": -3.2719572419126486e-05
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 9.422583971172571,
+              "solve_ms": 72.93779193423688,
+              "objective": -1.2045230205602115,
+              "primal_violation": 0.000257070044262675,
+              "stationarity": 6.502127017852167e-06,
+              "gap_expression": -3.2719572419126486e-05
+            },
+            {
+              "status": "solved",
+              "finite": true,
+              "setup_ms": 12.089875061064959,
+              "solve_ms": 72.83558417111635,
+              "objective": -1.2045230205602115,
+              "primal_violation": 0.000257070044262675,
+              "stationarity": 6.502127017852167e-06,
+              "gap_expression": -3.2719572419126486e-05
+            }
+          ],
+          "median_solve_ms": 72.83558417111635,
+          "median_setup_ms": 10.950417025014758,
+          "statuses": [
+            "solved"
+          ],
+          "objectives": [
+            -1.2045230205602115,
+            -1.2045230205602115,
+            -1.2045230205602115
+          ]
+        }
+      }
+    },
+    {
+      "name": "qplib_8602",
+      "file": "target/native-bins/qplib_8602.native.bin",
+      "n": 34552,
+      "m": 87535,
+      "export_sha256": "9cb5835b6d049cea147a5cf35580b75e5ca759e2ee49d61fa34d1ae67fe4644e",
+      "solvers": {
+        "osqp": {
+          "runs": [
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 7017.353249946609,
+              "solve_ms": 12992.758416803554,
+              "objective": 27407.57725435297,
+              "primal_violation": 0.3656890128319077,
+              "stationarity": 0.011299706028928798,
+              "gap_expression": -435.01817917462176
+            },
+            {
+              "status": "run time limit reached",
+              "finite": true,
+              "setup_ms": 7036.032499978319,
+              "solve_ms": 12997.220958117396,
+              "objective": 27396.78514127266,
+              "primal_violation": 0.35425844019966846,
+              "stationarity": 0.015713740436975314,
+              "gap_expression": -405.0518821585647
+            },
+            {
+              "status": "solved inaccurate",
+              "finite": true,
+              "setup_ms": 7029.537583934143,
+              "solve_ms": 12980.133541859686,
+              "objective": 27401.861613761816,
+              "primal_violation": 0.346879052258549,
+              "stationarity": 0.01629281136721013,
+              "gap_expression": -431.70172675781214
+            }
+          ],
+          "median_solve_ms": 12992.758416803554,
+          "median_setup_ms": 7029.537583934143,
+          "statuses": [
+            "run time limit reached",
+            "solved inaccurate"
+          ],
+          "objectives": [
+            27407.57725435297,
+            27396.78514127266,
+            27401.861613761816
+          ]
+        }
+      }
+    }
+  ],
+  "missing_inputs": [],
+  "export_failures": []
+}

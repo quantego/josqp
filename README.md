@@ -168,22 +168,55 @@ After solving the problem through the terminal, jOSQP creates a log file, `josqp
 
 ## Benchmarks
 
-The following table summarizes the results of benchmarks with the Maros-Meszaros problem set as well as the QPlib with the original OSQP library written in C as well as the commercial GUROBI solver.
+### The current version against native OSQP
 
-|                         | Gurobi | OSQP  | JOSQP |
-| :---                    | :---:  | :---: | :---: |
-| Maros-Meszaros  | 1.00   | 1.14  | 1.19  |
-| QPLIB  | 1.02   | 1.20  | 1.00  |
+Nine QPLIB instances through the same exported matrices, median of three cold-start runs, on an
+Apple M4 with JDK 26. Both solvers use `eps_abs = eps_rel = 1e-3`, a 20 second limit and
+`adaptive_rho_interval = 100`. jOSQP runs the plain Java 8 artifact (no Vector API backend) with
+polishing off, native OSQP 1.1.3 with its default polishing, `eps_prim_inf = eps_dual_inf = 1e-8`
+against 1e-4 in jOSQP, and 100,000 against 200,000 iterations.
 
-The table reports the [shifted geometric mean](https://plato.asu.edu/ftp/shgeom.html) for each solver across all instances that could be solved by OSQP. Further details can be found [in a companion repository](https://github.com/FaridAlavi/josqp_benchmarks).
+| Instance | n | m | jOSQP | native OSQP | jOSQP status | native status |
+|---|---:|---:|---:|---:|---|---|
+| `qplib_8845` | 1,546 | 2,323 | 343 ms | 346 ms | SOLVED | solved |
+| `qplib_9002` | 2,890 | 4,539 | 5,898 ms | 5,984 ms | SOLVED | solved |
+| `qplib_8938` | 4,001 | 16,000 | over the limit | 14,747 ms | TIME_LIMIT_REACHED | maximum iterations reached |
+| `qplib_8906` | 5,223 | 6,061 | 169 ms | 173 ms | SOLVED | solved |
+| `qplib_8559` | 10,000 | 15,000 | 4,016 ms | 4,912 ms | SOLVED | solved |
+| `qplib_8616` | 13,870 | 24,274 | 61 ms | 54 ms | SOLVED | solved |
+| `qplib_8991` | 14,400 | 14,400 | 68 ms | 73 ms | SOLVED | solved |
+| `qplib_8792` | 15,129 | 15,129 | 68 ms | 75 ms | SOLVED | solved |
+| `qplib_8602` | 34,552 | 87,535 | over the limit | 12,993 ms | TIME_LIMIT_REACHED | run time limit reached, solved inaccurate |
 
-For the considered instances, jOSQP performs at par with the original OSQP code. This result is quite astonishing, as it demonstrates that a pure Java implementation of a solver for mathematical optimization is not necessarily slower than the same implementation written in C or C++, as long as such code does not make excessive use of objects and reuses memory as much as possible.
+On seven of the nine instances a pure Java solver stays with the C library, in five of them slightly
+ahead of it. The two exceptions are honest gaps: `qplib_8602` is the largest case of the set and
+native OSQP needs 13 seconds for it, so the 20 second limit is simply tight, and `qplib_8938` makes
+both solvers give up. Reproduce with
 
-Two measurements behind the current version: an optional Vector API backend (`mvn -Pvector`)
-accelerates the individual norm kernels by up to 7.5x, but its effect on a complete solve stays below
-one percent, which is why the published artifact is the plain Java 8 build. Reusing the symbolic
-factorisation and its work arrays across rho updates cuts the solve time of the largest measured
-QPLIB instance (`qplib_8602`) by 13.9 % and removes almost all temporary allocations.
+```
+../.tools/native-env/bin/python benchmarks/native_bench.py \
+    --files ../josqp_benchmarks/extracted/qplib_8845.qps ... --solvers osqp \
+    --repeats 3 --eps 1e-3 --time-limit 20 --output benchmarks/results/readme-native-osqp.json
+java -cp target/portable-classes -Djosqp.bench.timeLimit=20 \
+    com.quantego.josqp.SolverBenchmark ../josqp_benchmarks/extracted/<instance>.qps 0 3 200000
+../.tools/native-env/bin/python benchmarks/summarize_readme.py
+```
+
+### What the current version changed
+
+- The index-based bulk builder shortens model construction: 300,000 variables, 2,000 rows and 200
+  entries per row build in about 41 ms and 129 MB instead of 224 ms and 236 MB.
+- The optional Vector API backend accelerates the individual norm kernels by up to 7.5x, but its
+  effect on a complete solve stays below one percent. The published artifact is therefore the plain
+  Java 8 build.
+- Reusing the symbolic factorisation and its work arrays across rho updates cut the solve time of
+  `qplib_8602` from 31.6 to 27.2 seconds in an earlier measurement and removed almost all temporary
+  allocations.
+
+For the historical cross-solver comparison with Gurobi, OSQP and jOSQP across the whole
+Maros-Meszaros and QPLIB sets see the [companion
+repository](https://github.com/FaridAlavi/josqp_benchmarks); those numbers were measured on an
+earlier version of jOSQP and are not comparable with the table above.
 
 ## Installation
 

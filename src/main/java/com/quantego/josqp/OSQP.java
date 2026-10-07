@@ -272,6 +272,14 @@ public class OSQP {
 	}
 	
 	public static class Data {
+		/**
+		 * Problem data of {@code min 0.5*x'Px + q'x + offset} subject to {@code l <= Ax <= u}.
+		 *
+		 * <p>{@link OSQP} keeps a reference to the instance it is given and scales the arrays in
+		 * place, so one {@code Data} object must not be handed to two solvers: the second solver
+		 * would scale already scaled values. Pass a copy ({@code new OSQP.Data(other)}) instead,
+		 * which is what the benchmarks and {@link Model} do.</p>
+		 */
 		//TODO: make this private again once all tests pass
 		public final int n; ///< number of variables n
 		public final int m; ///< number of constraints m
@@ -1721,6 +1729,23 @@ public class OSQP {
 		update_rho_vec(work);
 	}
 
+	/**
+	 * OSQP 1.0's combined vector update ({@code osqp_update_data_vec}): a non-null argument replaces
+	 * q, l or u, a null argument leaves that vector unchanged.
+	 */
+	public void update_data_vec(double[] q_new, double[] l_new, double[] u_new) {
+		if (l_new != null && u_new != null)
+			update_bounds(l_new, u_new);
+		else {
+			if (l_new != null)
+				update_lower_bound(l_new);
+			if (u_new != null)
+				update_upper_bound(u_new);
+		}
+		if (q_new != null)
+			update_lin_cost(q_new);
+	}
+
 	public void warm_start(double[] x, double[] y) {
 
 		// Update warm_start setting to true
@@ -1775,148 +1800,92 @@ public class OSQP {
 
 			}
 		
-		public void  update_P(double[] Px_new,
-                int[]   Px_new_idx) {
+		/**
+		 * OSQP 1.0's combined matrix update ({@code osqp_update_data_mat}): entries of P and A are
+		 * replaced while the sparsity structure stays untouched. A {@code null} value array leaves
+		 * that matrix alone, a {@code null} index array replaces the whole value array.
+		 *
+		 * <p>Updating both matrices in one call unscales, rescales and refreshes the KKT values once,
+		 * where {@link #update_P} followed by {@link #update_A} does each of those twice.</p>
+		 */
+		public void update_data_mat(double[] Px_new, int[] Px_new_idx,
+				double[] Ax_new, int[] Ax_new_idx) {
+			if (Px_new == null && Px_new_idx == null && Ax_new == null && Ax_new_idx == null)
+				return;
+			checkUpdate(Px_new, Px_new_idx, work.data.P.Ap[work.data.P.n], "P");
+			checkUpdate(Ax_new, Ax_new_idx, work.data.A.Ap[work.data.A.n], "A");
+
 			double tme = System.currentTimeMillis();
-			
-			if (work.settings.scaling>0) {
-			// Unscale data
-				Scaling.unscale_data(work);
-			}
-			
-			// Update P elements
-			if (Px_new_idx!= null) { // Change only Px_new_idx
-				for (int i = 0; i < Px_new_idx.length; i++) {
-					work.data.P.Ax[Px_new_idx[i]] = Px_new[i];
-				}
-			}
-			else // Change whole P
-			{
-				int nnzP = work.data.P.Ap[work.data.P.n];
-				for (int i = 0; i < nnzP; i++) {
-					work.data.P.Ax[i] = Px_new[i];
-				}
-			}
-			
-			if (work.settings.scaling>0) {
-			// Scale data
-				Scaling.scale_data(work);
-			}
-			
-			// Update linear system structure with new data
-			work.linsys_solver.update_solver_matrices(work.data.P,work.data.A);
-			work.info.update_time += (System.currentTimeMillis()-tme)/1000. ;
-			// Reset solver information
-			reset_info(work.info);
-		}
-		
-		public void update_A(double[] Ax_new,
-                 int[]   Ax_new_idx) {
-			int i;        // For indexing
-			int nnzA;     // Number of nonzeros in A
-			
-			double tme = System.currentTimeMillis();
-			nnzA = work.data.A.Ap[work.data.A.n];
-			
-		
-			
-			if (work.settings.scaling>0) {
+
+			if (work.settings.scaling > 0) {
 				// Unscale data
 				Scaling.unscale_data(work);
 			}
-			
-			// Update A elements
-			if (Ax_new_idx!=null) { // Change only Ax_new_idx
-			for (i = 0; i < Ax_new_idx.length; i++) {
-			  work.data.A.Ax[Ax_new_idx[i]] = Ax_new[i];
-			}
-			}
-			else { // Change whole A
-			for (i = 0; i < nnzA; i++) {
-			  work.data.A.Ax[i] = Ax_new[i];
-			}
-			}
-			
-			if (work.settings.scaling>0) {
+
+			replaceValues(work.data.P.Ax, Px_new, Px_new_idx);
+			replaceValues(work.data.A.Ax, Ax_new, Ax_new_idx);
+
+			if (work.settings.scaling > 0) {
 				// Scale data
 				Scaling.scale_data(work);
 			}
-			
-			// Update linear system structure with new data
-			work.linsys_solver.update_solver_matrices(work.data.P,
-			                                              work.data.A);
-			work.info.update_time += (System.currentTimeMillis()-tme)/1000. ;
+
+			// Update the linear system once, not once per matrix
+			work.linsys_solver.update_solver_matrices(work.data.P, work.data.A);
+			work.info.update_time += (System.currentTimeMillis() - tme) / 1000.;
 			// Reset solver information
 			reset_info(work.info);
+		}
 
-	
+		private static void checkUpdate(double[] values, int[] index, int nnz, String name) {
+			if (values == null) {
+				if (index != null)
+					throw new IllegalArgumentException(name + " indices given without values");
+				return;
 			}
-		
+			if (index == null) {
+				if (values.length != nnz)
+					throw new IllegalArgumentException(name + " has " + nnz
+							+ " nonzeros but " + values.length + " values were given");
+				return;
+			}
+			if (index.length != values.length)
+				throw new IllegalArgumentException(name + " update needs as many indices as values");
+			for (int i = 0; i < index.length; i++) {
+				if (index[i] < 0 || index[i] >= nnz)
+					throw new IllegalArgumentException(name + " update index out of range: " + index[i]);
+			}
+		}
+
+		private static void replaceValues(double[] target, double[] values, int[] index) {
+			if (values == null)
+				return;
+			if (index == null) {
+				System.arraycopy(values, 0, target, 0, target.length);
+				return;
+			}
+			for (int i = 0; i < index.length; i++) {
+				target[index[i]] = values[i];
+			}
+		}
+
+		public void update_P(double[] Px_new,
+                int[]   Px_new_idx) {
+			update_data_mat(Px_new, Px_new_idx, null, null);
+		}
+
+		public void update_A(double[] Ax_new,
+                 int[]   Ax_new_idx) {
+			update_data_mat(null, null, Ax_new, Ax_new_idx);
+		}
+
 		public void update_P_A(double[] Px_new,
                 int[]   Px_new_idx,
                 double[] Ax_new,
                 int[]   Ax_new_idx) {
-			int i;          // For indexing
-			int nnzP, nnzA; // Number of nonzeros in P and A
-			
-			// Check if workspace has been initialized
-			
-			double tme = System.currentTimeMillis();
-			
-			nnzP = work.data.P.Ap[work.data.P.n];
-			nnzA = work.data.A.Ap[work.data.A.n];
-			
-		
-			
-			if (work.settings.scaling>0) {
-			// Unscale data
-				Scaling.unscale_data(work);
-			}
-			
-			// Update P elements
-			if (Px_new_idx!=null) { // Change only Px_new_idx
-				for (i = 0; i < Px_new_idx.length; i++) {
-					work.data.P.Ax[Px_new_idx[i]] = Px_new[i];
-				}
-			}
-			else // Change whole P
-			{
-				for (i = 0; i < nnzP; i++) {
-					work.data.P.Ax[i] = Px_new[i];
-				}
-			}
-			
-			// Update A elements
-			if (Ax_new_idx!=null) { // Change only Ax_new_idx
-				for (i = 0; i < Ax_new_idx.length; i++) {
-					work.data.A.Ax[Ax_new_idx[i]] = Ax_new[i];
-				}
-			}
-			else { // Change whole A
-				for (i = 0; i < nnzA; i++) {
-					work.data.A.Ax[i] = Ax_new[i];
-				}
-			}
-			
-			if (work.settings.scaling>0) {
-			// Scale data
-				Scaling.scale_data(work);
-			}
-			
-			// Update linear system structure with new data
-			work.linsys_solver.update_solver_matrices(work.data.P,
-			                                            work.data.A);
-			work.info.update_time += (System.currentTimeMillis()-tme)/1000. ;
-			// Reset solver information
-			reset_info(work.info);
-			
-	
-			
-			}
-			
+			update_data_mat(Px_new, Px_new_idx, Ax_new, Ax_new_idx);
+		}
 
-
-		
 		public double[] getPrimalSolution() {
 			return work.solution.x;
 		}

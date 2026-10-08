@@ -171,31 +171,34 @@ After solving the problem through the terminal, jOSQP creates a log file, `josqp
 ### The current version against native OSQP
 
 Nine QPLIB instances through the same exported matrices, median of three cold-start runs, on an
-Apple M4 with JDK 26. Both solvers use `eps_abs = eps_rel = 1e-3`, a 20 second limit and
-`adaptive_rho_interval = 100`. jOSQP runs the plain Java 8 artifact (no Vector API backend) with
-polishing off, native OSQP 1.1.3 with its default polishing, `eps_prim_inf = eps_dual_inf = 1e-8`
-against 1e-4 in jOSQP, and 100,000 against 200,000 iterations.
+Apple M4 with JDK 26. jOSQP runs the plain Java 8 artifact (no Vector API backend) with
+`eps_abs = eps_rel = 1e-3`, `adaptive_rho_interval = 100`, polishing off and a 120 second limit.
+Native OSQP 1.1.3 was driven through its Python API with `eps_prim_inf = eps_dual_inf = 1e-8`,
+default polishing and 100,000 iterations against 200,000 in jOSQP; its 20 second limit was never
+binding, the slowest case took 15 seconds.
 
-| Instance | n | m | jOSQP | native OSQP | jOSQP status | native status |
+| Instance | n | m | jOSQP | native OSQP | jOSQP | native |
 |---|---:|---:|---:|---:|---|---|
-| `qplib_8845` | 1,546 | 2,323 | 343 ms | 346 ms | SOLVED | solved |
-| `qplib_9002` | 2,890 | 4,539 | 5,898 ms | 5,984 ms | SOLVED | solved |
-| `qplib_8938` | 4,001 | 16,000 | over the limit | 14,747 ms | TIME_LIMIT_REACHED | maximum iterations reached |
-| `qplib_8906` | 5,223 | 6,061 | 169 ms | 173 ms | SOLVED | solved |
-| `qplib_8559` | 10,000 | 15,000 | 4,016 ms | 4,912 ms | SOLVED | solved |
-| `qplib_8616` | 13,870 | 24,274 | 61 ms | 54 ms | SOLVED | solved |
-| `qplib_8991` | 14,400 | 14,400 | 68 ms | 73 ms | SOLVED | solved |
-| `qplib_8792` | 15,129 | 15,129 | 68 ms | 75 ms | SOLVED | solved |
-| `qplib_8602` | 34,552 | 87,535 | over the limit | 12,993 ms | TIME_LIMIT_REACHED | run time limit reached, solved inaccurate |
+| `qplib_8845` | 1,546 | 2,323 | 0.32 s | 0.35 s | SOLVED | solved |
+| `qplib_9002` | 2,890 | 4,539 | 5.93 s | 5.98 s | SOLVED | solved |
+| `qplib_8938` | 4,001 | 16,000 | 27.6 s | 14.7 s | SOLVED_INACCURATE | maximum iterations reached |
+| `qplib_8906` | 5,223 | 6,061 | 0.15 s | 0.17 s | SOLVED | solved |
+| `qplib_8559` | 10,000 | 15,000 | 3.99 s | 4.91 s | SOLVED | solved |
+| `qplib_8616` | 13,870 | 24,274 | 0.06 s | 0.05 s | SOLVED | solved |
+| `qplib_8991` | 14,400 | 14,400 | 0.07 s | 0.07 s | SOLVED | solved |
+| `qplib_8792` | 15,129 | 15,129 | 0.07 s | 0.08 s | SOLVED | solved |
+| `qplib_8602` | 34,552 | 87,535 | 25.6 s | 13.0 s | SOLVED | solved |
 
-On seven of the nine instances a pure Java solver stays with the C library, in five of them slightly
-ahead of it. The two exceptions are honest gaps: `qplib_8602` is the largest case of the set and
-native OSQP needs 13 seconds for it, and `qplib_8938` makes both solvers give up.
+Eight of the nine instances end with a solution, and on seven of them a pure Java solver stays with
+the C library, in five slightly ahead of it. The two uneven cases: `qplib_8602`, the largest one,
+needs 275 iterations and 25.6 seconds against 13.0 seconds natively — at a 20 second limit it looked
+unsolvable, so the limit in the measurement mattered more than the solver. `qplib_8938` runs into the
+iteration limit on both sides, native OSQP at 100,000 iterations, jOSQP at 200,000 with
+`SOLVED_INACCURATE`.
 
-jOSQP was measured with its own cold-start harness on the same `.qps` files, native OSQP 1.1.3
-through its Python API on matrices exported from `Parser`, so both solvers read identical data. The
-harness and the native comparison tooling are kept outside this repository, next to the extracted
-QPLIB set; the numbers above are the medians of three runs each.
+jOSQP was measured with its own cold-start harness on the same `.qps` files, native OSQP through its
+Python API on matrices exported from `Parser`, so both solvers read identical data. The harness and
+the native comparison tooling are kept outside this repository, next to the extracted QPLIB set.
 
 ### What the current version changed
 

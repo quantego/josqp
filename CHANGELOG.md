@@ -75,6 +75,9 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   `Info` carries `primdual_int` (running integral of `|duality_gap|`) and
   `rel_kkt_error` (`max(pri_res, dua_res, |duality_gap|)` of the last info
   update), both filled like in OSQP 1.0.
+- **Benchmark coverage**: with a 120 second limit the 34,552 variable QPLIB case
+  `qplib_8602` solves in 25.6 seconds, where the earlier 20 second limit made it
+  look unsolvable.
 - **Consolidated update entry points** ([issue
   #1](https://github.com/quantego/josqp/issues/1)):
   `OSQP#update_data_vec(q, l, u)` and

@@ -1,0 +1,25 @@
+OSQP
+Copyright (c) 2019 Bartolomeo Stellato, Goran Banjac, Paul Goulart, Stephen Boyd
+
+This product includes software developed at Stanford University and at the University of Oxford.
+
+
+The following external modules are included in this software library
+
+QDLDL
+Copyright (c) 2018, Paul Goulart, Bartolomeo Stellato, Goran Banjac.
+
+AMD
+Copyright (c) 1996-2015, Timothy A. Davis, Patrick R. Amestoy, and Iain S. Duff.
+
+
+
+jOSQP is a modified Java port of OSQP, QDLDL and AMD. The Java implementation
+and release fixes differ from the upstream C sources. The jOSQP-specific work
+is covered by LICENSE (MIT); upstream terms and attributions are retained in
+THIRD-PARTY-LICENSES/Apache-2.0.txt and THIRD-PARTY-LICENSES/AMD-BSD-3-Clause.txt.
+
+Sources for the retained notices and license texts:
+https://github.com/osqp/osqp/tree/v0.6.3
+https://github.com/osqp/qdldl
+https://github.com/DrTimothyAldenDavis/SuiteSparse/tree/v5.13.0/AMD

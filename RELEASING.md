@@ -138,3 +138,7 @@ mvn -Prelease -Dgpg.skip=true verify # tests + all three jars, without a signing
 
 The local unsigned verification does not test GPG signing or Central authentication. Those
 require the configured repository secrets. Never enable the Vector profile for a Central release.
+
+Inspect all three jars before signing: `META-INF/LICENSE`, `META-INF/NOTICE`, and
+both files under `META-INF/THIRD-PARTY-LICENSES/` must be present. The main jar must
+contain only Java 8 class files, with no Vector, JUnit or Hamcrest implementation classes.

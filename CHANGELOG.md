@@ -216,6 +216,10 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Documentation
 
+- Release artifacts now include `LICENSE`, upstream OSQP/QDLDL/AMD `NOTICE`
+  and the retained Apache 2.0 / BSD 3-clause license texts in `META-INF`,
+  including the sources and Javadoc jars.
+
 - README: the benchmark section now shows nine QPLIB instances measured against
   native OSQP 1.1.3 with the current version (median of three cold starts, both
   configurations spelled out) instead of the historical cross-solver table, which

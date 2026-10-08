@@ -266,7 +266,10 @@ above. [CHANGELOG.md](CHANGELOG.md) includes migration notes and breaking change
 
 ## License
 
-MIT License, see [LICENSE](LICENSE).
+The jOSQP-specific work uses the MIT License, see [LICENSE](LICENSE).
+The port retains upstream OSQP/QDLDL (Apache 2.0) and AMD (BSD 3-clause) terms;
+see [NOTICE](NOTICE) and [THIRD-PARTY-LICENSES](THIRD-PARTY-LICENSES).
+All three release jars include these texts under `META-INF`.
 
 ## Authors
 * Nils Loehndorf

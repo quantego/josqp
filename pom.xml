@@ -14,6 +14,16 @@
       <url>https://opensource.org/licenses/MIT</url>
       <distribution>repo</distribution>
     </license>
+    <license>
+      <name>Apache License, Version 2.0 (upstream OSQP and QDLDL)</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>BSD 3-clause (upstream AMD)</name>
+      <url>https://github.com/DrTimothyAldenDavis/SuiteSparse/blob/v5.13.0/AMD/Doc/License.txt</url>
+      <distribution>repo</distribution>
+    </license>
   </licenses>
 
   <developers>
@@ -60,6 +70,21 @@
 
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>LICENSE</include>
+          <include>NOTICE</include>
+          <include>THIRD-PARTY-LICENSES/**</include>
+        </includes>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -153,6 +178,32 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <version>3.5.0</version>
+            <executions>
+              <execution>
+                <id>javadoc-license-resources</id>
+                <phase>prepare-package</phase>
+                <goals><goal>copy-resources</goal></goals>
+                <configuration>
+                  <outputDirectory>${project.build.directory}/reports/apidocs/META-INF</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${project.basedir}</directory>
+                      <includes>
+                        <include>LICENSE</include>
+                        <include>NOTICE</include>
+                        <include>THIRD-PARTY-LICENSES/**</include>
+                      </includes>
+                      <filtering>false</filtering>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>

@@ -222,6 +222,45 @@ After solving the problem through the terminal, jOSQP creates a log file, `josqp
 
 ### Matched release comparison
 
+### Portable short-column optimization
+
+The direct solver selects an unrolled triangular-solve kernel when every factor column has
+at most four off-diagonal entries. It makes the short loops explicit for the JIT, preserves
+the original arithmetic order and requires no Vector API or newer Java language features.
+Wider factors keep the general kernel. Selection happens once per factor, without a plan array
+or per-iteration allocations.
+
+Matched Java A/B measurements on macOS arm64, OpenJDK 26.0.2, against the immediately preceding
+release candidate (`3b4f5fe`), excluding parsing and setup:
+
+| Instance | Previous solve | Short-column selection | Relative time saved |
+|---|---:|---:|---:|
+| `liswet3` | 15.974 s | 11.047 s | 30.8% |
+| `ubh1` | 9.830 s | 8.181 s | 16.8% |
+| `qplib_8991` | 0.190 s | 0.190 s | approximately unchanged |
+| `primalc8` | 0.427 s | 0.427 s | approximately unchanged |
+| `qplib_8559` | 32.190 s | 32.120 s | approximately unchanged |
+| `qplib_8602` | 32.312 s | 32.276 s | approximately unchanged |
+
+All measured solves return `SOLVED`, with bitidentical full primal/dual vectors and iteration
+counts between variants; independent original-matrix feasibility, stationarity and gap checks
+pass. The measured heap allocations during setup and solve are unchanged. Code cache, metaspace
+and peak RSS were not measured. The geometric mean solve-time ratio over these **six selected
+instances** is 0.912 (about 9% less time); this is not a full-suite or native-solver comparison.
+
+`liswet3` and `ubh1` each use three new JVMs per variant, alternating A/B order, with one untimed
+warmup and two measured fresh solver states in each JVM. The four other cases each use one JVM
+per variant with one warmup and three measured states. Both variants use eps_abs=eps_rel=1e-6,
+eps_prim_inf=eps_dual_inf=1e-12, default certificate guards, rho interval 50, max_iter=1,000,000,
+time_limit=120 and no warm starting or polishing. `primalc8` instead uses eps_abs=eps_rel=1e-9,
+fixed rho=0.1 and polishing. These are warm-JIT measurements; gains depend on the factor pattern
+and runtime. ADMM loop fusion and direct RHS/permutation fusion were tested and not retained
+because they did not show consistent improvements.
+
+### Native OSQP comparison
+
+The following matched native comparison predates the short-column specialization and has not
+been rerun for that change. It remains a reference measurement, not a new Java/native speed claim.
 Nine QPLIB problems on identical exported, unscaled matrices, macOS arm64 / JDK 26. Both solvers
 use `eps_abs = eps_rel = 1e-6`, `eps_prim_inf = eps_dual_inf = 1e-8`, iteration-based adaptive rho
 with interval 50, 100,000 iterations, a 120-second limit, gap checking and no polishing. The extra

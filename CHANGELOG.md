@@ -128,6 +128,13 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Changed
 
+- The portable QDLDL solve selects an unrolled kernel for factors whose columns all have at most
+  four off-diagonal entries. Arithmetic order and full solution bits are preserved; wider factors
+  retain the generic kernel, with no extra plan buffers or measured heap allocations. Matched
+  warm-JVM solves improve by about 31% on liswet3 and 17% on ubh1; the four other selected cases
+  remain approximately unchanged. This does not require the Vector API. Fusion prototypes were
+  measured outside the solver repository and rejected for lack of consistent gains.
+
 - **Test suite migrated to JUnit 5 (Jupiter)**. `mvn test` now drives the suite through the JUnit
   Platform; `junit:junit:4.13.2` is gone and only `hamcrest` remains as an
   extra test dependency for the two matcher assertions. JUnit 5 expects the failure message as the

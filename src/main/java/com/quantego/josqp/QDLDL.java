@@ -395,6 +395,35 @@ public class QDLDL  {
     	}
     }
     
+    /** Short-column kernels preserve the generic solve's exact update order.
+     * The fallback also remains correct if a caller changes a public factor's pattern.
+     */
+    private static void solveShort(QDLDL.LDL l,double[] x) {
+        int[] p=l.L.Ap,r=l.L.Ai;double[] a=l.L.Ax;
+        for(int i=0;i<l.L.n;i++) {
+            int j=p[i],len=p[i+1]-j;double xi=x[i];
+            switch(len) {
+                case 0:break;
+                case 1:x[r[j]]-=a[j]*xi;break;
+                case 2:x[r[j]]-=a[j]*xi;x[r[j+1]]-=a[j+1]*xi;break;
+                case 3:x[r[j]]-=a[j]*xi;x[r[j+1]]-=a[j+1]*xi;x[r[j+2]]-=a[j+2]*xi;break;
+                case 4:x[r[j]]-=a[j]*xi;x[r[j+1]]-=a[j+1]*xi;x[r[j+2]]-=a[j+2]*xi;x[r[j+3]]-=a[j+3]*xi;break;
+                default:for(int end=p[i+1];j<end;j++) x[r[j]]-=a[j]*xi;
+            }
+        }
+        for(int i=l.L.n-1;i>=0;i--) {
+            int j=p[i],len=p[i+1]-j;double xi=x[i]*l.Dinv[i];
+            switch(len) {
+                case 0:break;
+                case 1:xi-=a[j]*x[r[j]];break;
+                case 2:xi-=a[j]*x[r[j]];xi-=a[j+1]*x[r[j+1]];break;
+                case 3:xi-=a[j]*x[r[j]];xi-=a[j+1]*x[r[j+1]];xi-=a[j+2]*x[r[j+2]];break;
+                case 4:xi-=a[j]*x[r[j]];xi-=a[j+1]*x[r[j+1]];xi-=a[j+2]*x[r[j+2]];xi-=a[j+3]*x[r[j+3]];break;
+                default:for(int end=p[i+1];j<end;j++) xi-=a[j]*x[r[j]];
+            }
+            x[i]=xi;
+        }
+    }
     public static double[] solve(LDL ldl, double[] b) {
     	final double x[] = b.clone();
         solveInPlace(ldl, x);
@@ -411,6 +440,7 @@ public class QDLDL  {
     	final int[] Lp = ldl.L.Ap;
     	final int[] Li = ldl.L.Ai;
     	final double[] Lx = ldl.L.Ax;
+        if (ldl.shortColumns) { solveShort(ldl,x); return; }
     	Lsolve(n,Lp,Li,Lx,x);
     	LtsolveScaled(n,Lp,Li,Lx,ldl.Dinv,x);
     }
@@ -431,11 +461,16 @@ public class QDLDL  {
     	public final double[] D;
     	public final double[] Dinv;
     	public final int positiveValuesInD;
+        /** Select once per factor, without an extra plan array or per-solve allocation. */
+        final boolean shortColumns;
 		public LDL(CSCMatrix L, double[] D, double[] Dinv, int positiveValuesInD) {
 			this.L = L;
 			this.D = D;
 			this.Dinv = Dinv;
 			this.positiveValuesInD = positiveValuesInD;
+            boolean shortPattern=true;
+            for(int i=0;i<L.n;i++) if(L.Ap[i+1]-L.Ap[i]>4) {shortPattern=false;break;}
+            this.shortColumns=shortPattern;
 		}
     }
     

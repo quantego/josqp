@@ -220,7 +220,59 @@ After solving the problem through the terminal, jOSQP creates a log file, `josqp
 
 ## Benchmarks
 
-### Matched release comparison
+### Native OSQP comparison
+
+Remeasured on 2026-10-08 after the short-column optimization, using portable solver commit
+`62d29b4`: nine QPLIB problems plus Maros-Meszaros `liswet3` and `ubh1`, on identical exported,
+unscaled matrices, macOS arm64 / OpenJDK 26.0.2. Both solvers use `eps_abs = eps_rel = 1e-6`,
+`eps_prim_inf = eps_dual_inf = 1e-8`, iteration-based adaptive rho with interval 50, 100,000
+iterations, a 120-second limit, gap checking and no polishing. The extra Java infeasibility
+guards are disabled for this comparison. The Java artifact uses no Vector API.
+
+Each solver gets one untimed warmup and three measured solves with independently initialised
+solver states; these are **warm JVM measurements, not three cold JVM processes**. Solver runs
+are sequential. The table shows median solve wall time, excluding parsing, export and setup.
+Native OSQP 1.1.3 runs its C core through the Python wrapper; the measured call includes that
+wrapper's overhead.
+
+| Instance | n | Java | native OSQP | Java / native | Status |
+|---|---:|---:|---:|---:|---|
+| `qplib_8845` | 1,546 | 7.029 s | 7.839 s | 0.897 | SOLVED / solved |
+| `qplib_9002` | 2,890 | 9.142 s | 9.732 s | 0.939 | SOLVED / solved |
+| `qplib_8938` | 4,001 | 12.922 s | 14.519 s | 0.890 | MAX_ITER_REACHED / maximum iterations reached (excluded) |
+| `qplib_8906` | 5,223 | 0.945 s | 1.033 s | 0.915 | SOLVED / solved |
+| `qplib_8559` | 10,000 | 31.749 s | 35.132 s | 0.904 | SOLVED / solved |
+| `qplib_8616` | 13,870 | 0.056 s | 0.052 s | 1.071 | SOLVED / solved |
+| `qplib_8991` | 14,400 | 0.193 s | 0.184 s | 1.044 | SOLVED / solved |
+| `qplib_8792` | 15,129 | 0.378 s | 0.369 s | 1.024 | SOLVED / solved |
+| `qplib_8602` | 34,552 | 32.196 s | 32.008 s | 1.006 | SOLVED / solved |
+| `liswet3` | 10,002 | 10.911 s | 13.838 s | 0.788 | SOLVED / solved |
+| `ubh1` | 18,009 | 8.085 s | 8.644 s | 0.935 | SOLVED / solved |
+
+All ten jointly solved cases pass independent primal, stationarity and gap checks on the original
+data and agree in objective within relative tolerance 1e-5 (with an absolute floor of 1e-5).
+`qplib_8938` reaches 100,000 iterations on both sides and is excluded from the geometric means.
+The ratios below are Java / native; a value below 1 means less time for Java.
+
+| Validated subset | Cases | Geometric mean solve | Geometric mean setup + solve |
+|---|---:|---:|---:|
+| QPLIB | 8 | 0.973 | 1.019 |
+| QPLIB + the two Maros-Meszaros cases | 10 | 0.949 | 0.985 |
+
+The expanded sample uses about 5% less solve time for Java and is approximately equal including
+setup. `liswet3` takes about 21% less solve time; `ubh1` about 6% less. The eight-case QPLIB sample
+remains approximately equal. This is a selected set, not a full-suite comparison or a general
+Java speed advantage. Small differences depend on runtime and measurement variation.
+
+Setup includes solver validation/copying, scaling and initial factorisation; parsing, export and
+preparation of caller-owned arrays or SciPy matrices are excluded. Setup + solve uses the median
+of each run's combined time, rather than adding separate medians. These fresh figures supersede
+the preceding Java/native table; the Java A/B measurements below use their separately stated profile.
+
+Full runs, setup times, iterations, original-matrix quality checks, input checksums and build
+provenance are retained in `release-current-bench.json` and `release-current-summary.json` in the
+external `josqp-tools` measurement workspace. No Python code or runtime dependency is required
+by this Java repository.
 
 ### Portable short-column optimization
 
@@ -257,55 +309,18 @@ fixed rho=0.1 and polishing. These are warm-JIT measurements; gains depend on th
 and runtime. ADMM loop fusion and direct RHS/permutation fusion were tested and not retained
 because they did not show consistent improvements.
 
-### Native OSQP comparison
-
-The following matched native comparison predates the short-column specialization and has not
-been rerun for that change. It remains a reference measurement, not a new Java/native speed claim.
-Nine QPLIB problems on identical exported, unscaled matrices, macOS arm64 / JDK 26. Both solvers
-use `eps_abs = eps_rel = 1e-6`, `eps_prim_inf = eps_dual_inf = 1e-8`, iteration-based adaptive rho
-with interval 50, 100,000 iterations, a 120-second limit, gap checking and no polishing. The extra
-Java infeasibility guards are disabled for this comparison. The Java artifact uses no Vector API.
-
-Each solver gets one untimed warmup and three measured solves with independently initialised
-solver states; these are **warm JVM measurements, not three cold JVM processes**. The table shows
-median solve wall time, excluding parsing, export and setup. Native OSQP 1.1.3 runs its C core
-through the Python wrapper; the measured call includes that wrapper's overhead.
-
-| Instance | n | Java | native OSQP | Java / native | Status |
-|---|---:|---:|---:|---:|---|
-| `qplib_8845` | 1,546 | 7.230 s | 7.884 s | 0.917 | SOLVED / solved |
-| `qplib_9002` | 2,890 | 9.239 s | 9.849 s | 0.938 | SOLVED / solved |
-| `qplib_8938` | 4,001 | 13.585 s | 14.619 s | 0.929 | iteration limit on both sides |
-| `qplib_8906` | 5,223 | 0.954 s | 1.036 s | 0.921 | SOLVED / solved |
-| `qplib_8559` | 10,000 | 31.876 s | 35.217 s | 0.905 | SOLVED / solved |
-| `qplib_8616` | 13,870 | 0.054 s | 0.050 s | 1.074 | SOLVED / solved |
-| `qplib_8991` | 14,400 | 0.191 s | 0.188 s | 1.013 | SOLVED / solved |
-| `qplib_8792` | 15,129 | 0.377 s | 0.373 s | 1.011 | SOLVED / solved |
-| `qplib_8602` | 34,552 | 32.151 s | 32.038 s | 1.004 | SOLVED / solved |
-
-Eight cases pass independent primal, stationarity and gap checks on the original data and agree
-in objective to the stated relative tolerance. Their geometric mean of Java/native solve time is
-**0.971**: approximately equal performance, about 3% less time for Java in this sample. `qplib_8938`
-reaches the iteration limit on both sides and is excluded. `qplib_8602` solves in about 32 seconds
-on each side. Including setup, the geometric mean ratio is **1.050**, about 5% more time for
-Java. Setup covers validation/copying, scaling and initial factorisation; parsing and the
-preparation of caller-owned input arrays are excluded. These figures supersede earlier comparisons using different profiles; they do not
-establish a general Java speed advantage or guarantee performance on other problem families.
-
-Full runs, setup times, iteration counts, checksums and quality criteria are retained in the
-external `josqp-tools` measurement workspace. No Python code or runtime dependency is required
-by this Java repository.
-
 ### Model construction
 
-Median of three new JVM processes per mode, JDK 26, `-Xmx2g`. The same primitive input arrays are
-prepared before timing either builder; measured allocation excludes those arrays. Construction
+Remeasured on 2026-10-08 with the current portable solver: median of three new JVM processes
+per size and mode, OpenJDK 26.0.2, `-Xmx2g`; mode order alternates between repetitions.
+The same primitive input arrays are prepared before timing either builder; measured allocation
+excludes those arrays. Construction
 ends at `Model.build()`, before solver setup, CSC assembly and factorisation.
 
 | Variables | User rows × entries | Algebraic build / allocation | Bulk build / allocation |
 |---:|---:|---:|---:|
-| 100,000 | 1,000 × 200 | 84.1 ms / 85.1 MB | 20.9 ms / 36.8 MB |
-| 300,000 | 2,000 × 200 | 217.0 ms / 236.1 MB | 45.2 ms / 113.4 MB |
+| 100,000 | 1,000 × 200 | 85.6 ms / 85.1 MB | 21.0 ms / 36.8 MB |
+| 300,000 | 2,000 × 200 | 210.4 ms / 236.1 MB | 46.9 ms / 113.4 MB |
 
 Here MB means allocated bytes / 1,000,000. A fixed-pattern stress test performs 100,000 rounds of
 three coefficient assignments and retains exactly three current entries. Solver rebuilds retain

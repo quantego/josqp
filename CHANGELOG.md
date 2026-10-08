@@ -244,9 +244,10 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   and the retained Apache 2.0 / BSD 3-clause license texts in `META-INF`,
   including the sources and Javadoc jars.
 
-- README: the benchmark section now shows nine QPLIB instances measured against
-  native OSQP 1.1.3 with the current version (median of three cold starts, both
-  configurations spelled out) instead of the historical cross-solver table, which
+- README: the benchmark section now shows nine QPLIB and two Maros-Meszaros instances measured
+  against native OSQP 1.1.3 after the short-column optimization (one untimed warmup and three
+  fresh solver states per instance and solver, both configurations spelled out), replacing
+  the historical cross-solver table, which
   only covered an earlier version. The benchmark harness and the native comparison
   tooling live outside the repository.
 - README: quadratic-term convention and the migration note for existing models,

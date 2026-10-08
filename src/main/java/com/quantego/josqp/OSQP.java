@@ -184,6 +184,10 @@ public class OSQP {
 		public double rho = RHO;                    ///< ADMM step rho
 		public double sigma = SIGMA;                  ///< ADMM step sigma
 		public int scaling = SCALING;                ///< heuristic data scaling iterations; if 0, then disabled.
+		/** Initial positive cost multiplier before Ruiz equilibration; requires scaling when not 1. */
+		public double scaling_cost = 1;
+		/** Equality/inequality rho ratio. Default is OSQP 1.0's 1000; advanced tuning is opt-in. */
+		public double rho_eq_over_rho_ineq = RHO_EQ_OVER_RHO_INEQ;
 
 		public boolean adaptive_rho = ADAPTIVE_RHO;           ///< boolean, is rho step size adaptive?
 		public boolean adaptive_rho_kkt = false; ///< opt-in OSQP 1.0-style progress gate
@@ -685,6 +689,12 @@ public class OSQP {
 		      work.info.status = Status.MAX_ITER_REACHED;
 		    }
 		  }
+		  // A time limit still permits a valid final solution, just like OSQP 1.0.
+		  // Both checks keep the certificate tolerances and persistence guards intact.
+		  if (work.info.status == Status.TIME_LIMIT_REACHED) {
+		    if (!check_termination(work, false) && !check_termination(work, true))
+		      work.info.status = Status.TIME_LIMIT_REACHED;
+		  }
 		  
 		  
 
@@ -915,7 +925,7 @@ public class OSQP {
 		    }
 		    else if (work.constr_type[i] == 1) {
 		      // Equalities
-		      work.rho_vec[i]     = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+		      work.rho_vec[i]     = work.settings.rho_eq_over_rho_ineq * work.settings.rho;
 		      work.rho_inv_vec[i] = 1. / work.rho_vec[i];
 		    }
 		  }
@@ -960,7 +970,7 @@ public class OSQP {
 		    } else if (work.data.u[i] - work.data.l[i] < RHO_TOL) {
 		      // Equality constraints
 		      work.constr_type[i] = 1;
-		      work.rho_vec[i]     = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+		      work.rho_vec[i]     = work.settings.rho_eq_over_rho_ineq * work.settings.rho;
 		    } else {
 		      // Inequality constraints
 		      work.constr_type[i] = 0;
@@ -1000,7 +1010,7 @@ public class OSQP {
 				// Equality constraints
 				if (work.constr_type[i] != 1) {
 					work.constr_type[i] = 1;
-					work.rho_vec[i] = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
+					work.rho_vec[i] = work.settings.rho_eq_over_rho_ineq * work.settings.rho;
 					work.rho_inv_vec[i] = 1. / work.rho_vec[i];
 					constr_type_changed = 1;
 				}
@@ -1075,13 +1085,17 @@ public class OSQP {
 		}
 
 		static double compute_pri_tol(Workspace work, double eps_abs, double eps_rel) {
+		  return compute_pri_tol(work, eps_abs, eps_rel, work.z);
+		}
+
+		static double compute_pri_tol(Workspace work, double eps_abs, double eps_rel, double[] z) {
 		  double max_rel_eps, temp_rel_eps;
 
 		  // max_rel_eps = max(||z||, ||A x||)
 		  if (work.settings.scaling>0 && !work.settings.scaled_termination) {
 		    // ||Einv * z||
 		    max_rel_eps =
-		    		LinAlg.vec_scaled_norm_inf(work.scaling.Einv, work.z, work.data.m);
+		        LinAlg.vec_scaled_norm_inf(work.scaling.Einv, z, work.data.m);
 
 		    // ||Einv * A * x||
 		    temp_rel_eps = LinAlg.vec_scaled_norm_inf(work.scaling.Einv,
@@ -1091,7 +1105,7 @@ public class OSQP {
 		    max_rel_eps = Math.max(max_rel_eps, temp_rel_eps);
 		  } else { // No unscaling required
 		    // ||z||
-		    max_rel_eps = LinAlg.vec_norm_inf(work.z, work.data.m);
+		    max_rel_eps = LinAlg.vec_norm_inf(z, work.data.m);
 
 		    // ||A * x||
 		    temp_rel_eps = LinAlg.vec_norm_inf(work.Ax, work.data.m);
@@ -1635,6 +1649,7 @@ public class OSQP {
 	 */
     public void update_data_vec(double[] q, double[] l, double[] u) {
         if (q != null) validateVector(q, work.data.n, "q", false);
+        Scaling.validateCostScaling(q,work.data.n,work.settings.scaling_cost);
         if (l != null) validateVector(l, work.data.m, "l", true);
         if (u != null) validateVector(u, work.data.m, "u", true);
         // Validate every component before replacing any data, including a combined q/bounds update.
@@ -1695,6 +1710,7 @@ public class OSQP {
 				return;
 			checkUpdate(Px_new, Px_new_idx, work.data.P.Ap[work.data.P.n], "P");
 			checkUpdate(Ax_new, Ax_new_idx, work.data.A.Ap[work.data.A.n], "A");
+			Scaling.validateCostScaling(Px_new,Px_new==null ? 0 : Px_new.length,work.settings.scaling_cost);
 
 			double tme = System.currentTimeMillis();
 			work.factorValid = false;
@@ -1796,15 +1812,17 @@ public class OSQP {
 			throw new RuntimeException("Failed to update rho");
 	}
 
-	/** Apply runtime settings. Changes to scaling or sigma require a new solver. */
+	/** Apply runtime settings. Changes to scaling, scaling_cost or sigma require a new solver. */
 	public void update_settings(Settings settings) {
 		validateSettings(settings);
-		if (settings.scaling != work.settings.scaling || settings.sigma != work.settings.sigma)
-			throw new IllegalArgumentException("Changing scaling or sigma requires a new solver.");
+		if (settings.scaling != work.settings.scaling || settings.sigma != work.settings.sigma
+				|| settings.scaling_cost != work.settings.scaling_cost)
+			throw new IllegalArgumentException("Changing scaling, scaling_cost or sigma requires a new solver.");
 		Settings next = settings.copy();
-		if (next.rho != work.settings.rho) update_rho(next.rho);
-		next.rho = work.settings.rho;
+		boolean rhoChanged = next.rho != work.settings.rho ||
+				next.rho_eq_over_rho_ineq != work.settings.rho_eq_over_rho_ineq;
 		work.settings = next;
+		if (rhoChanged) update_rho(next.rho);
 		work.linsys_solver.configureRefinement(next.linear_refine_iter, next.check_linear_residual);
 	}
 
@@ -1828,7 +1846,8 @@ public class OSQP {
 		for (double value : new double[] { settings.rho, settings.sigma, settings.delta,
 				settings.eps_abs, settings.eps_rel, settings.eps_prim_inf, settings.eps_dual_inf,
 				settings.alpha, settings.adaptive_rho_tolerance, settings.adaptive_rho_fraction,
-				settings.infeasibility_margin, settings.cg_tol_fraction })
+				settings.infeasibility_margin, settings.cg_tol_fraction,
+				settings.scaling_cost, settings.rho_eq_over_rho_ineq })
 			if (!Double.isFinite(value))
 				throw new IllegalArgumentException("Settings must contain finite numerical values.");
 		if (Double.isNaN(settings.time_limit) || settings.time_limit < 0)
@@ -1844,6 +1863,11 @@ public class OSQP {
 		if (settings.scaling < 0) {
 			throw new IllegalArgumentException("scaling must be nonnegative");
 		}
+		if (!(settings.scaling_cost > 0) || !Double.isFinite(1/settings.scaling_cost)
+				|| (settings.scaling == 0 && settings.scaling_cost != 1))
+			throw new IllegalArgumentException("scaling_cost must be positive and requires scaling when not 1");
+		if (settings.rho_eq_over_rho_ineq < 1 || !Double.isFinite(settings.rho_eq_over_rho_ineq * RHO_MAX))
+			throw new IllegalArgumentException("rho_eq_over_rho_ineq must be >= 1 and cannot overflow the rho vector");
 
 		if (settings.adaptive_rho_interval < 0) {
 			throw new IllegalArgumentException("adaptive_rho_interval must be nonnegative");

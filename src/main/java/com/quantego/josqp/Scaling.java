@@ -2,6 +2,15 @@ package com.quantego.josqp;
 
 class Scaling {
 
+	static void validateCostScaling(double[] values, int length, double multiplier) {
+	    if (values==null || multiplier==1) return;
+	    for(int k=0;k<length;k++) {
+	        double value=values[k]*multiplier;
+	        if (!Double.isFinite(value) || (value==0 && values[k]!=0))
+	            throw new IllegalArgumentException("scaling_cost overflows or underflows a coefficient");
+	    }
+	}
+
 
 	// Set values lower than threshold SCALING_REG to 1
 	public static void limit_scaling(double[] D) {
@@ -68,7 +77,16 @@ class Scaling {
 	  int m = work.data.m;
 
 	  // Initialize scaling to 1
-	  work.scaling.c = 1.0;
+	  // This initial multiplier is part of c, so reported costs, residuals and dual solutions
+	  // are returned in the original objective units, including after later data updates.
+	  double initialCost = work.settings.scaling_cost;
+	  if (initialCost != 1) {
+	    validateCostScaling(work.data.P.Ax,work.data.P.Ap[n],initialCost);
+	    validateCostScaling(work.data.q,n,initialCost);
+	    LinAlg.mat_mult_scalar(work.data.P, initialCost);
+	    LinAlg.vec_mult_scalar(work.data.q, initialCost, n);
+	  }
+	  work.scaling.c = initialCost;
 	  LinAlg.vec_set_scalar(work.scaling.D,    1., work.data.n);
 	  LinAlg.vec_set_scalar(work.scaling.Dinv, 1., work.data.n);
 	  LinAlg.vec_set_scalar(work.scaling.E,    1., work.data.m);

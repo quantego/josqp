@@ -60,6 +60,11 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Added
 
+- Opt-in `Settings.scaling_cost` (initial objective multiplier before Ruiz equilibration) and
+  `Settings.rho_eq_over_rho_ineq` (equality penalty ratio), with original-unit solutions and
+  validated constructor, data-update and runtime-setting semantics. Defaults remain 1 and 1000.
+  This provides a public pure-Java solution profile for QPLIB 10038 without changing default paths.
+
 - **Index-based bulk API** on `Model.Builder` for large models built in code:
   `addVariables(n, lower, upper)`, `linearObjective(indices, coefficients)`,
   `quadraticObjective(rows, cols, values)` and
@@ -147,6 +152,14 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Fixed
 
+- A time-limited solve now performs final exact and inaccurate termination checks, as required
+  by OSQP 1.0. Qualified iterates can return `SOLVED` or `SOLVED_INACCURATE`; insufficient
+  iterates retain `TIME_LIMIT_REACHED`. The infeasibility guards remain active in both checks.
+
+- Polishing must preserve the requested primal, dual and duality-gap tolerances before replacing
+  a solved ADMM point. Improved residuals alone could previously accept a candidate with a worse
+  gap while keeping `SOLVED`; a strict `primalc1` run reproduced this error.
+
 - Preserve unscaled builder data across dimensional and sparsity changes; rebuilt models no
   longer solve a doubly scaled problem. Public solver instances have independent working arrays.
 - Compact duplicate CSC triplets after assembly and directly replace existing pattern positions,
@@ -215,6 +228,10 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   allocations from 767 MB to 64 bytes.
 
 ### Documentation
+
+- Added validated fixed-rho settings for the difficult Maros-Meszaros `primalc1/2/5/8` instances.
+  The default adaptive-rho behaviour is unchanged. QPLIB 10038 now has a validated conditioning
+  profile; QPLIB 10034 remains open at strict accuracy.
 
 - Release artifacts now include `LICENSE`, upstream OSQP/QDLDL/AMD `NOTICE`
   and the retained Apache 2.0 / BSD 3-clause license texts in `META-INF`,

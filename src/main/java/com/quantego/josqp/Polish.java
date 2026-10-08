@@ -4,6 +4,20 @@ import java.util.Arrays;
 
 class Polish {
 
+	/** Candidate products Ax, Px and Aty were formed by update_info(..., true). */
+	static boolean candidateMeetsTolerances(OSQP.Workspace work) {
+	    double factor = work.info.status == OSQP.Status.SOLVED_INACCURATE ? 10 : 1;
+	    double epsAbs = factor * work.settings.eps_abs;
+	    double epsRel = factor * work.settings.eps_rel;
+	    if ((work.data.m > 0 && !(work.pol.pri_res < OSQP.compute_pri_tol(work, epsAbs, epsRel, work.pol.z))) ||
+	        !(work.pol.dua_res < OSQP.compute_dua_tol(work, epsAbs, epsRel))) return false;
+	    if (!work.settings.check_dualgap) return true;
+	    double scale = work.settings.scaling > 0 && !work.settings.scaled_termination
+	            ? work.scaling.cinv : 1;
+	    double gap = work.settings.scaled_termination ? work.pol.scaled_duality_gap : work.pol.duality_gap;
+	    return Double.isFinite(gap) && Math.abs(gap) < epsAbs + epsRel * scale * work.pol.gap_scale;
+	}
+
 	/**
 	 * Form reduced matrix A that contains only rows that are active at the
 	 * solution.
@@ -271,7 +285,8 @@ class Polish {
 	                                                                    // already
 	                                                                    // tiny
 
-	  if (polish_successful) {
+	  // Residual improvement alone must not invalidate the already reported solution quality.
+	  if (polish_successful && candidateMeetsTolerances(work)) {
 	    // Update solver information
 	    work.info.obj_val       = work.pol.obj_val;
 	    work.info.dual_obj_val  = work.pol.dual_obj_val;

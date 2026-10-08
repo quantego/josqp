@@ -1030,7 +1030,7 @@ public class Model {
     /**
      * Solve the model using customized parameter settings.
      * @param settings settings applied on every call (or {@code null} for fresh defaults).
-     * Runtime changes reuse the solver; scaling or sigma changes rebuild it.
+     * Runtime changes reuse the solver; scaling, scaling_cost or sigma changes rebuild it.
      * @return status of the solver
      */
     public OSQP.Status solve(OSQP.Settings settings) {
@@ -1042,7 +1042,7 @@ public class Model {
         }
         else {
             if (_newCols || _newRows || _newSense || settings.scaling != _configured.scaling
-                    || settings.sigma != _configured.sigma) {
+                    || settings.sigma != _configured.sigma || settings.scaling_cost != _configured.scaling_cost) {
                 init(settings);
                 if (_x != null && _newCols)
                     _x = Arrays.copyOf(_x,_nCols);

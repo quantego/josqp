@@ -104,9 +104,9 @@ that instance afterwards does not change an existing solver; use the update meth
 ownership-transfer path for freshly allocated arrays while preserving its unscaled builder data.
 
 `Model.solve(settings)` applies the supplied settings on every call. Runtime changes retain the
-workspace; changes to scaling or sigma rebuild it. `Model.solve()` uses the model's current
+workspace; changes to scaling, initial cost scaling or sigma rebuild it. `Model.solve()` uses the model's current
 `getParam()` configuration, and `solve(null)` requests fresh defaults. The direct solver's
-`update_settings(settings)` accepts runtime changes, but rejects scaling/sigma changes which
+`update_settings(settings)` accepts runtime changes, but rejects scaling/sigma/initial-cost changes which
 require a new solver.
 
 The supported numerical defaults match OSQP 1.0: `eps_abs = eps_rel = 1e-3`, `max_iter = 4000`,
@@ -151,6 +151,57 @@ not a proof of feasibility or infeasibility. Check residuals and status when acc
 
 The optional `check_linear_residual`, `linear_refine_iter` and `adaptive_rho_kkt` diagnostics are
 experimental and disabled by default. Nonconvex QPs are outside the solver's supported problem class.
+
+### Difficult convex problems
+
+A limit status does not establish infeasibility. Automatic residual balancing is a heuristic;
+for some badly conditioned problems it chooses rho values which slow or destabilise convergence.
+Keep the gap check enabled and try a fixed rho with a sufficient iteration budget:
+
+```java
+OSQP.Settings settings = new OSQP.Settings();
+settings.adaptive_rho = false;
+settings.rho = 0.1;                 // use 10.0 for Maros-Meszaros primalc5
+settings.max_iter = 100000;
+settings.time_limit = 120;
+settings.eps_abs = settings.eps_rel = 1e-9;
+settings.eps_prim_inf = settings.eps_dual_inf = 1e-12;
+settings.polish = true;
+model.solve(settings);
+```
+
+On the unchanged Maros-Meszaros input matrices, this profile solves `primalc1`, `primalc2` and
+`primalc8` at rho 0.1 and `primalc5` at rho 10. Their original-matrix feasibility, stationarity
+and gap checks pass; native OSQP and PIQP independently agree on their objectives. Polishing
+is accepted only when it preserves the requested solution tolerances, including the gap.
+These are tested problem-specific settings, not new defaults or a general convergence guarantee.
+Increasing a time limit alone is not a substitute for examining the residuals.
+
+Two additional Java conditioning settings leave OSQP's defaults intact:
+`scaling_cost = 1` is an initial positive objective multiplier before Ruiz equilibration;
+`rho_eq_over_rho_ineq = 1000` weights equalities relative to inequalities. Costs, duals and
+residuals are reported in the original units. Changing `scaling_cost` requires rebuilding;
+`Model` handles that, and ratio changes refactor the existing workspace. Non-unit cost scaling
+requires `scaling > 0`; unrepresentable scaling and overflowing rho ratios are rejected.
+
+QPLIB 10038 (160,800 variables) is solved and independently validated with this advanced profile:
+
+```java
+settings.eps_abs = settings.eps_rel = 1e-6;
+settings.rho = 0.1;
+settings.scaling_cost = 1000;
+settings.rho_eq_over_rho_ineq = 1e6;
+settings.max_iter = 200000;
+settings.delta = 1e-8;
+settings.polish_refine_iter = 20;
+model.solve(settings);  // adaptive_rho=false, polish=true, time_limit=120 as above
+```
+
+Its objective agrees with PIQP at approximately -0.05167742451254; the measured maximum bound
+violation is 1.4e-13. These results do not establish a universal parameter choice. QPLIB 10034
+remains unresolved at strict accuracy in the diagnostic runs. At a time limit, JOSQP now checks
+both exact and ten-times relaxed optimality tolerances before reporting `TIME_LIMIT_REACHED`;
+qualified iterates are explicitly marked `SOLVED_INACCURATE` when needed.
 
 ### MPS/QPS Reader
 

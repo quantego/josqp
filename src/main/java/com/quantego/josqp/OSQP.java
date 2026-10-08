@@ -64,7 +64,7 @@ public class OSQP {
 	public static final double OSQP_NULL = 0.0;
 	public static final double OSQP_NAN = Double.NaN;
 	public static final double OSQP_INFTY = 1.0e30;
-	public static final String OSQP_VERSION = "0.6.0";
+	public static final String OSQP_VERSION = "1.0.0";
 
 	public static final boolean ADAPTIVE_RHO = true;
 	public static final int ADAPTIVE_RHO_INTERVAL = 50;
@@ -77,7 +77,7 @@ public class OSQP {
 
 	/** Conjugate-gradient defaults of OSQP 1.0; kept for API parity, the solver is not ported. */
 	public static final int CG_MAX_ITER = 20;
-	public static final double CG_TOL_REDUCTION = 10;
+	public static final int CG_TOL_REDUCTION = 10;
 	public static final double CG_TOL_FRACTION = 0.15;
 
 	/** Linear system solver selection, mirroring {@code osqp_linsys_solver_type}. */
@@ -175,14 +175,19 @@ public class OSQP {
 		double dua_res;   ///< dual residual at polished solution
 	}
 	
-	public static class Settings {
+	public static class Settings implements Cloneable {
+		/** Independent configuration snapshot; all fields are scalar values or enums. */
+		public Settings copy() {
+			try { return (Settings) super.clone(); }
+			catch (CloneNotSupportedException ex) { throw new AssertionError(ex); }
+		}
 		public double rho = RHO;                    ///< ADMM step rho
 		public double sigma = SIGMA;                  ///< ADMM step sigma
 		public int scaling = SCALING;                ///< heuristic data scaling iterations; if 0, then disabled.
 
 		public boolean adaptive_rho = ADAPTIVE_RHO;           ///< boolean, is rho step size adaptive?
 		public boolean adaptive_rho_kkt = false; ///< opt-in OSQP 1.0-style progress gate
-		public int   adaptive_rho_interval = ADAPTIVE_RHO_INTERVAL;  ///< number of iterations between rho adaptations; if 0, then it is automatic
+		public int   adaptive_rho_interval = ADAPTIVE_RHO_INTERVAL;  ///< 0 selects four times check_termination, or 100 when disabled
 		public double adaptive_rho_tolerance = ADAPTIVE_RHO_TOLERANCE; ///< tolerance X for adapting rho. The new rho has to be X times larger or 1/X times smaller than the current one to trigger a new factorization.
 		public double adaptive_rho_fraction = ADAPTIVE_RHO_FRACTION;  ///< interval for adapting rho (fraction of the setup time)
 
@@ -211,7 +216,7 @@ public class OSQP {
 		 * declares as soon as the certificate residual passes a single check; on feasible problems
 		 * the last dual or primal step can cross that tolerance by numerical accident and produce a
 		 * false infeasibility verdict. A value of 2 rejects such transient certificates while
-		 * leaving genuine ones untouched. Set to 1 for exact upstream parity.
+		 * leaving genuine ones untouched. Set to 1 to disable this guard.
 		 */
 		public int infeasibility_streak = INFEASIBILITY_STREAK;
 		/**
@@ -221,8 +226,7 @@ public class OSQP {
 		 * as-is (factor 1); on badly scaled problems such as Maros-Meszaros {@code huestis} the
 		 * certificate residual plateaus only a small factor below it and the solver then reports a
 		 * feasible problem as infeasible. A factor of 0.1 rejects such plateaus while keeping genuine
-		 * certificates, whose residual drops to machine precision. Set to 1 for exact upstream
-		 * parity; a non-positive value disables infeasibility detection altogether.
+		 * certificates, whose residual drops to machine precision. Set to 1 to disable this guard; a non-positive value disables infeasibility detection altogether.
 		 */
 		public double infeasibility_margin = INFEASIBILITY_MARGIN;
 		public boolean warm_start = WARM_START;                      ///< boolean, warm start
@@ -230,11 +234,9 @@ public class OSQP {
 		public double time_limit = TIME_LIMIT;                    ///< maximum number of seconds allowed to solve the problem; if 0, then disabled
 
 		/**
-		 * Device identifier as in OSQP 1.0, where {@code NULL} selects the default CPU device. The
-		 * pure Java solver has no device selection, so the value is accepted but unused; the empty
-		 * string is the default.
+		 * Integer device identifier as in OSQP 1.0. Only CPU device 0 is supported.
 		 */
-		public String device = "";
+		public int device = 0;
 		/**
 		 * Linear system solver as in OSQP 1.0. jOSQP implements the direct QDLDL factorisation
 		 * ({@link LinSysSolver#OSQP_DIRECT_SOLVER}); {@link LinSysSolver#OSQP_UNKNOWN_SOLVER} is
@@ -242,9 +244,9 @@ public class OSQP {
 		 * conjugate-gradient solver is not part of this port.
 		 */
 		public LinSysSolver linsys_solver = LinSysSolver.OSQP_DIRECT_SOLVER;
-		/** OSQP 1.0 parity; the Java API always allocates the solution vectors. */
+		/** Only true is supported: the Java API always allocates the solution vectors. */
 		public boolean allocate_solution = true;
-		/** OSQP 1.0 parity; the port does not emit profiler annotations. */
+		/** Only 0 is supported: the port does not emit profiler annotations. */
 		public int profiler_level = 0;
 		/**
 		 * Whether rho is a vector, as in OSQP 1.0. jOSQP always derives a per-constraint rho vector
@@ -255,7 +257,7 @@ public class OSQP {
 		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
 		public int cg_max_iter = CG_MAX_ITER;
 		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
-		public double cg_tol_reduction = CG_TOL_REDUCTION;
+		public int cg_tol_reduction = CG_TOL_REDUCTION;
 		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
 		public double cg_tol_fraction = CG_TOL_FRACTION;
 		/** OSQP 1.0 parity; the conjugate-gradient solver is not implemented. */
@@ -275,10 +277,9 @@ public class OSQP {
 		/**
 		 * Problem data of {@code min 0.5*x'Px + q'x + offset} subject to {@code l <= Ax <= u}.
 		 *
-		 * <p>{@link OSQP} keeps a reference to the instance it is given and scales the arrays in
-		 * place, so one {@code Data} object must not be handed to two solvers: the second solver
-		 * would scale already scaled values. Pass a copy ({@code new OSQP.Data(other)}) instead,
-		 * which is what the benchmarks and {@link Model} do.</p>
+		 * <p>The public solver constructor copies these unscaled data before scaling. A Data instance
+         * can be reused to construct independent solvers. Settings are copied as well. Solver
+         * workspace data are internal, scaled working values and must not be reused as input.</p>
 		 */
 		//TODO: make this private again once all tests pass
 		public final int n; ///< number of variables n
@@ -288,7 +289,7 @@ public class OSQP {
 		public final double[] q; ///< dense array for linear part of cost function (size n)
 		public final double[] l; ///< dense array for lower bound (size m)
 		public final double[] u; ///< dense array for upper bound (size m)
-		public final double offset; // offset of the objective function
+		public double offset; // offset of the objective function
 		public int getN() {
 			return n;
 		}
@@ -300,6 +301,19 @@ public class OSQP {
 		}
 
 		private Data(int n, int m, CSCMatrix P, CSCMatrix A, double[] q, double[] l, double[] u, double offset, boolean copy) {
+			if (P == null || A == null || q == null || l == null || u == null)
+				throw new IllegalArgumentException("Problem matrices and vectors must not be null.");
+			if (n <= 0 || n == Integer.MAX_VALUE || m < 0 || (long) n + m > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("Invalid problem dimensions.");
+			validateCSC(P, n, n, true, "P");
+			validateCSC(A, m, n, false, "A");
+			validateVector(q, n, "q", false);
+			validateVector(l, m, "l", true);
+			validateVector(u, m, "u", true);
+			if (!Double.isFinite(offset)) throw new IllegalArgumentException("Offset must be finite.");
+			for (int i = 0; i < m; i++)
+				if (l[i] > u[i] || l[i] == Double.POSITIVE_INFINITY || u[i] == Double.NEGATIVE_INFINITY)
+					throw new IllegalArgumentException("Invalid bounds in row " + i);
 			this.n = n;
 			this.m = m;
 			if (copy) {
@@ -344,6 +358,7 @@ public class OSQP {
 	
 	
 	public static class Workspace {
+		boolean factorValid = true;
 		double last_rho_kkt_error = Double.POSITIVE_INFINITY;
 		/// Consecutive termination checks on which the respective infeasibility certificate held.
 		int prim_inf_streak, dual_inf_streak;
@@ -443,12 +458,21 @@ public class OSQP {
 	Workspace work;
 	
 	public OSQP(Data data, Settings settings) {
+		this(data, settings, false);
+	}
+
+	/** Internal builder path: the caller transfers freshly allocated, unscaled data. */
+	OSQP(Data data, Settings settings, boolean takeOwnership) {
+		validateData(data);
+		validateSettings(settings);
+		data = takeOwnership ? data : new Data(data);
+		settings = settings.copy();
 		this.work = new Workspace();
 		work.info = new OSQP.Info();
 		work.info.status = Status.UNSOLVED;
 		this.work.info.setup_time = System.currentTimeMillis();
 		work.data = data;
-		//TODO: C code creates a deep copy of the data, needed?
+		// The public constructor owns an independent copy; Model transfers fresh arrays internally.
 		work.rho_vec = new double[data.m];
 		work.rho_inv_vec = new double[data.m];
 		work.constr_type = new int[data.m]; //maybe use byte->char here or an enum
@@ -522,9 +546,6 @@ public class OSQP {
 		
 		work.info.rho_estimate = work.settings.rho;
 		
-		work.settings.adaptive_rho_interval = Math.max(
-		          work.settings.adaptive_rho_interval,
-		          work.settings.check_termination);
 		this.work.info.setup_time = (System.currentTimeMillis()-this.work.info.setup_time)/1000.;
 		
 	}
@@ -538,6 +559,9 @@ public class OSQP {
 	}
 	
 	public OSQP.Status solve() {
+		if (!work.factorValid)
+			throw new IllegalStateException("Matrix update failed; supply valid matrices before solving again.");
+		validateSettings(work.settings);
 		int iter = 0;
 		reset_info(work.info);
 		work.last_rho_kkt_error = Double.POSITIVE_INFINITY;
@@ -552,6 +576,10 @@ public class OSQP {
 		work.first_run = false;
 		boolean compute_cost_function = work.settings.verbose; // Boolean: compute the cost function in the loop or not
 		boolean can_check_termination = false; // Boolean: check termination or not
+        final int rhoInterval = work.settings.adaptive_rho_interval != 0
+                ? work.settings.adaptive_rho_interval
+                : (work.settings.check_termination > 0
+                    ? (int) Math.min(Integer.MAX_VALUE, 4L * work.settings.check_termination) : ADAPTIVE_RHO_FIXED);
 		work.rho_update_from_solve = 1;
 
 		// Initialize variables (cold start or warm start depending on settings)
@@ -615,8 +643,8 @@ public class OSQP {
 		      }
 		    // Adapt rho
 		    if (work.settings.adaptive_rho &&
-		        work.settings.adaptive_rho_interval>0 &&
-		        (iter % work.settings.adaptive_rho_interval == 0))  {
+		        rhoInterval > 0 &&
+		        (iter % rhoInterval == 0))  {
 		      // Update info with the residuals if it hasn't been done before
 			    if (!can_check_termination) {
 			        // Information has not been computed before for termination check
@@ -870,8 +898,8 @@ public class OSQP {
 		  boolean exitflag = false;
 
 		  // Check value of rho
-		  if (rho_new <= 0) {
-		    throw new IllegalStateException("rho must be positive");
+		  if (!(rho_new > 0) || !Double.isFinite(rho_new)) {
+		    throw new IllegalArgumentException("rho must be positive and finite");
 		  }
 
 
@@ -893,7 +921,7 @@ public class OSQP {
 		  }
 
 		  // Update rho_vec in KKT matrix
-		  exitflag = work.linsys_solver.update_rho_vec(work.rho_vec);
+		  exitflag = refactorRho(work);
 		  return exitflag;
 
 	}
@@ -942,45 +970,16 @@ public class OSQP {
 		  }
 	}
 	
-	public void update_rho_vec() {
-		  int i, constr_type_changed;
+    private static boolean refactorRho(Workspace work) {
+        work.factorValid=false;
+        work.info.status=Status.ERROR;
+        boolean success=work.linsys_solver.update_rho_vec(work.rho_vec);
+        work.factorValid=success;
+        if (success) work.info.status=Status.UNSOLVED;
+        return success;
+    }
 
-		  constr_type_changed = 0;
-
-		  for (i = 0; i < work.data.m; i++) {
-		    if ((work.data.l[i] < -OSQP_INFTY * MIN_SCALING) &&
-		        (work.data.u[i] > OSQP_INFTY * MIN_SCALING)) {
-		      // Loose bounds
-		      if (work.constr_type[i] != -1) {
-		        work.constr_type[i] = -1;
-		        work.rho_vec[i]     = RHO_MIN;
-		        work.rho_inv_vec[i] = 1. / RHO_MIN;
-		        constr_type_changed  = 1;
-		      }
-		    } else if (work.data.u[i] - work.data.l[i] < RHO_TOL) {
-		      // Equality constraints
-		      if (work.constr_type[i] != 1) {
-		        work.constr_type[i] = 1;
-		        work.rho_vec[i]     = RHO_EQ_OVER_RHO_INEQ * work.settings.rho;
-		        work.rho_inv_vec[i] = 1. / work.rho_vec[i];
-		        constr_type_changed  = 1;
-		      }
-		    } else {
-		      // Inequality constraints
-		      if (work.constr_type[i] != 0) {
-		        work.constr_type[i] = 0;
-		        work.rho_vec[i]     = work.settings.rho;
-		        work.rho_inv_vec[i] = 1. / work.settings.rho;
-		        constr_type_changed  = 1;
-		      }
-		    }
-		  }
-		// Update rho_vec in KKT matrix if constraints type has changed
-		  if (constr_type_changed == 1) {
-		    work.linsys_solver.update_rho_vec(work.rho_vec);
-		  }
-
-	}
+    public void update_rho_vec() { update_rho_vec(work); }
 
 	static void update_rho_vec(Workspace work) {
 		int i, constr_type_changed;
@@ -1017,7 +1016,7 @@ public class OSQP {
 		}
 		// Update rho_vec in KKT matrix if constraints type has changed
 		if (constr_type_changed == 1) {
-			work.linsys_solver.update_rho_vec(work.rho_vec);
+			refactorRho(work);
 		}
 
 	}
@@ -1180,7 +1179,7 @@ public class OSQP {
 		  //
 		  // 1) A' * delta_y < eps * ||delta_y||
 		  //
-		  // 2) u'*max(delta_y, 0) + l'*min(delta_y, 0) < -eps * ||delta_y||
+		  // 2) u'*max(delta_y, 0) + l'*min(delta_y, 0) < 0
 		  //
 
 		  // A certificate that only marginally clears the tolerance cannot be told apart from a
@@ -1216,7 +1215,7 @@ public class OSQP {
 		    norm_delta_y = LinAlg.vec_norm_inf(work.delta_y, work.data.m);
 		  }
 
-		  if (norm_delta_y > eps_prim_inf) { // ||delta_y|| > 0
+		  if (norm_delta_y > 1.0 / OSQP_INFTY) { // ||delta_y|| > 0
 
 		    for (i = 0; i < work.data.m; i++) {
 		      // Avoid 0 * Infinity producing NaN for unbounded constraints.
@@ -1225,7 +1224,7 @@ public class OSQP {
 		    }
 
 		    // Check if the condition is satisfied: ineq_lhs < -eps
-		    if (ineq_lhs < -eps_prim_inf * norm_delta_y) {
+		    if (ineq_lhs < 0.0) {
 		      // Compute and return ||A'delta_y|| < eps_prim_inf
 		    	LinAlg.mat_tpose_vec(work.data.A, work.delta_y, work.Atdelta_y, 0, 0,0, false);
 
@@ -1248,7 +1247,7 @@ public class OSQP {
 		  // This function checks for the scaled dual infeasibility termination
 		  // criteria.
 		  //
-		  // 1) q * delta_x < - eps * || delta_x ||
+		  // 1) q * delta_x < 0
 		  //
 		  // 2) ||P * delta_x || < eps * || delta_x ||
 		  //
@@ -1275,14 +1274,13 @@ public class OSQP {
 		  }
 
 		  // Prevent 0 division || delta_x || > 0
-		  if (norm_delta_x > eps_dual_inf) {
+		  if (norm_delta_x > 1.0 / OSQP_INFTY) {
 		    // Normalize delta_x by its norm
 
 		    /* vec_mult_scalar(work.delta_x, 1./norm_delta_x, work.data.n); */
 
 		    // Check first if q'*delta_x < 0
-		    if (LinAlg.vec_prod(work.data.q, work.delta_x, work.data.n) <
-		        -cost_scaling * eps_dual_inf * norm_delta_x) {
+		    if (LinAlg.vec_prod(work.data.q, work.delta_x, work.data.n) < 0.0) {
 		      // Compute product P * delta_x (NB: P is store in upper triangular form)
 		    LinAlg.mat_vec(work.data.P, work.delta_x, work.Pdelta_x, 0,0,0);
 		    LinAlg.mat_tpose_vec(work.data.P, work.delta_x, work.Pdelta_x, 0, 0, 1, true);
@@ -1429,13 +1427,14 @@ public class OSQP {
 		  update_duality_gap(work, x, y, polish);
 
 		  // OSQP 1.0's primal-dual integral and relative KKT error. The integral is only advanced
-		  // for the ADMM iterates; the relative KKT error is reported for polishing as well.
+		  // for ADMM iterates; Polish transfers candidate diagnostics only when accepted.
 		  final double infoPriRes = polish ? work.pol.pri_res : work.info.pri_res;
 		  final double infoDuaRes = polish ? work.pol.dua_res : work.info.dua_res;
 		  final double infoGap = polish ? work.pol.duality_gap : work.info.duality_gap;
 		  if (!polish)
 			  work.info.primdual_int += Math.abs(infoGap);
-		  work.info.rel_kkt_error = Math.max(Math.max(infoDuaRes, infoPriRes), Math.abs(infoGap));
+		  if (!polish)
+			  work.info.rel_kkt_error = Math.max(Math.max(infoDuaRes, infoPriRes), Math.abs(infoGap));
 
 		}
 
@@ -1497,6 +1496,11 @@ public class OSQP {
 		  eps_rel      = work.settings.eps_rel;
 		  eps_prim_inf = work.settings.eps_prim_inf;
 		  eps_dual_inf = work.settings.eps_dual_inf;
+		  if (Double.isNaN(work.info.pri_res) || Double.isNaN(work.info.dua_res)) {
+		    work.info.status = Status.ERROR;
+		    work.info.obj_val = OSQP_NAN;
+		    return true;
+		  }
 
 		  // If residuals are too large, the problem is probably non convex
 		  if ((work.info.pri_res > OSQP_INFTY) ||
@@ -1512,8 +1516,8 @@ public class OSQP {
 		  if (approximate) {
 		    eps_abs      *= 10;
 		    eps_rel      *= 10;
-		    eps_prim_inf *= 10;
-		    eps_dual_inf *= 10;
+		    // Inaccurate optimality is useful, but an iteration limit must not weaken
+		    // the evidence for declaring a feasible problem infeasible.
 		  }
 
 		  // Check residuals
@@ -1547,12 +1551,9 @@ public class OSQP {
 		  // Infeasibility certificates reuse the last dual or primal step as the certificate
 		  // direction. On a feasible problem that step can satisfy the certificate test on a single
 		  // check by numerical accident, so demand that the certificate survives consecutive checks.
-		  // The fallback approximate check is a last-resort verdict and keeps upstream behaviour.
+		  // The final approximate check uses the same guards and never counts an iterate twice.
 		  boolean prim_inf_sustained = false, dual_inf_sustained = false;
-		  if (approximate) {
-		    prim_inf_sustained = prim_inf_check;
-		    dual_inf_sustained = dual_inf_check;
-		  } else {
+		  {
 		    final int minStreak = Math.max(1, work.settings.infeasibility_streak);
 		    if (prim_inf_check) {
 		      if (work.prim_inf_iter != work.info.iter) {
@@ -1623,183 +1624,61 @@ public class OSQP {
 		  return exitflag;
 		}
 		
-		public void update_lin_cost(double[] q_new) {
-
-			  // Replace q by the new vector
-			LinAlg.prea_vec_copy(q_new, work.data.q, work.data.n);
-
-			  // Scaling
-			  if (work.settings.scaling>0) {
-			    LinAlg.vec_ew_prod(work.scaling.D, work.data.q, work.data.q, work.data.n);
-			    LinAlg.vec_mult_scalar(work.data.q, work.scaling.c, work.data.n);
-			  }
-
-			  // Reset solver information
-			  reset_info(work.info);
-			}
-
-		
-		public void update_bounds(double[] l_new, double[] u_new) {
-			int i;
-			if (l_new.length != work.data.m || u_new.length != work.data.m)
-				throw new IllegalArgumentException("Bound lengths must match number of constraints");
-
-		
-			// Check if lower bound is smaller than upper bound
-			for (i = 0; i < work.data.m; i++) {
-				if (l_new[i] > u_new[i]) {
-					throw new IllegalArgumentException("Lower bound is greater than upper bound in row "+i);
-				}
-			}
-			
-			// Replace l and u by the new vectors
-			LinAlg.prea_vec_copy(l_new, work.data.l, work.data.m);
-			LinAlg.prea_vec_copy(u_new, work.data.u, work.data.m);
-			
-			// Scaling
-			if (work.settings.scaling>0) {
-				LinAlg.vec_ew_prod(work.scaling.E, work.data.l, work.data.l, work.data.m);
-				LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u, work.data.m);
-			}
-			
-			// Reset solver information
-			reset_info(work.info);
-			update_rho_vec(work);
-
-		}
-
-	public void update_lower_bound(double[] l_new) {
-		if (l_new.length != work.data.m)
-			throw new IllegalArgumentException("Bound length must match number of constraints");
-		for (int i = 0; i < work.data.m; i++) {
-			double scaled = work.settings.scaling != 0 ? l_new[i] * work.scaling.E[i] : l_new[i];
-			if (scaled > work.data.u[i])
-				throw new IllegalStateException("Lower bound is higher than upper bound in row " + i);
-		}
-		// Replace l by the new vector
-		LinAlg.prea_vec_copy(l_new, work.data.l, work.data.m);
-
-		// Scaling
-		if (work.settings.scaling != 0) {
-			LinAlg.vec_ew_prod(work.scaling.E, work.data.l, work.data.l, work.data.m);
-		}
-
-		// Check if lower bound is smaller than upper bound
-		for (int i = 0; i < work.data.m; i++) {
-			if (work.data.l[i] > work.data.u[i]) {
-				throw new IllegalStateException(
-						"Lower bound is higher than upper bound in the row " + i);
-			}
-		}
-
-		// Reset solver information
-		reset_info(work.info);
-
-		update_rho_vec(work);
-	}
-
-	public void update_upper_bound(double[] u_new) {
-		if (u_new.length != work.data.m)
-			throw new IllegalArgumentException("Bound length must match number of constraints");
-		for (int i = 0; i < work.data.m; i++) {
-			double scaled = work.settings.scaling != 0 ? u_new[i] * work.scaling.E[i] : u_new[i];
-			if (scaled < work.data.l[i])
-				throw new IllegalStateException("Upper bound is less than lower bound in row " + i);
-		}
-		// Replace u by the new vector
-		LinAlg.prea_vec_copy(u_new, work.data.u, work.data.m);
-
-		// Scaling
-		if (work.settings.scaling != 0) {
-			LinAlg.vec_ew_prod(work.scaling.E, work.data.u, work.data.u, work.data.m);
-		}
-
-		// Check if upper bound is greater than lower bound
-		for (int i = 0; i < work.data.m; i++) {
-			if (work.data.u[i] < work.data.l[i]) {
-				throw new IllegalStateException(
-						"Upper bound is less than lower bound in the row " + i);
-			}
-		}
-
-		// Reset solver information
-		reset_info(work.info);
-
-		// Update rho_vec and refactor if constraints type changes
-		update_rho_vec(work);
-	}
+        public void update_lin_cost(double[] q) { update_data_vec(q, null, null); }
+        public void update_bounds(double[] l, double[] u) { update_data_vec(null, l, u); }
+        public void update_lower_bound(double[] l) { update_data_vec(null, l, null); }
+        public void update_upper_bound(double[] u) { update_data_vec(null, null, u); }
 
 	/**
 	 * OSQP 1.0's combined vector update ({@code osqp_update_data_vec}): a non-null argument replaces
 	 * q, l or u, a null argument leaves that vector unchanged.
 	 */
-	public void update_data_vec(double[] q_new, double[] l_new, double[] u_new) {
-		if (l_new != null && u_new != null)
-			update_bounds(l_new, u_new);
-		else {
-			if (l_new != null)
-				update_lower_bound(l_new);
-			if (u_new != null)
-				update_upper_bound(u_new);
-		}
-		if (q_new != null)
-			update_lin_cost(q_new);
-	}
+    public void update_data_vec(double[] q, double[] l, double[] u) {
+        if (q != null) validateVector(q, work.data.n, "q", false);
+        if (l != null) validateVector(l, work.data.m, "l", true);
+        if (u != null) validateVector(u, work.data.m, "u", true);
+        // Validate every component before replacing any data, including a combined q/bounds update.
+        for (int i = 0; i < work.data.m; i++) {
+            double scale = work.settings.scaling > 0 ? work.scaling.E[i] : 1;
+            double lo = l == null ? work.data.l[i] : l[i] * scale;
+            double hi = u == null ? work.data.u[i] : u[i] * scale;
+            if (Double.isNaN(lo) || Double.isNaN(hi) || lo > hi
+                    || lo == Double.POSITIVE_INFINITY || hi == Double.NEGATIVE_INFINITY)
+                throw new IllegalArgumentException("Invalid bounds in row " + i);
+        }
+        if (q != null) for (int i = 0; i < work.data.n; i++) {
+            double scale = work.settings.scaling > 0 ? work.scaling.c * work.scaling.D[i] : 1;
+            if (!Double.isFinite(q[i] * scale))
+                throw new IllegalArgumentException("Scaled q is not finite.");
+        }
+        if (l != null || u != null) {
+            for (int i = 0; i < work.data.m; i++) {
+                double scale = work.settings.scaling > 0 ? work.scaling.E[i] : 1;
+                if (l != null) work.data.l[i] = l[i] * scale;
+                if (u != null) work.data.u[i] = u[i] * scale;
+            }
+            update_rho_vec(work);
+        }
+        if (q != null) for (int i = 0; i < work.data.n; i++)
+            work.data.q[i] = q[i] * (work.settings.scaling > 0 ? work.scaling.c * work.scaling.D[i] : 1);
+        reset_info(work.info);
+    }
 
-	public void warm_start(double[] x, double[] y) {
+    public void warm_start(double[] x, double[] y) {
+        if (x != null) validateVector(x, work.data.n, "x", false);
+        if (y != null) validateVector(y, work.data.m, "y", false);
+        if (x != null) {
+            for (int i = 0; i < work.data.n; i++)
+                work.x[i] = x[i] * (work.settings.scaling > 0 ? work.scaling.Dinv[i] : 1);
+            LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0, 0);
+        }
+        if (y != null) for (int i = 0; i < work.data.m; i++)
+            work.y[i] = y[i] * (work.settings.scaling > 0 ? work.scaling.c * work.scaling.Einv[i] : 1);
+        work.settings.warm_start = true;
+    }
+    public void warm_start_x(double[] x) { warm_start(x, null); }
+    public void warm_start_y(double[] y) { warm_start(null, y); }
 
-		// Update warm_start setting to true
-		if (!work.settings.warm_start)
-			work.settings.warm_start = true;
-
-		// Copy primal and dual variables into the iterates
-		LinAlg.prea_vec_copy(x, work.x, work.data.n);
-		LinAlg.prea_vec_copy(y, work.y, work.data.m);
-
-		// Scale iterates
-		if (work.settings.scaling != 0) {
-			LinAlg.vec_ew_prod(work.scaling.Dinv, work.x, work.x, work.data.n);
-			LinAlg.vec_ew_prod(work.scaling.Einv, work.y, work.y, work.data.m);
-			LinAlg.vec_mult_scalar(work.y, work.scaling.c, work.data.m);
-		}
-
-		// Compute Ax = z and store it in z
-		LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0, 0);
-	}
-		
-		public void warm_start_x(double[] x) {
-
-			  // Update warm_start setting to true
-			  if (!work.settings.warm_start) work.settings.warm_start = true;
-
-			  // Copy primal variable into the iterate x
-			  LinAlg.prea_vec_copy(x, work.x, work.data.n);
-
-			  // Scale iterate
-			  if (work.settings.scaling>0) {
-				  LinAlg.vec_ew_prod(work.scaling.Dinv, work.x, work.x, work.data.n);
-			  }
-
-			  // Compute Ax = z and store it in z
-			  LinAlg.mat_vec(work.data.A, work.x, work.z, 0, 0, 0);
-
-			}
-
-		public void warm_start_y(double[] y) {
-			  // Update warm_start setting to true
-			  if (!work.settings.warm_start) work.settings.warm_start = true;
-
-			  // Copy primal variable into the iterate y
-			  LinAlg.prea_vec_copy(y, work.y, work.data.m);
-
-			  // Scale iterate
-			  if (work.settings.scaling>0) {
-				  LinAlg.vec_ew_prod(work.scaling.Einv, work.y, work.y, work.data.m);
-				  LinAlg.vec_mult_scalar(work.y, work.scaling.c, work.data.m);
-			  }
-
-			}
-		
 		/**
 		 * OSQP 1.0's combined matrix update ({@code osqp_update_data_mat}): entries of P and A are
 		 * replaced while the sparsity structure stays untouched. A {@code null} value array leaves
@@ -1807,6 +1686,8 @@ public class OSQP {
 		 *
 		 * <p>Updating both matrices in one call unscales, rescales and refreshes the KKT values once,
 		 * where {@link #update_P} followed by {@link #update_A} does each of those twice.</p>
+         * <p>A numerical factorisation failure invalidates the working factor and marks ERROR.
+         * The update is not rolled back; a successful valid matrix update is required before solving again.</p>
 		 */
 		public void update_data_mat(double[] Px_new, int[] Px_new_idx,
 				double[] Ax_new, int[] Ax_new_idx) {
@@ -1816,6 +1697,8 @@ public class OSQP {
 			checkUpdate(Ax_new, Ax_new_idx, work.data.A.Ap[work.data.A.n], "A");
 
 			double tme = System.currentTimeMillis();
+			work.factorValid = false;
+			work.info.status = Status.ERROR;
 
 			if (work.settings.scaling > 0) {
 				// Unscale data
@@ -1832,13 +1715,16 @@ public class OSQP {
 
 			// Update the linear system once, not once per matrix
 			work.linsys_solver.update_solver_matrices(work.data.P, work.data.A);
+			work.factorValid = true;
 			work.info.update_time += (System.currentTimeMillis() - tme) / 1000.;
 			// Reset solver information
 			reset_info(work.info);
 		}
 
 		private static void checkUpdate(double[] values, int[] index, int nnz, String name) {
-			if (values == null) {
+			if (values != null) for (double value : values)
+                if (!Double.isFinite(value)) throw new IllegalArgumentException(name + " values must be finite");
+            if (values == null) {
 				if (index != null)
 					throw new IllegalArgumentException(name + " indices given without values");
 				return;
@@ -1861,7 +1747,7 @@ public class OSQP {
 			if (values == null)
 				return;
 			if (index == null) {
-				System.arraycopy(values, 0, target, 0, target.length);
+				System.arraycopy(values, 0, target, 0, values.length);
 				return;
 			}
 			for (int i = 0; i < index.length; i++) {
@@ -1904,8 +1790,22 @@ public class OSQP {
 
 
 	public void update_rho(double rho) {
+		if (!(rho > 0) || !Double.isFinite(rho))
+			throw new IllegalArgumentException("rho must be positive and finite");
 		if (!osqp_update_rho(work, rho))
 			throw new RuntimeException("Failed to update rho");
+	}
+
+	/** Apply runtime settings. Changes to scaling or sigma require a new solver. */
+	public void update_settings(Settings settings) {
+		validateSettings(settings);
+		if (settings.scaling != work.settings.scaling || settings.sigma != work.settings.sigma)
+			throw new IllegalArgumentException("Changing scaling or sigma requires a new solver.");
+		Settings next = settings.copy();
+		if (next.rho != work.settings.rho) update_rho(next.rho);
+		next.rho = work.settings.rho;
+		work.settings = next;
+		work.linsys_solver.configureRefinement(next.linear_refine_iter, next.check_linear_residual);
 	}
 
 	public void validate() {
@@ -1921,10 +1821,25 @@ public class OSQP {
 		validateData(work.data);
 	}
 
-	private static void validateSettings(Settings settings) {
+	static void validateSettings(Settings settings) {
 		if (settings == null) {
 			throw new IllegalArgumentException("Missing settings!");
 		}
+		for (double value : new double[] { settings.rho, settings.sigma, settings.delta,
+				settings.eps_abs, settings.eps_rel, settings.eps_prim_inf, settings.eps_dual_inf,
+				settings.alpha, settings.adaptive_rho_tolerance, settings.adaptive_rho_fraction,
+				settings.infeasibility_margin, settings.cg_tol_fraction })
+			if (!Double.isFinite(value))
+				throw new IllegalArgumentException("Settings must contain finite numerical values.");
+		if (Double.isNaN(settings.time_limit) || settings.time_limit < 0)
+			throw new IllegalArgumentException("time_limit must be nonnegative");
+		if (!(settings.adaptive_rho_fraction > 0) || settings.cg_max_iter <= 0
+				|| settings.cg_tol_reduction <= 0 || !(settings.cg_tol_fraction > 0)
+				|| settings.cg_tol_fraction >= 1 || settings.cg_precond == null
+				|| settings.linsys_solver == null)
+			throw new IllegalArgumentException("Invalid adaptive-rho or linear solver setting.");
+		if (settings.device != 0 || !settings.allocate_solution || settings.profiler_level != 0)
+			throw new IllegalArgumentException("Only CPU device 0 with allocated solutions and profiler_level 0 is supported.");
 
 		if (settings.scaling < 0) {
 			throw new IllegalArgumentException("scaling must be nonnegative");
@@ -2025,10 +1940,19 @@ public class OSQP {
 		}
 
 		// General dimensions Tests
-		if ((data.n <= 0) || (data.m < 0)) {
+		if ((data.n <= 0 || data.n == Integer.MAX_VALUE) || (data.m < 0)) {
 			throw new IllegalArgumentException(String.format(
 					"n must be positive and m nonnegative; n = %d, m = %d", data.n, data.m));
 		}
+		if ((long) data.n + data.m > Integer.MAX_VALUE)
+			throw new IllegalArgumentException("KKT dimension exceeds Java array limits.");
+		validateCSC(data.P, data.n, data.n, true, "P");
+		validateCSC(data.A, data.m, data.n, false, "A");
+		validateVector(data.q, data.n, "q", false);
+		validateVector(data.l, data.m, "l", true);
+		validateVector(data.u, data.m, "u", true);
+		if (!Double.isFinite(data.offset))
+			throw new IllegalArgumentException("Objective offset must be finite.");
 
 		// Matrix P
 		if (data.P.m != data.n) {
@@ -2056,10 +1980,41 @@ public class OSQP {
 
 		// Lower and upper bounds
 		for (j = 0; j < data.m; j++) {
-			if (data.l[j] > data.u[j]) {
+			if (data.l[j] > data.u[j] || data.l[j] == Double.POSITIVE_INFINITY
+					|| data.u[j] == Double.NEGATIVE_INFINITY) {
 				throw new IllegalArgumentException(String.format(
 						"Lower bound at index %d is greater than upper bound: %.4e > %.4e", j,
 						data.l[j], data.u[j]));
+			}
+		}
+	}
+
+	private static void validateVector(double[] values, int length, String name, boolean bounds) {
+		if (values == null || values.length != length)
+			throw new IllegalArgumentException(name + " must have length " + length);
+		for (double value : values)
+			if (Double.isNaN(value) || (!bounds && !Double.isFinite(value)))
+				throw new IllegalArgumentException(name + " contains a non-finite coefficient.");
+	}
+
+	private static void validateCSC(CSCMatrix matrix, int rows, int cols, boolean upper, String name) {
+		if (matrix.m != rows || matrix.n != cols || matrix.Ap == null
+				|| matrix.Ap.length != cols + 1 || matrix.Ap[0] != 0
+				|| matrix.Ai == null || matrix.Ax == null)
+			throw new IllegalArgumentException("Invalid CSC dimensions or arrays for " + name);
+		int used = matrix.Ap[cols];
+		if (used < 0 || used > matrix.Ai.length || used > matrix.Ax.length)
+			throw new IllegalArgumentException("Invalid CSC nonzero count for " + name);
+		for (int col = 0; col < cols; col++) {
+			int start = matrix.Ap[col], end = matrix.Ap[col + 1];
+			if (start < 0 || end < start || end > used)
+				throw new IllegalArgumentException("Invalid CSC column pointers for " + name);
+			for (int k = start; k < end; k++) {
+				int row = matrix.Ai[k];
+				if (row < 0 || row >= rows || (upper && row > col))
+					throw new IllegalArgumentException("Invalid CSC row index for " + name);
+				if (!Double.isFinite(matrix.Ax[k]))
+					throw new IllegalArgumentException(name + " contains a non-finite coefficient.");
 			}
 		}
 	}

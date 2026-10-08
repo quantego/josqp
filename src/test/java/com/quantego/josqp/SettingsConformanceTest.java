@@ -13,14 +13,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Keeps {@link OSQP.Settings} compatible with the public {@code OSQPSettings} structure of
- * OSQP 1.0.0 (include/public/osqp_api_types.h, tag v1.0.0).
- *
- * <p>Every setting of the C API must exist here, either under its own name, under a documented
- * alias, or - for the four OSQP 1.0 names that jOSQP keeps as accessor methods - as a bridge to the
- * 0.6 field name. {@link #INERT} lists the settings that exist for API parity but cannot change the
- * behaviour of a pure Java solver; settings that would silently produce a different result than
- * requested are rejected instead ({@link #rejectedSettingsFailLoudly()}).</p>
+ * Checks the supported OSQP 1.0 setting names, selected types and defaults. This is not a
+ * claim of complete C API compatibility: adaptive_rho keeps its Java boolean iteration mode,
+ * while indirect solvers, scalar rho and nondefault runtime-only features are unsupported.
  */
 public class SettingsConformanceTest {
 
@@ -48,9 +43,6 @@ public class SettingsConformanceTest {
     private static final Map<String, String> INERT = new LinkedHashMap<>();
 
     static {
-        INERT.put("device", "pure Java solver without device selection");
-        INERT.put("allocate_solution", "the Java API always allocates the solution vectors");
-        INERT.put("profiler_level", "no profiler annotations in the Java port");
         INERT.put("cg_max_iter", "conjugate-gradient solver not implemented");
         INERT.put("cg_tol_reduction", "conjugate-gradient solver not implemented");
         INERT.put("cg_tol_fraction", "conjugate-gradient solver not implemented");
@@ -128,17 +120,26 @@ public class SettingsConformanceTest {
     }
 
     @Test
-    public void inertSettingsArePresentWithTheOsqpDefaults() {
+    public void compatibilitySettingsUseTheOsqpDefaults() {
         OSQP.Settings settings = new OSQP.Settings();
         for (String name : INERT.keySet())
             assertTrue(hasField(name), "'" + name + "' is listed as inert but does not exist");
-        assertTrue(settings.device.isEmpty(), "device must default to the CPU device");
+        assertEquals(0, settings.device, "device must default to the CPU device");
         assertTrue(settings.allocate_solution, "solutions must be allocated");
         assertTrue(settings.profiler_level == 0, "no profiler level by default");
         assertTrue(settings.cg_max_iter == OSQP.CG_MAX_ITER, "the CG defaults must match OSQP 1.0");
         assertTrue(settings.cg_tol_reduction == OSQP.CG_TOL_REDUCTION);
         assertTrue(settings.cg_tol_fraction == OSQP.CG_TOL_FRACTION);
         assertTrue(settings.cg_precond == OSQP.Preconditioner.OSQP_DIAGONAL_PRECONDITIONER);
+    }
+
+    @Test
+    public void integerSettingsUseTheOsqpTypes() throws NoSuchFieldException {
+        assertEquals(int.class, OSQP.Settings.class.getField("device").getType());
+        assertEquals(int.class, OSQP.Settings.class.getField("cg_tol_reduction").getType());
+        // Deliberate Java source compatibility: true is the iteration-based mode, not
+        // the C API's integer enum supporting time and KKT-based modes.
+        assertEquals(boolean.class, OSQP.Settings.class.getField("adaptive_rho").getType());
     }
 
     @Test

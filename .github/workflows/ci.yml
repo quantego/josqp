@@ -1,8 +1,6 @@
 name: CI
 
-# The artifact targets Java 8 (maven.compiler.release=8), so the portable suite is
-# run on current JDKs rather than on a JDK 8 runner; the Vector API backend needs
-# JDK 26 and is tested separately.
+# Run on the minimum supported runtime too, not just against the Java 8 compiler API.
 
 on:
   push:
@@ -19,9 +17,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        java: ['17', '21']
+        java: ['8', '17', '21']
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Maven host JDK
+        if: matrix.java == '8'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Remember Maven host JDK
+        if: matrix.java == '8'
+        run: echo "MAVEN_HOST_JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
@@ -29,7 +36,12 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
       - name: Test
+        if: matrix.java != '8'
         run: mvn -B test
+      - name: Test on the Java 8 runtime
+        if: matrix.java == '8'
+        # Maven/compiler run on 21; Surefire forks the entire suite on the actual Java 8 JVM.
+        run: JAVA_HOME="$MAVEN_HOST_JAVA_HOME" mvn -B -Djvm="$JAVA_HOME/bin/java" test
 
   vector:
     runs-on: ubuntu-latest

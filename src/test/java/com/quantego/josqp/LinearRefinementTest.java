@@ -42,4 +42,17 @@ public class LinearRefinementTest {
         assertEquals(0,system.maxBackwardError,0); assertEquals(0,system.linearCorrections);
         assertThrows(IllegalArgumentException.class,()->system.configureRefinement(-1,true));
     }
+
+    @Test public void repeatedSettingsReuseBuffersAndDisablingStopsDiagnostics() {
+        LinSys system=system(); system.configureRefinement(0,true);
+        double[] buffer=system.checkedRhs;
+        for(int i=0;i<100;i++) system.configureRefinement(0,true);
+        assertSame(buffer,system.checkedRhs);
+        system.LDLSolve(new double[3],new double[]{1,2,3},system.P,system.bp);
+        assertEquals(1,system.linearCalls);
+        system.configureRefinement(0,false);
+        system.LDLSolve(new double[3],new double[]{1,2,3},system.P,system.bp);
+        assertEquals(1,system.linearCalls);
+        assertNull(system.checkedRhs);
+    }
 }

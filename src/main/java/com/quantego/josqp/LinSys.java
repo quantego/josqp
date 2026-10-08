@@ -84,8 +84,12 @@ class LinSys  {
 	    if (iterations < 0) throw new IllegalArgumentException("negative refinement count");
 	    refineIterations = iterations;
 	    if (audit || iterations > 0) {
-	        checkedRhs = new double[n+m]; residual = new double[n+m];
-	        candidate = new double[n+m]; denominator = new double[n+m];
+	        if (checkedRhs == null || checkedRhs.length != n+m) {
+	            checkedRhs = new double[n+m]; residual = new double[n+m];
+	            candidate = new double[n+m]; denominator = new double[n+m];
+	        }
+	    } else {
+	        checkedRhs = residual = candidate = denominator = null;
 	    }
 	}
 

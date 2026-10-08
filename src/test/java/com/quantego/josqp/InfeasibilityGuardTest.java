@@ -19,6 +19,35 @@ import org.junit.jupiter.api.Test;
  */
 public class InfeasibilityGuardTest {
 
+    // Feasible point x=1. A near-null direction can look like a certificate at loose
+    // tolerances even though the lower/upper constraints have a common solution.
+    private static OSQP feasibleScaledRows(double coefficient, int streak) {
+        CSCMatrix p = new CSCMatrix(1,1,1,new int[]{0,1},new int[]{0},new double[]{1});
+        CSCMatrix a = new CSCMatrix(2,1,2,new int[]{0,2},new int[]{0,1},new double[]{coefficient,1});
+        OSQP.Settings s=new OSQP.Settings(); s.verbose=false; s.scaling=0; s.infeasibility_streak=streak;
+        OSQP q=new OSQP(new OSQP.Data(1,2,p,a,new double[]{0},
+                new double[]{coefficient,-OSQP.OSQP_INFTY},new double[]{OSQP.OSQP_INFTY,1},0),s);
+        q.work.info.iter=100; q.work.info.pri_res=100; q.work.info.dua_res=0;
+        q.work.delta_y[0]=-1; q.work.delta_y[1]=coefficient/2;
+        return q;
+    }
+
+    @Test public void finalCheckCannotCountTheSameDirectionTwice() {
+        OSQP q=feasibleScaledRows(1e-6,2);
+        assertTrue(!OSQP.check_termination(q.work,false));
+        assertEquals(1,q.work.prim_inf_streak);
+        assertTrue(!OSQP.check_termination(q.work,true));
+        assertEquals(1,q.work.prim_inf_streak);
+        assertEquals(OSQP.Status.UNSOLVED,q.getInfo().status);
+    }
+
+    @Test public void finalCheckCannotUndoTheSafetyMargin() {
+        OSQP q=feasibleScaledRows(1e-4,1);
+        assertTrue(!OSQP.check_termination(q.work,false));
+        assertTrue(!OSQP.check_termination(q.work,true));
+        assertEquals(OSQP.Status.UNSOLVED,q.getInfo().status);
+    }
+
     private static OSQP solve(CSCMatrix A, double[] u, int streak, Double margin, int maxIter) {
         final PrimalDualInfeasibilityTestSolsData data =
                 PrimalDualInfeasibilityTestDataGenerator.generateData();
@@ -70,9 +99,9 @@ public class InfeasibilityGuardTest {
                 "A sustained certificate must be declared later than a single-check one");
 
         // Stopping on the first passing check must not produce the accurate verdict. The
-        // last-resort approximate check may still report an inaccurate hint.
+        // final approximate check must not bypass the certificate guard.
         final OSQP single = solve(data.A12, data.u2, 2, null, sustained.work.info.iter - 25);
-        assertEquals(OSQP.Status.PRIMAL_INFEASIBLE_INACCURATE, single.work.info.status);
+        assertEquals(OSQP.Status.MAX_ITER_REACHED, single.work.info.status);
     }
 
     @Test
@@ -91,7 +120,7 @@ public class InfeasibilityGuardTest {
                 "A sustained certificate must be declared later than a single-check one");
 
         final OSQP single = solve(data.A34, data.u3, 2, null, sustained.work.info.iter - 25);
-        assertEquals(OSQP.Status.DUAL_INFEASIBLE_INACCURATE, single.work.info.status);
+        assertEquals(OSQP.Status.MAX_ITER_REACHED, single.work.info.status);
     }
 
     /** The margin must reject plateaus without hiding genuine certificates. */

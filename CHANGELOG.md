@@ -40,7 +40,23 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   over two consecutive termination checks
   (`Settings#infeasibility_streak`, default 2) and has to clear the tolerance by
   an order of magnitude (`Settings#infeasibility_margin`, default 0.1). Both
-  values set to 1 reproduce the upstream OSQP verdicts exactly.
+  values set to 1 disable these additional guards; they do not imply complete native parity.
+  The final inaccurate check retains both guards and the original certificate tolerances.
+
+- **Data and settings ownership**: the public `OSQP` constructor now snapshots both. Reusing
+  input `Data` is safe; changing input arrays or settings after construction no longer silently
+  mutates an existing solver. Use the explicit update methods. `Model.solve()` now honours
+  its current `getParam()` configuration, while `solve(settings)` applies settings each time.
+- **Stricter input validation**: malformed CSC arrays, incorrect vector lengths, non-finite
+  coefficients, NaN bounds and unsupported runtime options are rejected. One-sided invalid
+  bound updates consistently throw `IllegalArgumentException` instead of `IllegalStateException`.
+  Empty CSC matrices use an empty index/value array and exactly `n+1` column pointers.
+- **Setting types corrected**: `device` is now `int` (default 0) and `cg_tol_reduction` is `int`.
+  Nondefault `device`, disabled `allocate_solution` and nonzero `profiler_level` are rejected
+  rather than ignored. CG fields remain unused by the direct backend.
+- **Automatic iteration cadence**: `adaptive_rho_interval = 0` now selects four times the
+  termination interval (100 when termination checking is disabled), matching the iteration
+  mode of OSQP 1.0; it is not a timing-based rule.
 
 ### Added
 
@@ -50,10 +66,9 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   `constraint(indices, coefficients, lower, upper)`, plus
   `Model#setConstraintBounds(int, double, double)`. It avoids boxing, `Pair`
   objects and intermediate maps: a 300,000-variable model with 2,000 rows and
-  200 entries per row builds in about 41 ms and allocates 129 MB, where the
-  algebraic builder path needs 224 ms and 236 MB. That path itself came down
-  from 322 ms, 343 MB and 694 MB peak heap to 224 ms, 236 MB and 524 MB peak
-  through the primitive triplet storage.
+  200 entries per row can be built without per-variable objects or boxed coefficient maps.
+  Fresh release measurements: 45.2 ms / 113.4 MB for the 300,000-variable bulk build,
+  versus 217.0 ms / 236.1 MB for the algebraic builder, excluding prepared input arrays.
 - **Optional Vector API backend** (`src/vector`, Maven profile `vector`,
   `-Djosqp.vector=true`). It accelerates isolated norm computations by up to
   7.5x, but the contribution to a full solve stays below 1 %, so the default
@@ -67,17 +82,18 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 - **OSQP 1.0 settings parity** ([issue #1](https://github.com/quantego/josqp/issues/1)):
   `device`, `linsys_solver`, `allocate_solution`, `profiler_level`, `rho_is_vec`,
   `cg_max_iter`, `cg_tol_reduction`, `cg_tol_fraction` and `cg_precond` now exist
-  with the OSQP 1.0 defaults, so code written against `OSQPSettings` compiles
-  unchanged. `polishing` and `warm_starting` are reachable through
+  with the supported OSQP 1.0 defaults. This is name coverage, not full C API compatibility:
+  Java keeps the boolean `adaptive_rho` iteration mode; time-based and native KKT-based modes
+  are not implemented. `polishing` and `warm_starting` are reachable through
   `Settings#isPolishing()/setPolishing(boolean)` and
   `Settings#isWarmStarting()/setWarmStarting(boolean)`; the 0.6 field names
   `polish` and `warm_start` remain for source compatibility.
-  `Info` carries `primdual_int` (running integral of `|duality_gap|`) and
+  `Info` carries `primdual_int` (accumulated `|duality_gap|` at information updates) and
   `rel_kkt_error` (`max(pri_res, dua_res, |duality_gap|)` of the last info
-  update), both filled like in OSQP 1.0.
-- **Benchmark coverage**: with a 120 second limit the 34,552 variable QPLIB case
-  `qplib_8602` solves in 25.6 seconds, where the earlier 20 second limit made it
-  look unsolvable.
+  update), with the Java diagnostic convention documented in README.
+- **Benchmark validation**: fresh measurements use the same matrices, settings and limits,
+  with one untimed warmup and three independently initialised solver states. The current
+  README replaces the earlier mixed-configuration comparisons.
 - **Consolidated update entry points** ([issue
   #1](https://github.com/quantego/josqp/issues/1)):
   `OSQP#update_data_vec(q, l, u)` and
@@ -97,7 +113,9 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   metadata Central requires (`name`, `description`, `url`, `licenses`,
   `developers`, `scm`). The published artifact is the plain Java 8 build; the
   Vector API backend stays behind the `vector` profile.
-- **GitHub Actions**: `release.yml` builds, tests, signs and deploys on every
+- **GitHub Actions**: CI includes the actual Java 8 test runtime as well as 17/21 and
+  optional Vector 26. The release checks tag/POM agreement and serialises publication.
+  `release.yml` builds, tests, signs and deploys on every
   `v*` tag; `ci.yml` runs the portable suite on JDK 17 and 21 and the Vector API
   suite on JDK 26 for every push and pull request. The required repository
   secrets and the whole procedure are documented in
@@ -128,6 +146,25 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   second copy.
 
 ### Fixed
+
+- Preserve unscaled builder data across dimensional and sparsity changes; rebuilt models no
+  longer solve a doubly scaled problem. Public solver instances have independent working arrays.
+- Compact duplicate CSC triplets after assembly and directly replace existing pattern positions,
+  so repeated simulation updates do not retain an unbounded history.
+- Sum algebraic cross terms regardless of variable order; bulk quadratic setters retain
+  last-assignment semantics. Reject variables from a different model.
+- Apply objective offset and direction changes between solves. Offset-only changes need no
+  refactorisation; direction changes rebuild P, q and the signed offset together.
+- Apply and validate settings on every Model solve, including requested cold starts and
+  scaling/sigma changes; combine simultaneous Model P/A updates in one factorisation.
+- Preserve infeasibility guards at the iteration limit; insufficient evidence leaves a limit
+  status rather than a false inaccurate infeasibility verdict.
+- Keep public KKT diagnostics attached to the accepted solution, not a rejected polish candidate.
+- Validate combined vector and bulk quadratic updates before any component is changed.
+  A failed matrix factorisation marks ERROR and blocks solves until repaired by a valid update.
+- Reuse optional linear-residual work arrays across settings updates; disabling the diagnostic
+  releases the arrays and stops the checks.
+
 
 - **The documented terminal command works.** The published jar had no `Main-Class`, so
   `java -jar josqp.jar <file.qps>` failed even though `Parser` has a `main`; the jar plugin now sets

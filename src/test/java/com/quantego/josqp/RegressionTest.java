@@ -162,9 +162,9 @@ public class RegressionTest {
             }
             final OSQP solver = q;
             double[] lower = q.work.data.l.clone(), upper = q.work.data.u.clone();
-            assertThrows(IllegalStateException.class, () -> solver.update_lower_bound(new double[]{2}));
+            assertThrows(IllegalArgumentException.class, () -> solver.update_lower_bound(new double[]{2}));
             assertArrayEquals(lower, q.work.data.l, 0);
-            assertThrows(IllegalStateException.class, () -> solver.update_upper_bound(new double[]{-1}));
+            assertThrows(IllegalArgumentException.class, () -> solver.update_upper_bound(new double[]{-1}));
             assertArrayEquals(upper, q.work.data.u, 0);
             assertThrows(IllegalArgumentException.class, () -> solver.update_bounds(new double[0], new double[]{1}));
             assertArrayEquals(lower, q.work.data.l, 0);

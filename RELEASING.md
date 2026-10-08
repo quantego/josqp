@@ -92,11 +92,13 @@ gh auth status && gh secret list --repo quantego/josqp
 
 1. Set `<version>` in `pom.xml`, move the `## [Unreleased]` entries of
    [CHANGELOG.md](CHANGELOG.md) into a dated section (the date is the day you publish) and commit.
-2. Tag and push:
+2. Wait for portable CI on Java 8, 17 and 21, and the Vector CI on Java 26. Confirm the
+   release tag equals the POM version; the workflow rejects mismatches and manual branch runs.
+   Only then tag and push after the explicit publication approval:
 
    ```
    git tag -a v1.0.0 -m "jOSQP 1.0.0"
-   git push origin master --tags
+   git push origin master v1.0.0
    ```
 
 3. Watch the *Release* workflow. Afterwards create the GitHub release from the
@@ -129,7 +131,10 @@ The passphrase comes from `MAVEN_GPG_PASSPHRASE` or a running `gpg-agent`.
 ## Verifying a release locally
 
 ```bash
-mvn test                            # 96 tests
-mvn -Pvector test                   # 99 tests, JDK 26
-mvn -Prelease -DskipTests package   # main, sources and javadoc jars in target/
+mvn test                            # portable suite
+mvn -Pvector test                   # optional suite, JDK 26
+mvn -Prelease -Dgpg.skip=true verify # tests + all three jars, without a signing key
 ```
+
+The local unsigned verification does not test GPG signing or Central authentication. Those
+require the configured repository secrets. Never enable the Vector profile for a Central release.

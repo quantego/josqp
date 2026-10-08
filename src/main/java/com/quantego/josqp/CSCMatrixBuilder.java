@@ -62,8 +62,25 @@ public class CSCMatrixBuilder {
      * @param value real value
      */
     public CSCMatrixBuilder set(int row, int col, double value) {
-        if (row < 0 || col < 0)
-            throw new IllegalArgumentException("Negative index in set(" + row + "," + col + ")");
+        if (row < 0 || col < 0 || row == Integer.MAX_VALUE || col == Integer.MAX_VALUE)
+            throw new IllegalArgumentException("Invalid index in set(" + row + "," + col + ")");
+        if (!Double.isFinite(value))
+            throw new IllegalArgumentException("Matrix coefficients must be finite.");
+        // An assembled pattern is also an index into the compact triplets. Value updates
+        // therefore replace a cell rather than retaining the history of every simulation step.
+        if (_starts != null && col < _starts.length - 1) {
+            int position = Arrays.binarySearch(_indices, _starts[col], _starts[col + 1], row);
+            if (position >= 0) {
+                _value[position] = value;
+                _elements[position] = _builtNegate ? -value : value;
+                return this;
+            }
+        }
+        if (_entries > 0 && _row[_entries - 1] == row && _col[_entries - 1] == col) {
+            _value[_entries - 1] = value;
+            _hasUpdate = true;
+            return this;
+        }
         if (row >= _numRows)
             _numRows = row + 1;
         if (col >= _numCols)
@@ -84,8 +101,13 @@ public class CSCMatrixBuilder {
      * @param negate store the negated values (used for maximization models)
      */
     public void update(boolean negate) {
-        if (!_hasUpdate && _elements != null && _builtNegate == negate)
+        if (!_hasUpdate && _elements != null) {
+            if (_builtNegate != negate) {
+                for (int k = 0; k < _elements.length; k++) _elements[k] = -_elements[k];
+                _builtNegate = negate;
+            }
             return;
+        }
         final int n = _entries;
         final int cols = _numCols;
         final int rows = _numRows;
@@ -135,11 +157,24 @@ public class CSCMatrixBuilder {
             _starts[_col[sorted[k]] + 1]++;
         for (int c = 0; c < cols; c++)
             _starts[c + 1] += _starts[c];
+        // Replace the write log by canonical, unscaled triplets. Separate arrays avoid
+        // overwriting entries which the sorting permutation has not visited yet.
+        int capacity = Math.max(16, unique);
+        int[] compactRows = new int[capacity];
+        int[] compactCols = new int[capacity];
+        double[] compactValues = new double[capacity];
         for (int k = 0; k < unique; k++) {
             int i = sorted[k];
             _indices[k] = _row[i];
             _elements[k] = negate ? -_value[i] : _value[i];
+            compactRows[k] = _row[i];
+            compactCols[k] = _col[i];
+            compactValues[k] = _value[i];
         }
+        _row = compactRows;
+        _col = compactCols;
+        _value = compactValues;
+        _entries = unique;
 
         _hasUpdate = false;
         _builtNegate = negate;
@@ -170,7 +205,7 @@ public class CSCMatrixBuilder {
         return _numCols;
     }
 
-    /** @return number of entries currently collected (including duplicates) */
+    /** @return collected entries; assembly compacts duplicate assignments */
     public int getNumEntries() {
         return _entries;
     }
@@ -183,6 +218,9 @@ public class CSCMatrixBuilder {
      */
     public CSCMatrix build(boolean negate) {
         update(negate);
-        return new CSCMatrix(_numRows, _numCols, _elements.length, _starts, _indices, _elements);
+        // The solver scales its owned matrix in place. The builder retains unscaled values
+        // for later edits and rebuilds, so a returned matrix must never alias these caches.
+        return new CSCMatrix(_numRows, _numCols, _elements.length,
+                _starts.clone(), _indices.clone(), _elements.clone());
     }
 }

@@ -280,6 +280,8 @@ class Polish {
 	    work.info.gap_scale     = work.pol.gap_scale;
 	    work.info.pri_res       = work.pol.pri_res;
 	    work.info.dua_res       = work.pol.dua_res;
+	    work.info.rel_kkt_error = Math.max(Math.max(work.pol.pri_res, work.pol.dua_res),
+	            Math.abs(work.pol.duality_gap));
 	    work.info.status_polish = 1;
 
 	    // Update (x, z, y) in ADMM iterations

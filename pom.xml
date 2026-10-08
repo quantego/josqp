@@ -147,6 +147,10 @@
     -->
     <profile>
       <id>release</id>
+      <properties>
+        <!-- A Central release must remain portable, even if another profile is selected. -->
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
       <build>
         <plugins>
           <plugin>

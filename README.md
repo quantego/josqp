@@ -2,7 +2,7 @@
 
 jOSQP is a fork of the quadratic programming solver [OSQP](http://osqp.org) (Operator Splitting
 Quadratic Program), written entirely in Java. It has no runtime dependencies beyond Java 8, and its
-settings, defaults and termination criteria follow OSQP 1.0.
+supported settings and termination criteria follow OSQP 1.0, with the differences described below.
 
 The solver can handle quadratic programming problems of the form: 
 
@@ -30,7 +30,7 @@ $$
 &&\min\ & 5x + 0.5x^2 + 3y \\
 &&\mathrm{s.t.}\  & 2x-y \geq 4 \\
 && &1 \leq  x \leq 3 \\
-&& &y \leq 5
+&& &0 \leq y \leq 5
 \end{align}
 $$
 
@@ -62,17 +62,16 @@ without touching the sparsity pattern:
 ```
 int n = 300_000;
 double[] lower = new double[n];
-double[] upper = new double[n];
 Model.Builder builder = Model.getBuilder();
-builder.addVariables(n, lower, upper);
+builder.addVariables(n, lower, null); // null means no upper bound
 builder.linearObjective(new int[] {0, 1}, new double[] {1.0, 2.0});
 builder.quadraticObjective(new int[] {0}, new int[] {0}, new double[] {0.5});
 builder.constraint(new int[] {0, 1}, new double[] {2.0, -1.0}, 4.0, Double.POSITIVE_INFINITY);
 Model model = builder.build();
 ```
 
-For 300,000 variables, 2,000 rows and 200 entries per row this path builds the model in about 41 ms
-and allocates 129 MB, against 224 ms and 236 MB along the algebraic builder.
+The bulk path avoids per-variable objects and coefficient maps. Matrix value updates replace
+existing entries, so a simulation with a fixed sparsity pattern does not retain its write history.
 
 ### Quadratic terms
 
@@ -98,58 +97,60 @@ value-only, exactly like `osqp_update_data_mat` in OSQP: they require the patter
 
 ### Settings
 
-`new OSQP(data, settings)` and `Model#solve(settings)` take an `OSQP.Settings` object that mirrors
-`OSQPSettings` of OSQP 1.0. The defaults are the ones of the C library — `eps_abs` and `eps_rel`
-`1e-3`, `max_iter` 4000, `rho` 0.1, `adaptive_rho_interval` 50, `check_dualgap` enabled,
-`time_limit` `1e10`, polishing off, warm starting on — and an invalid configuration is rejected in
-the `OSQP` constructor, as `osqp_setup` does.
+`new OSQP(data, settings)` copies and validates the unscaled problem data and settings before
+creating its workspace. A `Data` instance can be reused by several independent solvers. Mutating
+that instance afterwards does not change an existing solver; use the update methods instead.
+`Data` itself copies the arrays supplied to its public constructor. `Model` uses an internal
+ownership-transfer path for freshly allocated arrays while preserving its unscaled builder data.
 
-Two families of names matter in practice:
+`Model.solve(settings)` applies the supplied settings on every call. Runtime changes retain the
+workspace; changes to scaling or sigma rebuild it. `Model.solve()` uses the model's current
+`getParam()` configuration, and `solve(null)` requests fresh defaults. The direct solver's
+`update_settings(settings)` accepts runtime changes, but rejects scaling/sigma changes which
+require a new solver.
 
-* `polishing` and `warm_starting` are the OSQP 1.0 names and are available as accessors:
-  `Settings#setPolishing(boolean)` / `isPolishing()` and `setWarmStarting(boolean)` /
-  `isWarmStarting()`. The fields keep their 0.6 names `polish` and `warm_start`, so code written
-  against older jOSQP keeps compiling.
-* Settings that only exist in the C runtime are accepted for parity but cannot change a solve:
-  `device`, `allocate_solution`, `profiler_level` and the four conjugate-gradient parameters
-  (`cg_max_iter`, `cg_tol_reduction`, `cg_tol_fraction`, `cg_precond`), because jOSQP implements only
-  the direct QDLDL factorisation. `linsys_solver = LinSysSolver.OSQP_INDIRECT_SOLVER` and
-  `rho_is_vec = false` are rejected with an `IllegalArgumentException` rather than silently ignored,
-  since honouring them is impossible here.
+The supported numerical defaults match OSQP 1.0: `eps_abs = eps_rel = 1e-3`, `max_iter = 4000`,
+`rho = 0.1`, `adaptive_rho_interval = 50`, `check_dualgap = true`, `time_limit = 1e10`, polishing
+off and warm starting on. This is a pure Java implementation of the direct QDLDL backend, not a
+complete reproduction of the C runtime API:
 
-`OSQP.Info` carries the OSQP 1.0 fields `primdual_int` (running integral of the duality gap) and
-`rel_kkt_error` alongside the usual status, objective and residual values.
+- `polish` and `warm_start` retain their older Java field names. OSQP 1.0 names are available through
+  `setPolishing` / `isPolishing` and `setWarmStarting` / `isWarmStarting`.
+- `adaptive_rho` retains a boolean: enabled means iteration-based updates. Interval `0` selects
+  four times `check_termination`, or 100 when termination checking is disabled. The C API's time-
+  and KKT-based mode enum is not implemented. `adaptive_rho_kkt` is an experimental Java progress gate.
+- `device` and `cg_tol_reduction` are integers like the OSQP 1.0 fields. Only `device = 0`,
+  `allocate_solution = true` and `profiler_level = 0` are supported; other values are rejected.
+- The indirect solver and `rho_is_vec = false` are rejected. CG settings are validated but unused
+  with the direct solver. `OSQP_UNKNOWN_SOLVER` resolves to the direct backend.
+- `Info.primdual_int` accumulates absolute gap values at information updates, rather than elapsed
+  time. `Info.rel_kkt_error` is `max(pri_res, dua_res, abs(duality_gap))` for the accepted solution.
+  Rejected polishing candidates do not replace these solution diagnostics.
 
-Three jOSQP additions have no counterpart in OSQP 1.0 and default to the upstream behaviour:
-`infeasibility_streak` and `infeasibility_margin` (see below), plus the optional diagnostics
-`check_linear_residual` with `linear_refine_iter`, and `adaptive_rho_kkt`.
+The low-level `update_data_vec(q,l,u)` and `update_data_mat(Px,PxIdx,Ax,AxIdx)` methods allow `null`
+for unchanged data. Matrix indices are positions in the existing CSC value array. Invalid lengths,
+indices, NaN values and contradictory bounds are rejected before replacement. A numerical matrix
+factorisation failure marks `ERROR` and blocks subsequent solves until a successful valid matrix
+update; it does not roll back the attempted matrix update. `Model` rebuilds automatically when the
+sparsity pattern changes, and submits simultaneous P/A value changes in one combined update.
 
 ### Infeasibility certificates
 
-OSQP decides primal and dual infeasibility from the last dual or primal iterate step: that step is
-accepted as a certificate as soon as its residual passes `eps_prim_inf` / `eps_dual_inf`. On a
-feasible problem a single step can cross that tolerance by numerical accident, and on badly scaled
-problems the residual can plateau just below it for hundreds of checks. At the default tolerances
-this makes both jOSQP and the upstream C solver report feasible instances as infeasible:
+Infeasibility detection uses the most recent primal/dual step as a numerical certificate. Loose
+certificate tolerances can mistake a nearly null direction for evidence of infeasibility, even on
+feasible poorly scaled problems. Two Java defaults make this test more conservative:
 
-| Instance | Upstream verdict | jOSQP with the guards |
-|---|---|---|
-| `hues-mod` | `PRIMAL_INFEASIBLE` after 300 iterations | `SOLVED`, 875 iterations, objective `3.4761704979875020e7` |
-| `huestis` | `PRIMAL_INFEASIBLE` after 100 iterations | `SOLVED`, 6675 iterations, objective `3.4755179890390e11` |
-| `primalc5` | `DUAL_INFEASIBLE` | `MAX_ITER_REACHED` (as native OSQP at `eps_prim_inf = 1e-5`) |
+- `infeasibility_streak = 2`: require consecutive checks on distinct iterates.
+- `infeasibility_margin = 0.1`: multiply the requested certificate tolerance by this safety factor.
 
-Two settings guard the verdicts, and both have the upstream value available for exact parity:
+Setting both to `1` disables the additional guards; it does not guarantee identical behaviour to
+native OSQP in every case. The final approximate check relaxes optimality tolerances by ten, but
+never relaxes certificate tolerances or bypasses persistence. A weak certificate at the iteration
+limit therefore leaves `MAX_ITER_REACHED`. The guards reduce false verdicts; they are heuristics,
+not a proof of feasibility or infeasibility. Check residuals and status when accuracy matters.
 
-- `Settings#infeasibility_streak` (default `2`): the certificate has to hold over that many
-  consecutive termination checks, which rejects steps that only cross the tolerance once.
-- `Settings#infeasibility_margin` (default `0.1`): safety factor on the effective certificate
-  tolerance. Genuine certificates drive their residual to machine precision, so tightening the test
-  by an order of magnitude keeps them while rejecting the plateaus. Set both to `1` to reproduce
-  upstream OSQP verdicts exactly.
-
-On all 63 benchmark instances the guards remove exactly the three false infeasibility verdicts above
-and change no other status; the genuine infeasibility problems of the test suite are still detected
-at the same iteration.
+The optional `check_linear_residual`, `linear_refine_iter` and `adaptive_rho_kkt` diagnostics are
+experimental and disabled by default. Nonconvex QPs are outside the solver's supported problem class.
 
 ### MPS/QPS Reader
 
@@ -168,60 +169,66 @@ After solving the problem through the terminal, jOSQP creates a log file, `josqp
 
 ## Benchmarks
 
-### The current version against native OSQP
+### Matched release comparison
 
-Nine QPLIB instances through the same exported matrices, median of three cold-start runs, on an
-Apple M4 with JDK 26. jOSQP runs the plain Java 8 artifact (no Vector API backend) with
-`eps_abs = eps_rel = 1e-3`, `adaptive_rho_interval = 100`, polishing off and a 120 second limit.
-Native OSQP 1.1.3 was driven through its Python API with `eps_prim_inf = eps_dual_inf = 1e-8`,
-default polishing and 100,000 iterations against 200,000 in jOSQP; its 20 second limit was never
-binding, the slowest case took 15 seconds.
+Nine QPLIB problems on identical exported, unscaled matrices, macOS arm64 / JDK 26. Both solvers
+use `eps_abs = eps_rel = 1e-6`, `eps_prim_inf = eps_dual_inf = 1e-8`, iteration-based adaptive rho
+with interval 50, 100,000 iterations, a 120-second limit, gap checking and no polishing. The extra
+Java infeasibility guards are disabled for this comparison. The Java artifact uses no Vector API.
 
-| Instance | n | m | jOSQP | native OSQP | jOSQP | native |
-|---|---:|---:|---:|---:|---|---|
-| `qplib_8845` | 1,546 | 2,323 | 0.32 s | 0.35 s | SOLVED | solved |
-| `qplib_9002` | 2,890 | 4,539 | 5.93 s | 5.98 s | SOLVED | solved |
-| `qplib_8938` | 4,001 | 16,000 | 27.6 s | 14.7 s | SOLVED_INACCURATE | maximum iterations reached |
-| `qplib_8906` | 5,223 | 6,061 | 0.15 s | 0.17 s | SOLVED | solved |
-| `qplib_8559` | 10,000 | 15,000 | 3.99 s | 4.91 s | SOLVED | solved |
-| `qplib_8616` | 13,870 | 24,274 | 0.06 s | 0.05 s | SOLVED | solved |
-| `qplib_8991` | 14,400 | 14,400 | 0.07 s | 0.07 s | SOLVED | solved |
-| `qplib_8792` | 15,129 | 15,129 | 0.07 s | 0.08 s | SOLVED | solved |
-| `qplib_8602` | 34,552 | 87,535 | 25.6 s | 13.0 s | SOLVED | solved |
+Each solver gets one untimed warmup and three measured solves with independently initialised
+solver states; these are **warm JVM measurements, not three cold JVM processes**. The table shows
+median solve wall time, excluding parsing, export and setup. Native OSQP 1.1.3 runs its C core
+through the Python wrapper; the measured call includes that wrapper's overhead.
 
-Eight of the nine instances end with a solution, and on seven of them a pure Java solver stays with
-the C library, in five slightly ahead of it. The two uneven cases: `qplib_8602`, the largest one,
-needs 275 iterations and 25.6 seconds against 13.0 seconds natively — at a 20 second limit it looked
-unsolvable, so the limit in the measurement mattered more than the solver. `qplib_8938` runs into the
-iteration limit on both sides, native OSQP at 100,000 iterations, jOSQP at 200,000 with
-`SOLVED_INACCURATE`.
+| Instance | n | Java | native OSQP | Java / native | Status |
+|---|---:|---:|---:|---:|---|
+| `qplib_8845` | 1,546 | 7.230 s | 7.884 s | 0.917 | SOLVED / solved |
+| `qplib_9002` | 2,890 | 9.239 s | 9.849 s | 0.938 | SOLVED / solved |
+| `qplib_8938` | 4,001 | 13.585 s | 14.619 s | 0.929 | iteration limit on both sides |
+| `qplib_8906` | 5,223 | 0.954 s | 1.036 s | 0.921 | SOLVED / solved |
+| `qplib_8559` | 10,000 | 31.876 s | 35.217 s | 0.905 | SOLVED / solved |
+| `qplib_8616` | 13,870 | 0.054 s | 0.050 s | 1.074 | SOLVED / solved |
+| `qplib_8991` | 14,400 | 0.191 s | 0.188 s | 1.013 | SOLVED / solved |
+| `qplib_8792` | 15,129 | 0.377 s | 0.373 s | 1.011 | SOLVED / solved |
+| `qplib_8602` | 34,552 | 32.151 s | 32.038 s | 1.004 | SOLVED / solved |
 
-jOSQP was measured with its own cold-start harness on the same `.qps` files, native OSQP through its
-Python API on matrices exported from `Parser`, so both solvers read identical data. The harness and
-the native comparison tooling are kept outside this repository, next to the extracted QPLIB set.
+Eight cases pass independent primal, stationarity and gap checks on the original data and agree
+in objective to the stated relative tolerance. Their geometric mean of Java/native solve time is
+**0.971**: approximately equal performance, about 3% less time for Java in this sample. `qplib_8938`
+reaches the iteration limit on both sides and is excluded. `qplib_8602` solves in about 32 seconds
+on each side. Including setup, the geometric mean ratio is **1.050**, about 5% more time for
+Java. Setup covers validation/copying, scaling and initial factorisation; parsing and the
+preparation of caller-owned input arrays are excluded. These figures supersede earlier comparisons using different profiles; they do not
+establish a general Java speed advantage or guarantee performance on other problem families.
 
-### What the current version changed
+Full runs, setup times, iteration counts, checksums and quality criteria are retained in the
+external `josqp-tools` measurement workspace. No Python code or runtime dependency is required
+by this Java repository.
 
-- The index-based bulk builder shortens model construction: 300,000 variables, 2,000 rows and 200
-  entries per row build in about 41 ms and 129 MB instead of 224 ms and 236 MB.
-- The optional Vector API backend accelerates the individual norm kernels by up to 7.5x, but its
-  effect on a complete solve stays below one percent. The published artifact is therefore the plain
-  Java 8 build.
-- Reusing the symbolic factorisation and its work arrays across rho updates cut the solve time of
-  `qplib_8602` from 31.6 to 27.2 seconds in an earlier measurement and removed almost all temporary
-  allocations.
-- Updating P and A together through `update_data_mat` halfs the work of the 0.6 pair `update_P` plus
-  `update_A`, because unscaling, rescaling and the KKT refresh happen once: 8.5 ms against 17.1 ms
-  on `qplib_8792`, and the same factor on `qplib_8991`.
+### Model construction
 
-For the historical cross-solver comparison with Gurobi, OSQP and jOSQP across the whole
-Maros-Meszaros and QPLIB sets see the [companion
-repository](https://github.com/FaridAlavi/josqp_benchmarks); those numbers were measured on an
-earlier version of jOSQP and are not comparable with the table above.
+Median of three new JVM processes per mode, JDK 26, `-Xmx2g`. The same primitive input arrays are
+prepared before timing either builder; measured allocation excludes those arrays. Construction
+ends at `Model.build()`, before solver setup, CSC assembly and factorisation.
+
+| Variables | User rows × entries | Algebraic build / allocation | Bulk build / allocation |
+|---:|---:|---:|---:|
+| 100,000 | 1,000 × 200 | 84.1 ms / 85.1 MB | 20.9 ms / 36.8 MB |
+| 300,000 | 2,000 × 200 | 217.0 ms / 236.1 MB | 45.2 ms / 113.4 MB |
+
+Here MB means allocated bytes / 1,000,000. A fixed-pattern stress test performs 100,000 rounds of
+three coefficient assignments and retains exactly three current entries. Solver rebuilds retain
+unscaled builder data and allocate independent working matrices; this ownership is essential for
+correct solutions and adds storage compared with sharing those arrays unsafely.
+
+The optional Vector backend remains experimental. Sparse factor workspaces and combined matrix
+updates are retained; the default portable path uses neither native libraries nor incubator APIs.
 
 ## Installation
 
-The project is available at the central repository. Simply add the following dependency to your pom file
+The planned 1.0.0 Maven Central coordinates are shown below. Until that release is published,
+build locally or use the previously published version. After publication, add this dependency:
 ```
 <dependency>
   <groupId>com.quantego</groupId>
@@ -237,8 +244,8 @@ Another option is to simply download the [latest build](https://github.com/quant
 The build uses Maven and produces a Java 8 artifact (`maven.compiler.release=8`):
 
 ```
-mvn test                            # 96 tests, JUnit 5
-mvn -Pvector test                   # 99 tests, needs JDK 26 and jdk.incubator.vector
+mvn test                            # portable suite, JUnit 5
+mvn -Pvector test                   # needs JDK 26 and jdk.incubator.vector
 mvn -Prelease package               # main, sources and javadoc jar in target/
 java -jar target/josqp-1.0.0.jar src/test/resources/qafiro.qps
 ```
@@ -252,11 +259,10 @@ java -jar target/josqp-1.0.0.jar src/test/resources/qafiro.qps
 ## Status
 
 Version 1.0.0 fixes [issue #2](https://github.com/quantego/josqp/issues/2) (quadratic coefficients)
-and [issue #4](https://github.com/quantego/josqp/issues/4) (updating `A` and `P`), and brings the
-settings surface in line with OSQP 1.0 ([issue
-#1](https://github.com/quantego/josqp/issues/1)) except the consolidated
-`osqp_update_vec`/`osqp_update_data_mat` calls. [CHANGELOG.md](CHANGELOG.md) lists everything,
-including the breaking changes.
+and [issue #4](https://github.com/quantego/josqp/issues/4) (model updates), and includes the supported
+OSQP 1.0 settings and consolidated vector/matrix update calls from
+[issue #1](https://github.com/quantego/josqp/issues/1). The remaining C API differences are listed
+above. [CHANGELOG.md](CHANGELOG.md) includes migration notes and breaking changes.
 
 ## License
 

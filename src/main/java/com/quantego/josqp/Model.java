@@ -244,8 +244,8 @@ public class Model {
             final Variable x1;
             final Variable x2;
             Pair(Variable x1, Variable x2) {
-                this.x1=x1;
-                this.x2=x2;
+                this.x1 = x1._x <= x2._x ? x1 : x2;
+                this.x2 = x1._x <= x2._x ? x2 : x1;
             }
 
             /**
@@ -255,6 +255,7 @@ public class Model {
              */
             @Override
             public boolean equals(Object o) {
+                if (!(o instanceof Pair)) return false;
                 Pair pair = (Pair) o;
                 return x1==pair.x1 && x2==pair.x2;
             }
@@ -305,6 +306,8 @@ public class Model {
          */
         public Objective add(double c) {
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
+            requireFinite(c);
+            requireFinite(_c + c);
             _c += c;
             return this;
         }
@@ -316,6 +319,8 @@ public class Model {
          * @return
          */
         public Objective add(double a, Variable x) {
+            if (x == null || x._m != _m) throw new IllegalArgumentException("Variable belongs to another model.");
+            requireFinite(a);
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
             _a.compute(x,(key,val)->val==null?a:val+a);
             return this;
@@ -329,6 +334,9 @@ public class Model {
          * @return builder
          */
         public Objective add(double a, Variable x1, Variable x2) {
+            if (x1 == null || x2 == null || x1._m != _m || x2._m != _m)
+                throw new IllegalArgumentException("Variable belongs to another model.");
+            requireFinite(a);
             if (_a==null) throw new IllegalStateException("Objective has already been built. Use set instead.");
             _p.compute(new Pair(x1,x2),(key,val)->val==null?a:val+a);
             return this;
@@ -342,6 +350,8 @@ public class Model {
          */
         public void set(double p, Variable x1, Variable x2) {
             if (_a!=null) throw new IllegalStateException("Objective function must first be built by calling maximize or minimize.");
+            if (x1 == null || x2 == null || x1._m != _m || x2._m != _m)
+                throw new IllegalArgumentException("Variable belongs to another model.");
             _m.setQbj(x1._x,x2._x,p);
         }
 
@@ -352,6 +362,7 @@ public class Model {
          */
         public void set(double q, Variable x) {
             if (_a!=null) throw new IllegalStateException("Objective function must first be built by calling maximize or minimize.");
+            if (x == null || x._m != _m) throw new IllegalArgumentException("Variable belongs to another model.");
             _m.setObj(x._x,q);
         }
 
@@ -469,6 +480,8 @@ public class Model {
          */
         public Constraint add(double a, Variable x) {
             if (_y!=null) throw new IllegalStateException("Constraint has already been added to the model by function geq.");
+            if (x == null || x._m != _m) throw new IllegalArgumentException("Variable belongs to another model.");
+            requireFinite(a);
             _a.compute(x,(key,val)->val==null?a:val+a);
             return this;
         }
@@ -519,6 +532,7 @@ public class Model {
          */
         public void setLhs(Variable x, double a) {
             if (_y==null) throw new IllegalStateException("Constraint has not yet been added to model. Call leq, eq, geq, before calling lhs or rhs.");
+            if (x == null || x._m != _m) throw new IllegalArgumentException("Variable belongs to another model.");
             _m.setLhs(_y,x._x,a);
         }
 
@@ -560,6 +574,7 @@ public class Model {
 
     OSQP _solver;
     OSQP.Settings _param;
+    OSQP.Settings _configured;
     OSQP.Data _data;
     CSCMatrixBuilder _A;
     CSCMatrixBuilder _P;
@@ -577,6 +592,8 @@ public class Model {
     int _nCols;
     int _nRows;
     boolean _maximize;
+    boolean _solverMaximize;
+    boolean _newSense;
     boolean _newQ;
     boolean _newP;
     boolean _newL;
@@ -641,6 +658,8 @@ public class Model {
      * @return index of the constraint
      */
     public int addCtr(Constraint.Type type, double rhs) {
+        if (type == null) throw new IllegalArgumentException("Missing constraint type.");
+        checkRhs(type, rhs);
         switch (type) {
             case EQ: _lb.add(rhs); _ub.add(rhs); break;
             case LEQ:  _lb.add(-OSQP.OSQP_INFTY); _ub.add(rhs); break;
@@ -660,9 +679,11 @@ public class Model {
      * @param type constraint type
      */
     public void setType(int ctr, Constraint.Type type) {
-        if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
+        if (type == null) throw new IllegalArgumentException("Missing constraint type.");
+        if (ctr < 0 || ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
         if (type.ordinal()==_type.get(ctr)) return;
         double rhs = _rhs.get(ctr);
+        checkRhs(type, rhs);
         switch (type) {
             case EQ: _lb.set(ctr,rhs); _ub.set(ctr,rhs); break;
             case LEQ:  _lb.set(ctr,-OSQP.OSQP_INFTY); _ub.set(ctr,rhs); break;
@@ -679,7 +700,8 @@ public class Model {
      * @param value right-hand side
      */
     public void setRhs(int ctr, double value) {
-        if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
+        if (ctr < 0 || ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
+        checkRhs(Constraint.Type.values()[_type.get(ctr)], value);
         if (value==_rhs.get(ctr)) return;
         switch (Constraint.Type.values()[_type.get(ctr)]) {
             case EQ: _lb.set(ctr,value); _ub.set(ctr,value); _newL = true; _newU = true; break;
@@ -698,8 +720,8 @@ public class Model {
      * @param value coefficient
      */
     public void setLhs(int ctr, int var, double value) {
-        if (ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
-        if (var>=_nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
+        if (ctr < 0 || ctr>=_nRows) throw new IllegalArgumentException(String.format("Constraint %d is unknown.",ctr));
+        if (var < 0 || var>=_nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         _A.set(ctr,var,value);
         _newA = true;
     }
@@ -710,7 +732,8 @@ public class Model {
      * @param value coefficient
      */
     public void setObj(int var, double value) {
-        if (var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
+        requireFinite(value);
+        if (var < 0 || var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         _q.set(var,value);
         _newQ = true;
     }
@@ -726,9 +749,11 @@ public class Model {
      * @param value coefficient of the monomial {@code value * x1 * x2}
      */
     public void setQbj(int var1, int var2, double value) {
-        if (var1 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var1));
-        if (var2 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var2));
+        requireFinite(value);
+        if (var1 < 0 || var1 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var1));
+        if (var2 < 0 || var2 >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var2));
         if (var1 == var2) {
+            requireFinite(2 * value);
             _P.set(var1, var2, 2 * value);
         } else {
             _P.set(Math.min(var1, var2), Math.max(var1, var2), value);
@@ -742,7 +767,8 @@ public class Model {
      * @param value upper bound
      */
     public void setUb(int var, double value) {
-        if (var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
+        if (Double.isNaN(value) || value == Double.NEGATIVE_INFINITY) throw new IllegalArgumentException("Invalid upper bound.");
+        if (var < 0 || var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         if (value>OSQP.OSQP_INFTY) value=OSQP.OSQP_INFTY;
         _ub.set(_cr.get(var), value);
         _newU = true;
@@ -754,7 +780,8 @@ public class Model {
      * @param value lower bound
      */
     public void setLb(int var, double value) {
-        if (var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
+        if (Double.isNaN(value) || value == Double.POSITIVE_INFINITY) throw new IllegalArgumentException("Invalid lower bound.");
+        if (var < 0 || var >= _nCols) throw new IllegalArgumentException(String.format("Variable %d is unknown.",var));
         if (value<-OSQP.OSQP_INFTY) value=-OSQP.OSQP_INFTY;
         _lb.set(_cr.get(var), value);
         _newL = true;
@@ -765,7 +792,9 @@ public class Model {
      * @param value offset
      */
     public void setOffset(double value) {
+        requireFinite(value);
         _offset = value;
+        if (_solver != null) _solver.work.data.offset = _solverMaximize ? -value : value;
     }
 
     /**
@@ -773,6 +802,7 @@ public class Model {
      * @param maximize true if problem is a maximization problem
      */
     public void setSense(boolean maximize) {
+        if (_maximize != maximize) _newSense = true;
         _maximize = maximize;
     }
 
@@ -794,6 +824,13 @@ public class Model {
             throw new IllegalArgumentException("Lower bounds shorter than the variable count.");
         if (upper != null && upper.length < n)
             throw new IllegalArgumentException("Upper bounds shorter than the variable count.");
+        for (int i = 0; i < n; i++) {
+            double lo = lower == null ? 0 : lower[i];
+            double hi = upper == null ? OSQP.OSQP_INFTY : upper[i];
+            if (Double.isNaN(lo) || Double.isNaN(hi) || lo > hi
+                    || lo == Double.POSITIVE_INFINITY || hi == Double.NEGATIVE_INFINITY)
+                throw new IllegalArgumentException("Invalid variable bounds.");
+        }
         int first = _nCols;
         for (int i = 0; i < n; i++) {
             int var = addVar();
@@ -820,6 +857,7 @@ public class Model {
     /**
      * Sets quadratic objective terms with value as the coefficient of {@code x_rows[k]*x_cols[k]},
      * matching {@link #setQbj(int, int, double)}. The entry is stored in the upper triangle of P.
+     * Repeated positions use the last assignment; unlike Objective.add, this method does not sum them.
      *
      * @param rows first variable index of each term
      * @param cols second variable index of each term
@@ -831,8 +869,12 @@ public class Model {
         if (rows.length != cols.length || rows.length != values.length)
             throw new IllegalArgumentException("Quadratic term arrays must have the same length.");
         for (int k = 0; k < rows.length; k++) {
-            if (rows[k] >= _nCols || cols[k] >= _nCols)
+            if (rows[k] < 0 || cols[k] < 0 || rows[k] >= _nCols || cols[k] >= _nCols)
                 throw new IllegalArgumentException("Quadratic term refers to an unknown variable.");
+            requireFinite(values[k]);
+            if (rows[k] == cols[k]) requireFinite(2 * values[k]);
+        }
+        for (int k = 0; k < rows.length; k++) {
             if (rows[k] == cols[k]) {
                 _P.set(rows[k], cols[k], 2 * values[k]);
             } else {
@@ -854,7 +896,8 @@ public class Model {
      */
     public int addConstraintRow(int[] indices, double[] coefficients, double lower, double upper) {
         checkBulkArguments(indices, coefficients);
-        if (lower > upper)
+        if (Double.isNaN(lower) || Double.isNaN(upper) || lower > upper
+                || lower == Double.POSITIVE_INFINITY || upper == Double.NEGATIVE_INFINITY)
             throw new IllegalArgumentException("Lower bound must not exceed the upper bound.");
         int ctr = addCtr(Constraint.Type.NEQ, 0.0);
         _lb.set(ctr, lower);
@@ -874,9 +917,10 @@ public class Model {
      * @param upper upper bound
      */
     public void setConstraintBounds(int ctr, double lower, double upper) {
-        if (ctr >= _nRows)
+        if (ctr < 0 || ctr >= _nRows)
             throw new IllegalArgumentException(String.format("Constraint %d is unknown.", ctr));
-        if (lower > upper)
+        if (Double.isNaN(lower) || Double.isNaN(upper) || lower > upper
+                || lower == Double.POSITIVE_INFINITY || upper == Double.NEGATIVE_INFINITY)
             throw new IllegalArgumentException("Lower bound must not exceed the upper bound.");
         _lb.set(ctr, lower);
         _ub.set(ctr, upper);
@@ -888,6 +932,7 @@ public class Model {
             throw new IllegalArgumentException("Indices and coefficients must not be null.");
         if (indices.length != coefficients.length)
             throw new IllegalArgumentException("Indices and coefficients must have the same length.");
+        for (double coefficient : coefficients) requireFinite(coefficient);
         for (int index : indices)
             if (index < 0 || index >= _nCols)
                 throw new IllegalArgumentException(String.format("Variable %d is unknown.", index));
@@ -942,7 +987,9 @@ public class Model {
                 // objective is negated, so the offset must be negated with it.
                 _maximize ? -_offset : _offset
         );
-        _solver = new OSQP(_data,_param);
+        _solver = new OSQP(_data, _param, true);
+        _configured = _param.copy();
+        _solverMaximize = _maximize;
     }
 
     /** True when the freshly assembled builder still reproduces the pattern the solver holds. */
@@ -973,30 +1020,35 @@ public class Model {
     }
 
     /**
-     * Solve the model using the default parameter settings.
+     * Solve the model using its current parameter settings from {@link #getParam()}.
      * @return status of the solver
      */
     public OSQP.Status solve() {
-        return solve(new OSQP.Settings());
+        return solve(_param);
     }
 
     /**
      * Solve the model using customized parameter settings.
-     * @param settings the customized solver settings (or {@code null} for the default settings).
+     * @param settings settings applied on every call (or {@code null} for fresh defaults).
+     * Runtime changes reuse the solver; scaling or sigma changes rebuild it.
      * @return status of the solver
      */
     public OSQP.Status solve(OSQP.Settings settings) {
+        settings = settings == null ? new OSQP.Settings() : settings;
+        OSQP.validateSettings(settings);
+        _param = settings;
         if (_solver==null) {
             init(settings);
         }
         else {
-            if (_newCols || _newRows) {
+            if (_newCols || _newRows || _newSense || settings.scaling != _configured.scaling
+                    || settings.sigma != _configured.sigma) {
                 init(settings);
-                if (_newCols)
+                if (_x != null && _newCols)
                     _x = Arrays.copyOf(_x,_nCols);
-                if (_newRows)
+                if (_y != null && _newRows)
                     _y = Arrays.copyOf(_y,_nRows);
-                _solver.warm_start(_x,_y);
+                if (settings.warm_start && finite(_x) && finite(_y)) _solver.warm_start(_x,_y);
             }
             else {
                 // A value update can only be applied in place while the sparsity pattern is
@@ -1013,26 +1065,29 @@ public class Model {
                 }
                 if (rebuild) {
                     init(settings);
-                    if (finite(_x) && finite(_y) && _x.length == _nCols && _y.length == _nRows)
+                    if (settings.warm_start && finite(_x) && finite(_y) && _x.length == _nCols && _y.length == _nRows)
                         _solver.warm_start(_x, _y);
                 }
                 else {
-                    if (_newQ) {
-                        _solver.update_lin_cost(_maximize ? _q.toArrayNegated() : _q.toArray());
-                    }
-                    if (_newL || _newU)
-                        _solver.update_bounds(_lb.toArray(), _ub.toArray());
+                    OSQP.Settings runtime = settings.copy();
+                    // Preserve an automatically adapted rho unless the caller changes rho.
+                    if (settings.rho == _configured.rho) runtime.rho = _solver.work.settings.rho;
+                    _solver.update_settings(runtime);
+                    _configured = settings.copy();
+                    if (_newQ || _newL || _newU)
+                        _solver.update_data_vec(_newQ ? (_maximize ? _q.toArrayNegated() : _q.toArray()) : null,
+                                _newL ? _lb.toArray() : null, _newU ? _ub.toArray() : null);
                     // Pass the full value vector in the same CSC order the solver holds. Row indices
                     // are not positions: they are only equal when the pattern happens to be dense
                     // along the diagonal, which is exactly how the old call silently misfired.
-                    if (_newA)
-                        _solver.update_A(_A.getElements(), null);
-                    if (_newP)
-                        _solver.update_P(_P.getElements(), null);
+                    if (_newA || _newP)
+                        _solver.update_data_mat(_newP ? _P.getElements() : null, null,
+                                _newA ? _A.getElements() : null, null);
                 }
             }
         }
         _newA = false; _newP=false; _newQ = false; _newL = false; _newU = false; _newCols = false; _newRows=false; 
+        _newSense = false;
         _solver.solve();
         _x = _solver.getPrimalSolution();
         _y = _solver.getDualSolution();
@@ -1072,7 +1127,19 @@ public class Model {
      * @return objective value
      */
     public double getObj() {
-        return (_maximize?-1:1)*_solver.getObjectiveValue();
+        if (_solver == null) throw new IllegalStateException("Call solve before reading the objective.");
+        return (_solverMaximize?-1:1)*_solver.getObjectiveValue();
+    }
+
+    private static void requireFinite(double value) {
+        if (!Double.isFinite(value)) throw new IllegalArgumentException("Coefficients must be finite.");
+    }
+
+    private static void checkRhs(Constraint.Type type, double rhs) {
+        if (Double.isNaN(rhs) || (type == Constraint.Type.EQ && !Double.isFinite(rhs))
+                || (type == Constraint.Type.LEQ && rhs == Double.NEGATIVE_INFINITY)
+                || (type == Constraint.Type.GEQ && rhs == Double.POSITIVE_INFINITY))
+            throw new IllegalArgumentException("Invalid constraint right-hand side.");
     }
 
     static String termToString(double d, String s) {

@@ -102,8 +102,8 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ### Changed
 
-- **Test suite migrated to JUnit 5 (Jupiter)**. `mvn test` and `benchmarks/run.py` now drive the
-  suite through the JUnit Platform; `junit:junit:4.13.2` is gone and only `hamcrest` remains as an
+- **Test suite migrated to JUnit 5 (Jupiter)**. `mvn test` now drives the suite through the JUnit
+  Platform; `junit:junit:4.13.2` is gone and only `hamcrest` remains as an
   extra test dependency for the two matcher assertions. JUnit 5 expects the failure message as the
   *last* argument, so every message-carrying assertion was reordered. The archived `baseline` and
   `pre-workspace` harness modes keep running the historical JUnit 4 sources.
@@ -179,8 +179,8 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 - README: the benchmark section now shows nine QPLIB instances measured against
   native OSQP 1.1.3 with the current version (median of three cold starts, both
   configurations spelled out) instead of the historical cross-solver table, which
-  only covered an earlier version. `benchmarks/summarize_readme.py` rebuilds the
-  table from the two result files.
+  only covered an earlier version. The benchmark harness and the native comparison
+  tooling live outside the repository.
 - README: quadratic-term convention and the migration note for existing models,
   how model updates reuse or rebuild the solver, the settings that OSQP 1.0 adds
   and the ones jOSQP cannot honour, the index-based bulk API, the infeasibility

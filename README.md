@@ -190,17 +190,12 @@ against 1e-4 in jOSQP, and 100,000 against 200,000 iterations.
 
 On seven of the nine instances a pure Java solver stays with the C library, in five of them slightly
 ahead of it. The two exceptions are honest gaps: `qplib_8602` is the largest case of the set and
-native OSQP needs 13 seconds for it, so the 20 second limit is simply tight, and `qplib_8938` makes
-both solvers give up. Reproduce with
+native OSQP needs 13 seconds for it, and `qplib_8938` makes both solvers give up.
 
-```
-../.tools/native-env/bin/python benchmarks/native_bench.py \
-    --files ../josqp_benchmarks/extracted/qplib_8845.qps ... --solvers osqp \
-    --repeats 3 --eps 1e-3 --time-limit 20 --output benchmarks/results/readme-native-osqp.json
-java -cp target/portable-classes -Djosqp.bench.timeLimit=20 \
-    com.quantego.josqp.SolverBenchmark ../josqp_benchmarks/extracted/<instance>.qps 0 3 200000
-../.tools/native-env/bin/python benchmarks/summarize_readme.py
-```
+jOSQP was measured with its own cold-start harness on the same `.qps` files, native OSQP 1.1.3
+through its Python API on matrices exported from `Parser`, so both solvers read identical data. The
+harness and the native comparison tooling are kept outside this repository, next to the extracted
+QPLIB set; the numbers above are the medians of three runs each.
 
 ### What the current version changed
 
@@ -244,9 +239,6 @@ mvn -Pvector test                   # 99 tests, needs JDK 26 and jdk.incubator.v
 mvn -Prelease package               # main, sources and javadoc jar in target/
 java -jar target/josqp-1.0.0.jar src/test/resources/qafiro.qps
 ```
-
-`benchmarks/run.py` builds and tests the same sources without Maven and fetches the JUnit Platform
-console launcher into the parent workspace on first use.
 
 ## Requirements
 

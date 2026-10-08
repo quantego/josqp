@@ -4,7 +4,4 @@ src/.DS_Store
 src/test/.DS_Store
 target/
 out/
-__pycache__/
-*.pyc
-benchmarks/results/preliminary/
 josqp.log

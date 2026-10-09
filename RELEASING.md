@@ -34,6 +34,7 @@ for key setup, renewal and publication.
 
 1. Set the new version in `pom.xml`, update installation examples and move the
    relevant [changelog](CHANGELOG.md) entries into a dated release section.
+   Add a concise summary and migration notes to `release-notes/X.Y.Z.md`.
 2. Verify the portable release artifacts locally, then commit and push the branch:
 
    ```bash
@@ -47,8 +48,16 @@ for key setup, renewal and publication.
 4. Create and push an annotated tag `vX.Y.Z` matching the POM version.
    **Pushing the tag starts automatic publication.** Do not move an existing published tag.
 5. Confirm the [Release job](https://github.com/quantego/josqp/actions/workflows/release.yml)
-   succeeded and the version is available on Maven Central. Create the GitHub release
-   with the matching changelog notes and open a new `Unreleased` section.
+   succeeded and the version is available on Maven Central. The separate
+   [GitHub Release job](.github/workflows/github-release.yml) then publishes the
+   existing tag with the concise notes and the three jars downloaded from Central.
+   Open a new `Unreleased` section.
+
+To retry GitHub publication without redeploying to Central, run **GitHub Release**
+manually with the existing tag. Changes to the notes or that workflow on `master`
+also create or update the current POM version's GitHub release. A matching successful
+Central release run and downloadable Central artifacts are required. Published tags
+and jar assets are preserved; updates to an existing published release only change its notes/title.
 
 The release runs on JDK 21 without `-Pvector`; the experimental Vector backend is
 not part of the published portable jar.

@@ -1,0 +1,106 @@
+name: GitHub Release
+
+# Also backfill or update notes for the current version when this workflow or
+# its release notes change. This never republishes an artifact to Central.
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/github-release.yml'
+      - 'release-notes/*.md'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing published tag (blank uses the POM version)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: github-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag, notes and successful Central deployment
+        id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_TAG: ${{ github.event.workflow_run.head_branch }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          if [[ "$EVENT_NAME" == workflow_run ]]; then
+            tag="$RUN_TAG"
+          elif [[ -n "$REQUESTED_TAG" ]]; then
+            tag="$REQUESTED_TAG"
+          else
+            version=$(sed -n 's/^[[:space:]]*<version>\([^<]*\)<\/version>[[:space:]]*$/\1/p' pom.xml | head -n 1)
+            tag="v$version"
+          fi
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          version="${tag#v}"
+          test -s "release-notes/$version.md"
+          sha=$(git rev-parse "refs/tags/$tag^{commit}")
+          if [[ "$EVENT_NAME" == workflow_run ]]; then
+            test "$sha" = "$RUN_SHA"
+          fi
+          # A matching successful Release run waited for Central's published
+          # state. Do not publish a GitHub release for an unverified tag.
+          gh api --paginate "repos/$GH_REPO/actions/workflows/release.yml/runs?status=success&per_page=100" \
+            --jq ".workflow_runs[] | select(.head_sha == \"$sha\" and .head_branch == \"$tag\") | .id" > "$RUNNER_TEMP/central-runs"
+          test -s "$RUNNER_TEMP/central-runs"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Download the published Central jars
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-assets"
+          cd "$RUNNER_TEMP/release-assets"
+          base="https://repo.maven.apache.org/maven2/com/quantego/josqp/$VERSION"
+          for suffix in '' '-sources' '-javadoc'; do
+            file="josqp-${VERSION}${suffix}.jar"
+            curl --fail --silent --show-error --location --retry 5 --retry-all-errors "$base/$file" -o "$file"
+            curl --fail --silent --show-error --location --retry 5 --retry-all-errors "$base/$file.sha1" -o "$file.sha1"
+            checksum=$(tr -d '\r\n' < "$file.sha1")
+            [[ "$checksum" =~ ^[a-fA-F0-9]{40}$ ]]
+            printf '%s  %s\n' "$checksum" "$file" | sha1sum --check
+          done
+
+      - name: Create or update the GitHub release
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          notes="release-notes/$VERSION.md"
+          assets=("$RUNNER_TEMP/release-assets/"*.jar)
+          if gh release view "$TAG" --json isDraft > "$RUNNER_TEMP/release.json" 2>/dev/null; then
+            if jq -e '.isDraft' "$RUNNER_TEMP/release.json" >/dev/null; then
+              gh release upload "$TAG" "${assets[@]}" --clobber
+              gh release edit "$TAG" --title "jOSQP $VERSION" --notes-file "$notes" --draft=false
+            else
+              # Preserve published assets (including immutable releases).
+              gh release edit "$TAG" --title "jOSQP $VERSION" --notes-file "$notes"
+            fi
+          else
+            gh release create "$TAG" "${assets[@]}" --verify-tag \
+              --title "jOSQP $VERSION" --notes-file "$notes"
+          fi

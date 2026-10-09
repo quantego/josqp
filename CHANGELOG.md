@@ -10,6 +10,12 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ## [Unreleased]
 
+### Added
+
+- Automatically create a GitHub release after successful Central publication,
+  with concise versioned release notes and the three exact jars from Central.
+  Support backfilling 1.0.0 and retrying GitHub publication without a second Maven deployment.
+
 ### Fixed
 
 - Pin the Central release job to Maven 3.9.16. Maven 3.10 creates local repository

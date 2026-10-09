@@ -69,6 +69,7 @@ jobs:
           version=$(sed -n 's/^[[:space:]]*<version>\([^<]*\)<\/version>[[:space:]]*$/\1/p' pom.xml | head -n 1)
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           test "$RELEASE_TAG" = "v$version"
+          test -s "release-notes/$version.md"
 
       - name: Import the signing key
         env:

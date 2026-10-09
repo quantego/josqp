@@ -316,11 +316,11 @@ or diagnostic timings, and have no performance ratio.
 | Instance | n | Java solve | Native solve | Java / native | Profile | Status / validation |
 |---|---:|---:|---:|---:|---|---|
 | `qplib_10034` | 40400 | 225.004839 s | 224.885370 s | — | A / 1e-09 | TIME_LIMIT_REACHED / RUN_TIME_LIMIT_REACHED; termination status |
-| `qplib_10038` | 160800 | — | 224.064795 s | — | A / 1e-09 | RSS_MONITOR_UNAVAILABLE / RUN_TIME_LIMIT_REACHED; worker/resource failure |
+| `qplib_10038` | 160800 | 225.024559 s | 224.056516 s | — | A / 1e-09 | TIME_LIMIT_REACHED / RUN_TIME_LIMIT_REACHED; termination status |
 | `qplib_8495` | 27543 | 0.467448 s | 0.476646 s | 0.981 | A | SOLVED / SOLVED |
 | `qplib_8500` | 250997 | 225.016759 s | 221.303718 s | — | A | TIME_LIMIT_REACHED / RUN_TIME_LIMIT_REACHED; termination status |
 | `qplib_8515` | 16002 | 225.001284 s | 224.995988 s | — | A | TIME_LIMIT_REACHED / RUN_TIME_LIMIT_REACHED; termination status |
-| `qplib_8547` | 1003001 | — | 201.146007 s | — | A | RSS_MONITOR_UNAVAILABLE / RUN_TIME_LIMIT_REACHED; worker/resource failure |
+| `qplib_8547` | 1003001 | 225.058253 s | 201.055224 s | — | A | TIME_LIMIT_REACHED / RUN_TIME_LIMIT_REACHED; termination status |
 | `qplib_8559` | 10000 | 32.475134 s | 35.983137 s | 0.903 | A | SOLVED / SOLVED |
 | `qplib_8567` | 10000 | 53.632004 s | 59.984141 s | 0.894 | A | SOLVED / SOLVED |
 | `qplib_8602` | 34552 | 31.716734 s | 32.483907 s | 0.976 | A | SOLVED / SOLVED |
@@ -348,7 +348,7 @@ or diagnostic timings, and have no performance ratio.
 | `aug3dcqp` | 3873 | 0.010159 s | 0.010433 s | 0.974 | A | SOLVED / SOLVED |
 | `aug3dqp` | 3873 | 0.010092 s | 0.010090 s | 1.000 | A | SOLVED / SOLVED |
 | `boyd1` | 93261 | 225.007218 s | 224.954797 s | — | A | SOLVED_INACCURATE / SOLVED_INACCURATE; original-matrix tolerance failed |
-| `boyd2` | 93263 | 225.006119 s | — | — | A | TIME_LIMIT_REACHED / RSS_MONITOR_UNAVAILABLE; worker/resource failure |
+| `boyd2` | 93263 | 225.004437 s | 224.951275 s | — | A | TIME_LIMIT_REACHED / RUN_TIME_LIMIT_REACHED; termination status |
 | `cont-050` | 2597 | 0.306124 s | 0.332666 s | 0.920 | A | SOLVED / SOLVED |
 | `cont-100` | 10197 | 7.721537 s | 8.366774 s | 0.923 | A | SOLVED / SOLVED |
 | `cont-101` | 10197 | 12.065546 s | 11.307979 s | 1.067 | A | SOLVED / SOLVED |

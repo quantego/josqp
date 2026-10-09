@@ -10,6 +10,12 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ## [Unreleased]
 
+### Documentation
+
+- Keep a concise benchmark summary in the README; move the full instance tables,
+  methodology, builder timings and kernel comparisons to [BENCHMARKS.md](BENCHMARKS.md).
+- Reduce [RELEASING.md](RELEASING.md) to the maintainer credentials and release checklist.
+
 ## [1.0.0] - 2026-10-08
 
 ### Changed — breaking

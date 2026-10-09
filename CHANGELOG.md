@@ -10,6 +10,14 @@ published predecessor is `com.quantego:josqp:0.6.5`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Pin the Central release job to Maven 3.9.16. Maven 3.10 creates local repository
+  metadata in the staging directory that Central plugin 0.11.0 does not remove,
+  causing a bundle validation failure despite the versioned POM being present.
+- Wait for the Central deployment to reach `published`, not just `validated`, and
+  retain the generated bundle as a workflow artifact for inspection.
+
 ### Documentation
 
 - Keep a concise benchmark summary in the README; move the full instance tables,

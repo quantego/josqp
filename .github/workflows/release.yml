@@ -35,6 +35,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Maven 3.10's legacy repository overlay creates local metadata in the
+      # Central staging directory. Plugin 0.11.0 only removes the older
+      # maven-metadata-central-staging.xml name, leaving an invalid bundle.
+      - name: Use Maven 3.9.16 for Central staging
+        env:
+          JOSQP_MAVEN_VERSION: '3.9.16'
+        run: |
+          archive="apache-maven-${JOSQP_MAVEN_VERSION}-bin.tar.gz"
+          base="https://archive.apache.org/dist/maven/maven-3/${JOSQP_MAVEN_VERSION}/binaries"
+          curl --fail --silent --show-error --location --retry 3 "$base/$archive" -o "$RUNNER_TEMP/$archive"
+          curl --fail --silent --show-error --location --retry 3 "$base/$archive.sha512" -o "$RUNNER_TEMP/$archive.sha512"
+          checksum=$(cat "$RUNNER_TEMP/$archive.sha512")
+          [[ "$checksum" =~ ^[a-fA-F0-9]{128}$ ]]
+          printf '%s  %s\n' "$checksum" "$RUNNER_TEMP/$archive" | sha512sum --check
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/apache-maven-${JOSQP_MAVEN_VERSION}/bin" >> "$GITHUB_PATH"
+
       - name: Set up JDK and Central credentials
         uses: actions/setup-java@v4
         with:
@@ -66,4 +83,14 @@ jobs:
       - name: Build, test and deploy
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: mvn -B -Prelease deploy
+        run: |
+          mvn --version
+          mvn -B -Prelease clean deploy
+
+      - name: Preserve the Central bundle for inspection
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-central-bundle
+          path: target/central-publishing/central-bundle.zip
+          if-no-files-found: ignore

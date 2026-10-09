@@ -244,12 +244,17 @@ published predecessor is `com.quantego:josqp:0.6.5`.
   and the retained Apache 2.0 / BSD 3-clause license texts in `META-INF`,
   including the sources and Javadoc jars.
 
-- README: the benchmark section now shows nine QPLIB and two Maros-Meszaros instances measured
-  against native OSQP 1.1.3 after the short-column optimization (one untimed warmup and three
-  fresh solver states per instance and solver, both configurations spelled out), replacing
-  the historical cross-solver table, which
-  only covered an earlier version. The benchmark harness and the native comparison
-  tooling live outside the repository.
+- README: replace the selected native comparison with the full companion-suite census:
+  all 19 eligible continuous convex QPLIB QPs and 139 available Maros-Meszaros inputs/variants.
+  Report separate and combined geometric means over independently validated pairs, with
+  identical matrix aliases counted once. Retain excluded inputs with explicit numerical,
+  budget, resource or missing-data reasons; a limit is not labelled infeasibility.
+  Both solver profiles, warmup, repetitions and setup/solve boundaries are documented.
+  The recorded setup time contains the native adapter's SciPy-to-C marshalling, which has no
+  counterpart in the Java runner and was a median 32 % of the native setup; the section therefore
+  reports the setup + solve mean both as measured and with that adapter share removed
+  (0.949 instead of 0.779 over the validated pairs). The solve times need no correction.
+  The benchmark harness, raw attempts and native adapter remain outside the Java repository.
 - README: quadratic-term convention and the migration note for existing models,
   how model updates reuse or rebuild the solver, the settings that OSQP 1.0 adds
   and the ones jOSQP cannot honour, the index-based bulk API, the infeasibility
